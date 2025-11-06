@@ -1,4 +1,4 @@
-# Contributing to *exhort-java-api*<br/>![java-version][10]
+# Contributing to *trustify-da-java-client*<br/>![java-version][10]
 
 * Fork the repository
 * Create a new branch

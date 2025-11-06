@@ -76,7 +76,10 @@ class AppTest extends ExhortTest {
       mockedAppUtils.verify(() -> printLine(contains("USAGE:")));
       mockedAppUtils.verify(
           () ->
-              printLine(contains("java -jar exhort-java-api.jar <COMMAND> <FILE_PATH> [OPTIONS]")));
+              printLine(
+                  contains(
+                      "java -jar trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH>"
+                          + " [OPTIONS]")));
     }
   }
 
@@ -97,7 +100,10 @@ class AppTest extends ExhortTest {
       mockedAppUtils.verify(() -> printLine(contains("USAGE:")));
       mockedAppUtils.verify(
           () ->
-              printLine(contains("java -jar exhort-java-api.jar <COMMAND> <FILE_PATH> [OPTIONS]")));
+              printLine(
+                  contains(
+                      "java -jar trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH>"
+                          + " [OPTIONS]")));
     }
   }
 
@@ -159,19 +165,27 @@ class AppTest extends ExhortTest {
 
       mockedAppUtils.verify(() -> printLine(contains("EXAMPLES:")));
       mockedAppUtils.verify(
-          () -> printLine(contains("java -jar exhort-java-api.jar stack /path/to/pom.xml")));
+          () ->
+              printLine(
+                  contains("java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml")));
       mockedAppUtils.verify(
           () ->
               printLine(
-                  contains("java -jar exhort-java-api.jar stack /path/to/package.json --summary")));
+                  contains(
+                      "java -jar trustify-da-java-client-cli.jar stack /path/to/package.json"
+                          + " --summary")));
       mockedAppUtils.verify(
           () ->
               printLine(
-                  contains("java -jar exhort-java-api.jar stack /path/to/build.gradle --html")));
+                  contains(
+                      "java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle"
+                          + " --html")));
       mockedAppUtils.verify(
           () ->
               printLine(
-                  contains("java -jar exhort-java-api.jar component /path/to/requirements.txt")));
+                  contains(
+                      "java -jar trustify-da-java-client-cli.jar component"
+                          + " /path/to/requirements.txt")));
     }
   }
 

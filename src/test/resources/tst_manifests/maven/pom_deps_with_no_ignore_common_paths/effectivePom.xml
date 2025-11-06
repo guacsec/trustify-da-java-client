@@ -5532,15 +5532,15 @@
     </pluginRepository>
   </pluginRepositories>
   <build>
-    <sourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/java</sourceDirectory>
-    <scriptSourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/scripts</scriptSourceDirectory>
-    <testSourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/test/java</testSourceDirectory>
-    <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</outputDirectory>
-    <testOutputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/test-classes</testOutputDirectory>
+    <sourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/java</sourceDirectory>
+    <scriptSourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/scripts</scriptSourceDirectory>
+    <testSourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/test/java</testSourceDirectory>
+    <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</outputDirectory>
+    <testOutputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/test-classes</testOutputDirectory>
     <resources>
       <resource>
         <filtering>true</filtering>
-        <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/resources</directory>
+        <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/resources</directory>
         <includes>
           <include>**/application*.yml</include>
           <include>**/application*.yaml</include>
@@ -5548,7 +5548,7 @@
         </includes>
       </resource>
       <resource>
-        <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/resources</directory>
+        <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/main/resources</directory>
         <excludes>
           <exclude>**/application*.yml</exclude>
           <exclude>**/application*.yaml</exclude>
@@ -5558,10 +5558,10 @@
     </resources>
     <testResources>
       <testResource>
-        <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/test/resources</directory>
+        <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/src/test/resources</directory>
       </testResource>
     </testResources>
-    <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target</directory>
+    <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target</directory>
     <finalName>pom-with-dependency-not-ignored-common-paths-0.0.1</finalName>
     <pluginManagement>
       <plugins>
@@ -5598,7 +5598,7 @@
                 <verbose>true</verbose>
                 <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
                 <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                <generateGitPropertiesFilename>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes/git.properties</generateGitPropertiesFilename>
+                <generateGitPropertiesFilename>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes/git.properties</generateGitPropertiesFilename>
               </configuration>
             </execution>
           </executions>
@@ -5606,7 +5606,7 @@
             <verbose>true</verbose>
             <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
             <generateGitPropertiesFile>true</generateGitPropertiesFile>
-            <generateGitPropertiesFilename>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes/git.properties</generateGitPropertiesFilename>
+            <generateGitPropertiesFilename>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes/git.properties</generateGitPropertiesFilename>
           </configuration>
         </plugin>
         <plugin>
@@ -5697,12 +5697,12 @@
                 <goal>verify</goal>
               </goals>
               <configuration>
-                <classesDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</classesDirectory>
+                <classesDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</classesDirectory>
               </configuration>
             </execution>
           </executions>
           <configuration>
-            <classesDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</classesDirectory>
+            <classesDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/classes</classesDirectory>
           </configuration>
         </plugin>
         <plugin>
@@ -6035,7 +6035,7 @@
               <goal>site</goal>
             </goals>
             <configuration>
-              <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
+              <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
               <reportPlugins>
                 <reportPlugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -6051,7 +6051,7 @@
               <goal>deploy</goal>
             </goals>
             <configuration>
-              <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
+              <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
               <reportPlugins>
                 <reportPlugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -6062,7 +6062,7 @@
           </execution>
         </executions>
         <configuration>
-          <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
+          <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
           <reportPlugins>
             <reportPlugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -6074,6 +6074,6 @@
     </plugins>
   </build>
   <reporting>
-    <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
+    <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/pom_deps_with_no_ignore_common_paths/target/site</outputDirectory>
   </reporting>
 </project>

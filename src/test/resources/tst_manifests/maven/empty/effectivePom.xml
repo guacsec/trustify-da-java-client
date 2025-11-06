@@ -40,22 +40,22 @@
     </pluginRepository>
   </pluginRepositories>
   <build>
-    <sourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/src/main/java</sourceDirectory>
-    <scriptSourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/src/main/scripts</scriptSourceDirectory>
-    <testSourceDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/src/test/java</testSourceDirectory>
-    <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/classes</outputDirectory>
-    <testOutputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/test-classes</testOutputDirectory>
+    <sourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/src/main/java</sourceDirectory>
+    <scriptSourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/src/main/scripts</scriptSourceDirectory>
+    <testSourceDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/src/test/java</testSourceDirectory>
+    <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/classes</outputDirectory>
+    <testOutputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/test-classes</testOutputDirectory>
     <resources>
       <resource>
-        <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/src/main/resources</directory>
+        <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/src/main/resources</directory>
       </resource>
     </resources>
     <testResources>
       <testResource>
-        <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/src/test/resources</directory>
+        <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/src/test/resources</directory>
       </testResource>
     </testResources>
-    <directory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target</directory>
+    <directory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target</directory>
     <finalName>empty-pom-xml-for-tests-1.0.0</finalName>
     <pluginManagement>
       <plugins>
@@ -194,7 +194,7 @@
               <goal>site</goal>
             </goals>
             <configuration>
-              <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
+              <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
               <reportPlugins>
                 <reportPlugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -210,7 +210,7 @@
               <goal>deploy</goal>
             </goals>
             <configuration>
-              <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
+              <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
               <reportPlugins>
                 <reportPlugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -221,7 +221,7 @@
           </execution>
         </executions>
         <configuration>
-          <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
+          <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
           <reportPlugins>
             <reportPlugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -233,6 +233,6 @@
     </plugins>
   </build>
   <reporting>
-    <outputDirectory>/home/zgrinber/git/exhort-java-api/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
+    <outputDirectory>/home/zgrinber/git/trustify-da-java-client/src/test/resources/tst_manifests/maven/empty/target/site</outputDirectory>
   </reporting>
 </project>

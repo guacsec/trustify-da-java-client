@@ -2,15 +2,15 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    backstage.io/kubernetes-id: exhort-java-api
-    github.com/project-slug: trustification/exhort-java-api
+    backstage.io/kubernetes-id: trustify-da-java-client
+    github.com/project-slug: guacsec/trustify-da-java-client
     github.com/project-readme-path: README.md
-    backstage.io/view-url: https://github.com/trustification/exhort-java-api/blob/main/catalog-info.yaml
-    backstage.io/edit-url: https://github.com/trustification/exhort-java-api/blob/main/catalog-info.yaml
-    backstage.io/source-location: url:https://github.com/trustification/exhort-java-api
+    backstage.io/view-url: https://github.com/guacsec/trustify-da-java-client/blob/main/catalog-info.yaml
+    backstage.io/edit-url: https://github.com/guacsec/trustify-da-java-client/blob/main/catalog-info.yaml
+    backstage.io/source-location: url:https://github.com/guacsec/trustify-da-java-client
     rhda/manifest-file-path: package.json
-    backstage.io/techdocs-ref: url:https://github.com/trustification/exhort-java-api
-  name: exhort-java-api
+    backstage.io/techdocs-ref: url:https://github.com/guacsec/trustify-da-java-client
+  name: trustify-da-java-client
   tags:
     - rhda
 spec:

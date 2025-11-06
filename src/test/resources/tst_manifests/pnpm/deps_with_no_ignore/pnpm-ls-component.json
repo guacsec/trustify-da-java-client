@@ -2,62 +2,62 @@
   {
     "name": "backend",
     "version": "1.0.0",
-    "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore",
+    "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore",
     "private": false,
     "dependencies": {
       "@hapi/joi": {
         "from": "@hapi/joi",
         "version": "17.1.1",
         "resolved": "https://registry.npmjs.org/@hapi/joi/-/joi-17.1.1.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/@hapi+joi@17.1.1/node_modules/@hapi/joi"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/@hapi+joi@17.1.1/node_modules/@hapi/joi"
       },
       "axios": {
         "from": "axios",
         "version": "0.19.2",
         "resolved": "https://registry.npmjs.org/axios/-/axios-0.19.2.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/axios@0.19.2/node_modules/axios"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/axios@0.19.2/node_modules/axios"
       },
       "backend": {
         "from": "backend",
         "version": "0.0.0",
         "resolved": "https://registry.npmjs.org/backend/-/backend-0.0.0.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/backend@0.0.0/node_modules/backend"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/backend@0.0.0/node_modules/backend"
       },
       "bcryptjs": {
         "from": "bcryptjs",
         "version": "2.4.3",
         "resolved": "https://registry.npmjs.org/bcryptjs/-/bcryptjs-2.4.3.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/bcryptjs@2.4.3/node_modules/bcryptjs"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/bcryptjs@2.4.3/node_modules/bcryptjs"
       },
       "dotenv": {
         "from": "dotenv",
         "version": "8.6.0",
         "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-8.6.0.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/dotenv@8.6.0/node_modules/dotenv"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/dotenv@8.6.0/node_modules/dotenv"
       },
       "express": {
         "from": "express",
         "version": "4.21.2",
         "resolved": "https://registry.npmjs.org/express/-/express-4.21.2.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/express@4.21.2/node_modules/express"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/express@4.21.2/node_modules/express"
       },
       "jsonwebtoken": {
         "from": "jsonwebtoken",
         "version": "8.5.1",
         "resolved": "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-8.5.1.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/jsonwebtoken@8.5.1/node_modules/jsonwebtoken"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/jsonwebtoken@8.5.1/node_modules/jsonwebtoken"
       },
       "mongoose": {
         "from": "mongoose",
         "version": "5.13.23",
         "resolved": "https://registry.npmjs.org/mongoose/-/mongoose-5.13.23.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/mongoose@5.13.23/node_modules/mongoose"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/mongoose@5.13.23/node_modules/mongoose"
       },
       "nodemon": {
         "from": "nodemon",
         "version": "2.0.22",
         "resolved": "https://registry.npmjs.org/nodemon/-/nodemon-2.0.22.tgz",
-        "path": "/Users/rromerom/workspace/github.com/trustification/exhort-java-api/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/nodemon@2.0.22/node_modules/nodemon"
+        "path": "/Users/rromerom/workspace/github.com/guacsec/trustify-da-java-client/src/test/resources/tst_manifests/pnpm/deps_with_no_ignore/node_modules/.pnpm/nodemon@2.0.22/node_modules/nodemon"
       }
     }
   }

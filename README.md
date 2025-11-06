@@ -1,9 +1,9 @@
 # CodeReady Dependency Analytics Java API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
-* Looking for our JavaScript/TypeScript API? Try [Exhort JavaScript API](https://github.com/trustification/exhort-javascript-api).
-* Looking for our Backend implementation? Try [Exhort](https://github.com/trustification/exhort).
+* Looking for our JavaScript/TypeScript API? Try [Trustify DA JavaScript Client](https://github.com/guacsec/trustify-da-javascript-client).
+* Looking for our Backend implementation? Try [Trustify Dependency Analytics](https://github.com/guacsec/trustify-dependency-analytics).
 
-The _Exhort Java API_ module is deployed to _GitHub Package Registry_.
+The _Trustify DA Java Client_ module is deployed to _GitHub Package Registry_.
 
 <details>
 <summary>Click here for configuring <em>GHPR</em> registry access.</summary>
@@ -69,7 +69,7 @@ encrypted-token-will-appear-here
     ...
     <repository>
       <id>github</id>
-      <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+      <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
     </repository>
     ...
   </repositories>
@@ -83,7 +83,7 @@ encrypted-token-will-appear-here
 repositories {
     ...
     maven {
-        url 'https://maven.pkg.github.com/trustification/exhort-java-api'
+        url 'https://maven.pkg.github.com/guacsec/trustify-da-java-client'
         credentials {
             username System.getenv("GITHUB_USERNAME")
             password System.getenv("GITHUB_TOKEN")
@@ -102,8 +102,8 @@ repositories {
 
 ```xml
 <dependency>
-    <groupId>com.redhat.exhort</groupId>
-    <artifactId>exhort-java-api</artifactId>
+    <groupId>io.github.guacsec</groupId>
+    <artifactId>trustify-da-java-client</artifactId>
     <version>0.0.9-SNAPSHOT</version>
 </dependency>
 ```
@@ -113,7 +113,7 @@ repositories {
 <em>Gradle</em> users, add a dependency in <em>build.gradle</em>
 
 ```groovy
-implementation 'com.redhat.exhort:exhort-java-api:${exhort-java-api.version}'
+implementation 'io.github.guacsec:trustify-da-java-client:${trustify-da-java-client.version}'
 ```
 </li>
 </ul>
@@ -124,7 +124,7 @@ If working with modules, configure module read
 
 ```java
 module x { // module-info.java
-    requires com.redhat.exhort;
+    requires io.github.guacsec;
 }
 ```
 </li>
@@ -311,7 +311,7 @@ All of the 5 above examples are valid for marking a package to be ignored
 
 <h3>Customization</h3>
 <p>
-There are 2 approaches for customizing <em>Exhort Java API</em>. Using <em>Environment Variables</em> or
+There are 2 approaches for customizing <em>Trustify DA Java Client</em>. Using <em>Environment Variables</em> or
 <em>Java Properties</em>:
 
 ```java
@@ -561,20 +561,20 @@ mvn clean package
 ```
 
 This creates two JAR files in the `target/` directory:
-- `exhort-java-api.jar` - Library JAR (for programmatic use)
-- `exhort-java-api-cli.jar` - CLI JAR (includes all dependencies)
+- `trustify-da-java-client.jar` - Library JAR (for programmatic use)
+- `trustify-da-java-client-cli.jar` - CLI JAR (includes all dependencies)
 
 #### Usage
 
 ```shell
-java -jar target/exhort-java-api-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
+java -jar target/trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
 ```
 
 #### Commands
 
 **Stack Analysis**
 ```shell
-java -jar exhort-java-api-cli.jar stack <file_path> [--summary|--html]
+java -jar trustify-da-java-client-cli.jar stack <file_path> [--summary|--html]
 ```
 Perform stack analysis on the specified manifest file.
 
@@ -585,7 +585,7 @@ Options:
 
 **Component Analysis**
 ```shell
-java -jar exhort-java-api-cli.jar component <file_path> [--summary]
+java -jar trustify-da-java-client-cli.jar component <file_path> [--summary]
 ```
 Perform component analysis on the specified manifest file.
 
@@ -597,22 +597,22 @@ Options:
 
 ```shell
 # Stack analysis with JSON output (default)
-java -jar exhort-java-api-cli.jar stack /path/to/pom.xml
+java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
 
 # Stack analysis with summary
-java -jar exhort-java-api-cli.jar stack /path/to/package.json --summary
+java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
 
 # Stack analysis with HTML output
-java -jar exhort-java-api-cli.jar stack /path/to/build.gradle --html
+java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
 
 # Component analysis with JSON output (default)
-java -jar exhort-java-api-cli.jar component /path/to/requirements.txt
+java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
 
 # Component analysis with summary
-java -jar exhort-java-api-cli.jar component /path/to/go.mod --summary
+java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
 
 # Show help
-java -jar exhort-java-api-cli.jar --help
+java -jar trustify-da-java-client-cli.jar --help
 ```
 
 ### Image Support 
@@ -694,5 +694,5 @@ Customize image analysis optionally by using *Environment Variables* or *Java Pr
 
 
 <!-- Badge links -->
-[0]: https://img.shields.io/github/v/release/trustification/exhort-java-api?color=green&label=latest
-[1]: https://img.shields.io/github/v/release/trustification/exhort-java-api?color=yellow&include_prereleases&label=snapshot
+[0]: https://img.shields.io/github/v/release/guacsec/trustify-da-java-client?color=green&label=latest
+[1]: https://img.shields.io/github/v/release/guacsec/trustify-da-java-client?color=yellow&include_prereleases&label=snapshot

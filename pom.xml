@@ -3,12 +3,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.redhat.exhort</groupId>
-  <artifactId>exhort-java-api</artifactId>
+  <groupId>io.github.guacsec</groupId>
+  <artifactId>trustify-da-java-client</artifactId>
   <version>0.0.9-SNAPSHOT</version>
-  <name>Exhort Java API</name>
-  <description>Exhort Java API</description>
-  <url>https://github.com/trustification/exhort-java-api#readme</url>
+  <name>Trustify DA Java Client</name>
+  <description>Trustify DA Java Client</description>
+  <url>https://github.com/guacsec/trustify-da-java-client#readme</url>
   <inceptionYear>2023</inceptionYear>
 
   <properties>
@@ -87,19 +87,19 @@
 
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/trustification/exhort-java-api/issues</url>
+    <url>https://github.com/guacsec/trustify-da-java-client/issues</url>
   </issueManagement>
 
   <scm>
-    <url>https://github.com/trustification/exhort-java-api</url>
-    <connection>scm:git:git@github.com:trustification/exhort-java-api.git</connection>
-    <developerConnection>scm:git:git@github.com:trustification/exhort-java-api.git</developerConnection>
+    <url>https://github.com/guacsec/trustify-da-java-client</url>
+    <connection>scm:git:git@github.com:guacsec/trustify-da-java-client.git</connection>
+    <developerConnection>scm:git:git@github.com:guacsec/trustify-da-java-client.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
   <ciManagement>
     <system>GitHub Workflows</system>
-    <url>https://github.com/trustification/exhort-java-api/actions</url>
+    <url>https://github.com/guacsec/trustify-da-java-client/actions</url>
   </ciManagement>
 
   <dependencyManagement>
@@ -890,11 +890,11 @@ limitations under the License.]]>
       <distributionManagement>
         <repository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
         </repository>
         <snapshotRepository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
         </snapshotRepository>
       </distributionManagement>
       <build>

@@ -198,7 +198,7 @@ public final class ExhortApi implements Api {
   private String commonHookBeginning(boolean startOfApi) {
     if (startOfApi) {
       if (debugLoggingIsNeeded()) {
-        LOG.info("Start of exhort-java-api client");
+        LOG.info("Start of trustify-da-java-client client");
         LOG.info(String.format("Starting time of API: %s", LocalDateTime.now()));
       }
     } else {
