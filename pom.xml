@@ -407,11 +407,11 @@ limitations under the License.]]>
             <excludes>
               <exclude>com/redhat/exhort/api/*</exclude>
               <exclude>com/redhat/exhort/api/serialization/*</exclude>
-              <exclude>com/redhat/exhort/exception/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/exception/*</exclude>
 <!-- This one excluding ExhortApi implementation calss from coverage report as it's not tested by surefire plugin, but with junit-platform-maven-plugin              -->
-              <exclude>com/redhat/exhort/impl/*</exclude>
-              <exclude>com/redhat/exhort/logging/*</exclude>
-              <exclude>com/redhat/exhort/image/ImageUtils.class</exclude>
+              <exclude>io/github/guacsec/trustifyda/impl/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/logging/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/image/ImageUtils.class</exclude>
 
             </excludes>
             <propertyName>jacoco.java.option</propertyName>
@@ -664,7 +664,7 @@ limitations under the License.]]>
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.redhat.exhort.cli.App</mainClass>
+              <mainClass>io.github.guacsec.trustifyda.cli.App</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -704,7 +704,7 @@ limitations under the License.]]>
               <transformers>
                 <!-- Main class transformer -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.redhat.exhort.cli.App</mainClass>
+                  <mainClass>io.github.guacsec.trustifyda.cli.App</mainClass>
                 </transformer>
 
                 <!-- Service files transformer for Jackson and other services -->

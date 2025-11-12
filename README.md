@@ -133,9 +133,9 @@ module x { // module-info.java
 Code example
 
 ```java
-import com.redhat.exhort.Api.MixedReport;
-import com.redhat.exhort.impl.ExhortApi;
-import com.redhat.exhort.AnalysisReport;
+import io.github.guacsec.trustifyda.Api.MixedReport;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
+import io.github.guacsec.trustifyda.AnalysisReport;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
@@ -621,11 +621,11 @@ Generate vulnerability analysis report for container images.
 
 #### Code Example
 ```java
-package com.redhat.exhort;
+package io.github.guacsec.trustifyda;
 
-import com.redhat.exhort.api.AnalysisReport;
-import com.redhat.exhort.image.ImageRef;
-import com.redhat.exhort.impl.ExhortApi;
+import io.github.guacsec.trustifyda.api.AnalysisReport;
+import io.github.guacsec.trustifyda.image.ImageRef;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
 
 import java.util.Map;
 import java.util.Set;

@@ -1,4 +1,4 @@
-module com.redhat.exhort {
+module io.github.guacsec.trustifyda {
   requires java.net.http;
   requires com.fasterxml.jackson.annotation;
   requires com.fasterxml.jackson.core;
@@ -13,26 +13,26 @@ module com.redhat.exhort {
   requires org.tomlj;
   requires java.base;
 
-  opens com.redhat.exhort.providers to
+  opens io.github.guacsec.trustifyda.providers to
       com.fasterxml.jackson.databind;
 
-  exports com.redhat.exhort;
-  exports com.redhat.exhort.impl;
-  exports com.redhat.exhort.sbom;
-  exports com.redhat.exhort.tools;
-  exports com.redhat.exhort.utils;
+  exports io.github.guacsec.trustifyda;
+  exports io.github.guacsec.trustifyda.impl;
+  exports io.github.guacsec.trustifyda.sbom;
+  exports io.github.guacsec.trustifyda.tools;
+  exports io.github.guacsec.trustifyda.utils;
 
-  opens com.redhat.exhort.utils to
+  opens io.github.guacsec.trustifyda.utils to
       com.fasterxml.jackson.databind;
-  opens com.redhat.exhort.sbom to
+  opens io.github.guacsec.trustifyda.sbom to
       com.fasterxml.jackson.databind,
       packageurl.java;
 
-  exports com.redhat.exhort.providers;
-  exports com.redhat.exhort.providers.javascript.model;
-  exports com.redhat.exhort.logging;
-  exports com.redhat.exhort.image;
+  exports io.github.guacsec.trustifyda.providers;
+  exports io.github.guacsec.trustifyda.providers.javascript.model;
+  exports io.github.guacsec.trustifyda.logging;
+  exports io.github.guacsec.trustifyda.image;
 
-  opens com.redhat.exhort.image to
+  opens io.github.guacsec.trustifyda.image to
       com.fasterxml.jackson.databind;
 }
