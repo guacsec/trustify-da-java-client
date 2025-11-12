@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Exhort API
-  description: Vulnerability analysis with Red Hat Trusted Profile Analyzer
+  description: Vulnerability analysis with Trustify - Dependency Analytics
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html

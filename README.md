@@ -1,4 +1,4 @@
-# CodeReady Dependency Analytics Java API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
+# Trustify Dependency Analytics Java API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
 * Looking for our JavaScript/TypeScript API? Try [Trustify DA JavaScript Client](https://github.com/guacsec/trustify-da-javascript-client).
 * Looking for our Backend implementation? Try [Trustify Dependency Analytics](https://github.com/guacsec/trustify-dependency-analytics).
