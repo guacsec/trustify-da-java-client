@@ -84,8 +84,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ClearSystemProperty(key = "TRUSTIFY_DA_DEV_MODE")
 @ClearSystemProperty(key = "TRUSTIFY_DA_PROXY_URL")
 @ClearSystemProperty(key = "DEV_TRUSTIFY_DA_BACKEND_URL")
-@ClearSystemProperty(key = "RHDA_TOKEN")
-@ClearSystemProperty(key = "RHDA_SOURCE")
+@ClearSystemProperty(key = "TRUST_DA_TOKEN")
+@ClearSystemProperty(key = "TRUST_DA_SOURCE")
 @SuppressWarnings("unchecked")
 class Exhort_Api_Test extends ExhortTest {
 
@@ -102,8 +102,8 @@ class Exhort_Api_Test extends ExhortTest {
 
   @Test
   @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source-from-env-var")
   void stackAnalysisHtml_with_pom_xml_should_return_html_report_from_the_backend()
       throws IOException, ExecutionException, InterruptedException {
     // create a temporary pom.xml file
@@ -125,9 +125,15 @@ class Exhort_Api_Test extends ExhortTest {
                 &&
                 // snyk token is set using the environment variable (annotation)
                 r.headers().firstValue("ex-snyk-token").get().equals("snyk-token-from-env-var")
-                && r.headers().firstValue("rhda-token").get().equals("rhda-token-from-env-var")
-                && r.headers().firstValue("rhda-source").get().equals("rhda-source-from-env-var")
-                && r.headers().firstValue("rhda-operation-type").get().equals("Stack Analysis")
+                && r.headers()
+                    .firstValue("trust-da-token")
+                    .get()
+                    .equals("trust-da-token-from-env-var")
+                && r.headers()
+                    .firstValue("trust-da-source")
+                    .get()
+                    .equals("trust-da-source-from-env-var")
+                && r.headers().firstValue("trust-da-operation-type").get().equals("Stack Analysis")
                 && r.method().equals("POST");
 
     // load dummy html and set as the expected analysis
@@ -163,8 +169,8 @@ class Exhort_Api_Test extends ExhortTest {
 
   @Test
   @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token")
-  @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token")
-  @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source")
   void stackAnalysis_with_pom_xml_should_return_json_object_from_the_backend()
       throws IOException, ExecutionException, InterruptedException {
     // create a temporary pom.xml file
@@ -184,9 +190,9 @@ class Exhort_Api_Test extends ExhortTest {
             r.headers().firstValue("Content-Type").get().equals("fake-content-type")
                 && r.headers().firstValue("Accept").get().equals("application/json")
                 && r.headers().firstValue("ex-snyk-token").get().equals("snyk-token")
-                && r.headers().firstValue("rhda-token").get().equals("rhda-token")
-                && r.headers().firstValue("rhda-source").get().equals("rhda-source")
-                && r.headers().firstValue("rhda-operation-type").get().equals("Stack Analysis")
+                && r.headers().firstValue("trust-da-token").get().equals("trust-da-token")
+                && r.headers().firstValue("trust-da-source").get().equals("trust-da-source")
+                && r.headers().firstValue("trust-da-operation-type").get().equals("Stack Analysis")
                 && r.method().equals("POST");
 
     // load dummy json and set as the expected analysis
@@ -239,8 +245,8 @@ class Exhort_Api_Test extends ExhortTest {
 
     // we expect this to picked up because no env var to take precedence
     System.setProperty("TRUSTIFY_DA_SNYK_TOKEN", "snyk-token-from-property");
-    System.setProperty("RHDA_TOKEN", "rhda-token-from-property");
-    System.setProperty("RHDA_SOURCE", "rhda-source-from-property");
+    System.setProperty("TRUST_DA_TOKEN", "trust-da-token-from-property");
+    System.setProperty("TRUST_DA_SOURCE", "trust-da-source-from-property");
 
     // create an argument matcher to make sure we mock the response for the right request
     ArgumentMatcher<HttpRequest> matchesRequest =
@@ -251,9 +257,18 @@ class Exhort_Api_Test extends ExhortTest {
                 // snyk token is set using properties which is picked up because no env var
                 // specified
                 r.headers().firstValue("ex-snyk-token").get().equals("snyk-token-from-property")
-                && r.headers().firstValue("rhda-token").get().equals("rhda-token-from-property")
-                && r.headers().firstValue("rhda-source").get().equals("rhda-source-from-property")
-                && r.headers().firstValue("rhda-operation-type").get().equals("Component Analysis")
+                && r.headers()
+                    .firstValue("trust-da-token")
+                    .get()
+                    .equals("trust-da-token-from-property")
+                && r.headers()
+                    .firstValue("trust-da-source")
+                    .get()
+                    .equals("trust-da-source-from-property")
+                && r.headers()
+                    .firstValue("trust-da-operation-type")
+                    .get()
+                    .equals("Component Analysis")
                 && r.method().equals("POST");
 
     // load dummy json and set as the expected analysis
@@ -458,8 +473,8 @@ class Exhort_Api_Test extends ExhortTest {
 
   @Test
   @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source-from-env-var")
   @SetSystemProperty(key = SKIP_VALIDATION_KEY, value = "true")
   void test_image_analysis()
       throws IOException, ExecutionException, InterruptedException, MalformedPackageURLException {
@@ -522,9 +537,18 @@ class Exhort_Api_Test extends ExhortTest {
                       .get()
                       .equals(Api.MediaType.APPLICATION_JSON.toString())
                   && r.headers().firstValue("ex-snyk-token").get().equals("snyk-token-from-env-var")
-                  && r.headers().firstValue("rhda-token").get().equals("rhda-token-from-env-var")
-                  && r.headers().firstValue("rhda-source").get().equals("rhda-source-from-env-var")
-                  && r.headers().firstValue("rhda-operation-type").get().equals("Image Analysis")
+                  && r.headers()
+                      .firstValue("trust-da-token")
+                      .get()
+                      .equals("trust-da-token-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-source")
+                      .get()
+                      .equals("trust-da-source-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-operation-type")
+                      .get()
+                      .equals("Image Analysis")
                   && r.method().equals("POST");
 
       when(mockHttpClient.sendAsync(argThat(matchesRequest), any()))
@@ -558,8 +582,8 @@ class Exhort_Api_Test extends ExhortTest {
 
   @Test
   @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source-from-env-var")
   @SetSystemProperty(key = SKIP_VALIDATION_KEY, value = "true")
   void imageAnalysisHtml() throws IOException, ExecutionException, InterruptedException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);
@@ -621,9 +645,18 @@ class Exhort_Api_Test extends ExhortTest {
                       .get()
                       .equals(Api.MediaType.TEXT_HTML.toString())
                   && r.headers().firstValue("ex-snyk-token").get().equals("snyk-token-from-env-var")
-                  && r.headers().firstValue("rhda-token").get().equals("rhda-token-from-env-var")
-                  && r.headers().firstValue("rhda-source").get().equals("rhda-source-from-env-var")
-                  && r.headers().firstValue("rhda-operation-type").get().equals("Image Analysis")
+                  && r.headers()
+                      .firstValue("trust-da-token")
+                      .get()
+                      .equals("trust-da-token-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-source")
+                      .get()
+                      .equals("trust-da-source-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-operation-type")
+                      .get()
+                      .equals("Image Analysis")
                   && r.method().equals("POST");
 
       when(mockHttpClient.sendAsync(argThat(matchesRequest), any()))
@@ -636,8 +669,8 @@ class Exhort_Api_Test extends ExhortTest {
 
   @Test
   @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
-  @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token-from-env-var")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source-from-env-var")
   void test_perform_batch_analysis()
       throws IOException, MalformedPackageURLException, ExecutionException, InterruptedException {
     try (var is = getResourceAsStreamDecision(this.getClass(), "msc/image/image_sbom.json")) {
@@ -659,9 +692,18 @@ class Exhort_Api_Test extends ExhortTest {
                       .get()
                       .equals(Api.MediaType.APPLICATION_JSON.toString())
                   && r.headers().firstValue("ex-snyk-token").get().equals("snyk-token-from-env-var")
-                  && r.headers().firstValue("rhda-token").get().equals("rhda-token-from-env-var")
-                  && r.headers().firstValue("rhda-source").get().equals("rhda-source-from-env-var")
-                  && r.headers().firstValue("rhda-operation-type").get().equals("Image Analysis")
+                  && r.headers()
+                      .firstValue("trust-da-token")
+                      .get()
+                      .equals("trust-da-token-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-source")
+                      .get()
+                      .equals("trust-da-source-from-env-var")
+                  && r.headers()
+                      .firstValue("trust-da-operation-type")
+                      .get()
+                      .equals("Image Analysis")
                   && r.method().equals("POST");
 
       var imageRef =

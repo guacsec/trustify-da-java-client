@@ -78,7 +78,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Tag("IntegrationTest")
 @ExtendWith(HelperExtension.class)
 @ExtendWith(MockitoExtension.class)
-@SetSystemProperty(key = "RHDA_SOURCE", value = "trustify-da-java-client-it")
+@SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trustify-da-java-client-it")
 @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
 @RestoreSystemProperties
 class ExhortApiIT extends ExhortTest {

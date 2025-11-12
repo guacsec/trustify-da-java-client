@@ -2,17 +2,17 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    backstage.io/kubernetes-id: trustify-da-java-client
+    backstage.io/kuberqnetes-id: trustify-da-java-client
     github.com/project-slug: guacsec/trustify-da-java-client
     github.com/project-readme-path: README.md
     backstage.io/view-url: https://github.com/guacsec/trustify-da-java-client/blob/main/catalog-info.yaml
     backstage.io/edit-url: https://github.com/guacsec/trustify-da-java-client/blob/main/catalog-info.yaml
     backstage.io/source-location: url:https://github.com/guacsec/trustify-da-java-client
-    rhda/manifest-file-path: package.json
+    trust-da/manifest-file-path: package.json
     backstage.io/techdocs-ref: url:https://github.com/guacsec/trustify-da-java-client
   name: trustify-da-java-client
   tags:
-    - rhda
+    - trust-da
 spec:
   lifecycle: production
   owner: ecosystem-appeng

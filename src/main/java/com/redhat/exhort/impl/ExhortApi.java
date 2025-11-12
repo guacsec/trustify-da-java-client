@@ -77,9 +77,9 @@ public final class ExhortApi implements Api {
 
   public static final String DEFAULT_ENDPOINT = "https://rhda.rhcloud.com";
   public static final String DEFAULT_ENDPOINT_DEV = "https://exhort.stage.devshift.net";
-  public static final String RHDA_TOKEN_HEADER = "rhda-token";
-  public static final String RHDA_SOURCE_HEADER = "rhda-source";
-  public static final String RHDA_OPERATION_TYPE_HEADER = "rhda-operation-type";
+  public static final String TRUST_DA_TOKEN_HEADER = "trust-da-token";
+  public static final String TRUST_DA_SOURCE_HEADER = "trust-da-source";
+  public static final String TRUST_DA_OPERATION_TYPE_HEADER = "trust-da-operation-type";
   public static final String TRUSTIFY_DA_REQUEST_ID_HEADER_NAME = "ex-request-id";
 
   private final String endpoint;
@@ -671,19 +671,19 @@ public final class ExhortApi implements Api {
                 }
               }
             });
-    // set rhda-token
-    // Environment variable/property name = RHDA_TOKEN
-    String rhdaToken = calculateHeaderValue(RHDA_TOKEN_HEADER);
-    if (rhdaToken != null) {
-      request.setHeader(RHDA_TOKEN_HEADER, rhdaToken);
+    // set trust-da-token
+    // Environment variable/property name = TRUST_DA_TOKEN
+    String trustDaToken = calculateHeaderValue(TRUST_DA_TOKEN_HEADER);
+    if (trustDaToken != null) {
+      request.setHeader(TRUST_DA_TOKEN_HEADER, trustDaToken);
     }
-    // set rhda-source ( extension/plugin id/name)
-    // Environment variable/property name = RHDA_SOURCE
-    String rhdaSource = calculateHeaderValue(RHDA_SOURCE_HEADER);
-    if (rhdaSource != null) {
-      request.setHeader(RHDA_SOURCE_HEADER, rhdaSource);
+    // set trust-da-source ( extension/plugin id/name)
+    // Environment variable/property name = TRUST_DA_SOURCE
+    String trustDaSource = calculateHeaderValue(TRUST_DA_SOURCE_HEADER);
+    if (trustDaSource != null) {
+      request.setHeader(TRUST_DA_SOURCE_HEADER, trustDaSource);
     }
-    request.setHeader(RHDA_OPERATION_TYPE_HEADER, analysisType);
+    request.setHeader(TRUST_DA_OPERATION_TYPE_HEADER, analysisType);
 
     return request.build();
   }
