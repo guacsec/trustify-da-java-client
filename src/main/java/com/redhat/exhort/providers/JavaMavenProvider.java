@@ -72,7 +72,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     // execute the clean command
     Operations.runProcess(manifest.getParent(), mvnCleanCmd.toArray(String[]::new), mvnEnvs);
     // create a temp file for storing the dependency tree in
-    var tmpFile = Files.createTempFile("exhort_dot_graph_", null);
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_dot_graph_", null);
     // the tree command will build the project and create the dependency tree in the temp file
     var mvnTreeCmd =
         buildMvnCommandArgs(
@@ -128,7 +128,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
   }
 
   private Content generateSbomFromEffectivePom() throws IOException {
-    var tmpEffPom = Files.createTempFile("exhort_eff_pom_", ".xml");
+    var tmpEffPom = Files.createTempFile("TRUSTIFY_DA_eff_pom_", ".xml");
     var mvnEffPomCmd =
         buildMvnCommandArgs(
             "clean",

@@ -45,7 +45,7 @@ import org.cyclonedx.model.Metadata;
 
 public class CycloneDXSbom implements Sbom {
 
-  private static final String EXHORT_IGNORE_METHOD = "EXHORT_IGNORE_METHOD";
+  private static final String TRUSTIFY_DA_IGNORE_METHOD = "TRUSTIFY_DA_IGNORE_METHOD";
   private final Logger log = LoggersFactory.getLogger(this.getClass().getName());
   private static final Version VERSION = Version.VERSION_14;
   private String exhortIgnoreMethod;
@@ -120,7 +120,7 @@ public class CycloneDXSbom implements Sbom {
   }
 
   private String getExhortIgnoreMethod() {
-    var val = Environment.get(EXHORT_IGNORE_METHOD);
+    var val = Environment.get(TRUSTIFY_DA_IGNORE_METHOD);
     return val != null ? val.trim().toLowerCase() : null;
   }
 

@@ -16,14 +16,14 @@
  */
 package com.redhat.exhort.image;
 
-import static com.redhat.exhort.image.ImageUtils.EXHORT_IMAGE_ARCH;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_IMAGE_OS;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_IMAGE_PLATFORM;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_IMAGE_SERVICE_ENDPOINT;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_IMAGE_VARIANT;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_SKOPEO_CONFIG_PATH;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_SYFT_CONFIG_PATH;
-import static com.redhat.exhort.image.ImageUtils.EXHORT_SYFT_IMAGE_SOURCE;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_IMAGE_ARCH;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_IMAGE_OS;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_IMAGE_PLATFORM;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_IMAGE_VARIANT;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_SKOPEO_CONFIG_PATH;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_SYFT_CONFIG_PATH;
+import static com.redhat.exhort.image.ImageUtils.TRUSTIFY_DA_SYFT_IMAGE_SOURCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -134,11 +134,11 @@ class ImageUtilsTest extends ExhortTest {
 
   @Test
   @ClearSystemProperty(key = "PATH")
-  @ClearSystemProperty(key = "EXHORT_SYFT_PATH")
-  @ClearSystemProperty(key = EXHORT_SYFT_CONFIG_PATH)
-  @ClearSystemProperty(key = "EXHORT_DOCKER_PATH")
-  @ClearSystemProperty(key = "EXHORT_PODMAN_PATH")
-  @ClearSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SYFT_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SYFT_CONFIG_PATH)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH")
+  @ClearSystemProperty(key = "TRUSTIFY_DA_PODMAN_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE)
   void test_generate_image_sbom() throws IOException, MalformedPackageURLException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);
         var is = getResourceAsStreamDecision(this.getClass(), "msc/image/image_sbom.json")) {
@@ -181,9 +181,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_get_image_digests_single() throws IOException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);
         var isRaw =
@@ -247,9 +247,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_get_image_digests_multiple() throws IOException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);
         var is =
@@ -300,33 +300,33 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = EXHORT_IMAGE_PLATFORM, value = mockImagePlatform)
-  @SetSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE, value = mockSyftSource)
-  @SetSystemProperty(key = EXHORT_IMAGE_OS, value = mockOs)
-  @SetSystemProperty(key = EXHORT_IMAGE_ARCH, value = mockArch)
-  @SetSystemProperty(key = EXHORT_IMAGE_VARIANT, value = mockVariant)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_PLATFORM, value = mockImagePlatform)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE, value = mockSyftSource)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_OS, value = mockOs)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_ARCH, value = mockArch)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_VARIANT, value = mockVariant)
   void test_get_image_platform() {
     var platform = ImageUtils.getImagePlatform();
     assertEquals(new Platform(mockImagePlatform), platform);
   }
 
   @Test
-  @ClearSystemProperty(key = EXHORT_IMAGE_PLATFORM)
-  @SetSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE, value = mockSyftSource)
-  @SetSystemProperty(key = EXHORT_IMAGE_OS, value = mockOs)
-  @SetSystemProperty(key = EXHORT_IMAGE_ARCH, value = mockArch)
-  @SetSystemProperty(key = EXHORT_IMAGE_VARIANT, value = mockVariant)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_PLATFORM)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE, value = mockSyftSource)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_OS, value = mockOs)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_ARCH, value = mockArch)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_VARIANT, value = mockVariant)
   void test_get_image_platform_no_default() {
     var platform = ImageUtils.getImagePlatform();
     assertEquals(new Platform(mockOs, mockArch, mockVariant), platform);
   }
 
   @Test
-  @ClearSystemProperty(key = EXHORT_IMAGE_PLATFORM)
-  @SetSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE, value = "podman")
-  @SetSystemProperty(key = EXHORT_IMAGE_OS, value = mockOs)
-  @SetSystemProperty(key = EXHORT_IMAGE_ARCH, value = mockArch)
-  @ClearSystemProperty(key = EXHORT_IMAGE_VARIANT)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_PLATFORM)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE, value = "podman")
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_OS, value = mockOs)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_ARCH, value = mockArch)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_VARIANT)
   void test_get_image_platform_no_default_no_variant() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       mock.when(() -> Operations.getCustomPathOrElse(eq("podman"))).thenReturn("podman");
@@ -345,11 +345,11 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = EXHORT_IMAGE_PLATFORM)
-  @SetSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE, value = "podman")
-  @ClearSystemProperty(key = EXHORT_IMAGE_OS)
-  @ClearSystemProperty(key = EXHORT_IMAGE_ARCH)
-  @ClearSystemProperty(key = EXHORT_IMAGE_VARIANT)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_PLATFORM)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE, value = "podman")
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_OS)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_ARCH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_VARIANT)
   @ClearSystemProperty(key = "PATH")
   void test_get_image_platform_no_defaults() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -370,8 +370,8 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = EXHORT_SYFT_CONFIG_PATH, value = mockSyftConfig)
-  @SetSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE, value = mockSyftSource)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_CONFIG_PATH, value = mockSyftConfig)
+  @SetSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE, value = mockSyftSource)
   void test_exec_syft() {
     try (MockedStatic<Environment> mockEnv =
         Mockito.mockStatic(Environment.class, Mockito.CALLS_REAL_METHODS)) {
@@ -426,8 +426,8 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = EXHORT_SYFT_CONFIG_PATH)
-  @ClearSystemProperty(key = EXHORT_SYFT_IMAGE_SOURCE)
+  @ClearSystemProperty(key = TRUSTIFY_DA_SYFT_CONFIG_PATH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_SYFT_IMAGE_SOURCE)
   void test_exec_syft_no_config_no_source() {
     try (MockedStatic<Environment> mockEnv =
         Mockito.mockStatic(Environment.class, Mockito.CALLS_REAL_METHODS)) {
@@ -514,7 +514,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DOCKER_PATH", value = mockDockerPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH", value = mockDockerPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_host_info_docker() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -535,7 +535,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_DOCKER_PATH")
+  @ClearSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH")
   void test_host_info_no_docker_path() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("", "test-error", 0);
@@ -557,7 +557,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DOCKER_PATH", value = mockDockerPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH", value = mockDockerPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_docker_get_os() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -578,7 +578,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @SetSystemProperty(key = "EXHORT_DOCKER_PATH", value = mockDockerPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH", value = mockDockerPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   @MethodSource("dockerArchSources")
   void test_docker_get_arch(String sysArch, String arch) {
@@ -600,7 +600,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @SetSystemProperty(key = "EXHORT_DOCKER_PATH", value = mockDockerPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_DOCKER_PATH", value = mockDockerPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   @MethodSource("dockerVariantSources")
   void test_docker_get_variant(String sysArch, String variant) {
@@ -622,7 +622,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PODMAN_PATH", value = mockPodmanPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_PODMAN_PATH", value = mockPodmanPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_host_info_podman() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -643,7 +643,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PODMAN_PATH", value = mockPodmanPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_PODMAN_PATH", value = mockPodmanPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_podman_get_os() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -664,7 +664,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PODMAN_PATH", value = mockPodmanPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_PODMAN_PATH", value = mockPodmanPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_podman_get_arch() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -685,7 +685,7 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PODMAN_PATH", value = mockPodmanPath)
+  @SetSystemProperty(key = "TRUSTIFY_DA_PODMAN_PATH", value = mockPodmanPath)
   @SetSystemProperty(key = "PATH", value = mockPath)
   void test_podman_get_variant() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
@@ -715,9 +715,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SKOPEO_PATH", value = mockSkopeoPath)
-  @SetSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
-  @SetSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
+  @SetSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH", value = mockSkopeoPath)
+  @SetSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
   void test_exec_skopeo_inspect_raw() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -749,9 +749,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SKOPEO_PATH", value = mockSkopeoPath)
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @SetSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
+  @SetSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH", value = mockSkopeoPath)
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
   void test_exec_skopeo_inspect_raw_no_config() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -781,9 +781,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @SetSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @SetSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_exec_skopeo_inspect_raw_no_daemon() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -813,9 +813,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_exec_skopeo_inspect_raw_no_config_no_daemon() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -843,9 +843,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SKOPEO_PATH", value = mockSkopeoPath)
-  @SetSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
-  @SetSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
+  @SetSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH", value = mockSkopeoPath)
+  @SetSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
   void test_exec_skopeo_inspect() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -877,9 +877,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SKOPEO_PATH", value = mockSkopeoPath)
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @SetSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
+  @SetSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH", value = mockSkopeoPath)
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @SetSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, value = mockSkopeoDaemon)
   void test_exec_skopeo_inspect_no_config() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -909,9 +909,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @SetSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @SetSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH, value = mockSkopeoConfig)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_exec_skopeo_inspect_no_daemon() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);
@@ -941,9 +941,9 @@ class ImageUtilsTest extends ExhortTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "EXHORT_SKOPEO_PATH")
-  @ClearSystemProperty(key = EXHORT_SKOPEO_CONFIG_PATH)
-  @ClearSystemProperty(key = EXHORT_IMAGE_SERVICE_ENDPOINT)
+  @ClearSystemProperty(key = "TRUSTIFY_DA_SKOPEO_PATH")
+  @ClearSystemProperty(key = TRUSTIFY_DA_SKOPEO_CONFIG_PATH)
+  @ClearSystemProperty(key = TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT)
   void test_exec_skopeo_inspect_no_config_no_daemon() {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
       var output = new Operations.ProcessExecOutput("test-output", "test-error", 0);

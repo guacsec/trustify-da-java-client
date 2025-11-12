@@ -42,7 +42,7 @@ class Operations_Test {
   class Test_getCustomPathOrElse {
 
     @Test
-    @SetSystemProperty(key = "EXHORT_MADE_UP_CMD_PATH", value = "/path/to/made_up_cmd")
+    @SetSystemProperty(key = "TRUSTIFY_DA_MADE_UP_CMD_PATH", value = "/path/to/made_up_cmd")
     void when_custom_path_exists_as_property() {
       assertThat(Operations.getCustomPathOrElse("made-up cmd")).isEqualTo("/path/to/made_up_cmd");
     }

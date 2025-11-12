@@ -65,13 +65,13 @@ import java.util.stream.Stream;
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
 
-  private static final String DEV_EXHORT_BACKEND_URL = "DEV_EXHORT_BACKEND_URL";
+  private static final String DEV_TRUSTIFY_DA_BACKEND_URL = "DEV_TRUSTIFY_DA_BACKEND_URL";
 
-  private static final String EXHORT_DEV_MODE = "EXHORT_DEV_MODE";
+  private static final String TRUSTIFY_DA_DEV_MODE = "TRUSTIFY_DA_DEV_MODE";
 
-  private static final String HTTP_VERSION_EXHORT_CLIENT = "HTTP_VERSION_EXHORT_CLIENT";
+  private static final String HTTP_VERSION_TRUSTIFY_DA_CLIENT = "HTTP_VERSION_TRUSTIFY_DA_CLIENT";
 
-  private static final String EXHORT_PROXY_URL = "EXHORT_PROXY_URL";
+  private static final String TRUSTIFY_DA_PROXY_URL = "TRUSTIFY_DA_PROXY_URL";
 
   private static final Logger LOG = LoggersFactory.getLogger(ExhortApi.class.getName());
 
@@ -80,7 +80,7 @@ public final class ExhortApi implements Api {
   public static final String RHDA_TOKEN_HEADER = "rhda-token";
   public static final String RHDA_SOURCE_HEADER = "rhda-source";
   public static final String RHDA_OPERATION_TYPE_HEADER = "rhda-operation-type";
-  public static final String EXHORT_REQUEST_ID_HEADER_NAME = "ex-request-id";
+  public static final String TRUSTIFY_DA_REQUEST_ID_HEADER_NAME = "ex-request-id";
 
   private final String endpoint;
 
@@ -96,14 +96,14 @@ public final class ExhortApi implements Api {
     /**
      * Get the expected environment variable name.
      *
-     * @return i.e. EXHORT_SNYK_TOKEN
+     * @return i.e. TRUSTIFY_DA_SNYK_TOKEN
      */
     String getVarName() {
-      return String.format("EXHORT_%s_TOKEN", this);
+      return String.format("TRUSTIFY_DA_%s_TOKEN", this);
     }
 
     String getUserVarName() {
-      return String.format("EXHORT_%s_USER", this);
+      return String.format("TRUSTIFY_DA_%s_USER", this);
     }
 
     /**
@@ -138,7 +138,7 @@ public final class ExhortApi implements Api {
    * @return i.e. HttpClient.Version.HTTP_1.1
    */
   static HttpClient.Version getHttpVersion() {
-    var version = Environment.get(HTTP_VERSION_EXHORT_CLIENT);
+    var version = Environment.get(HTTP_VERSION_TRUSTIFY_DA_CLIENT);
     return (version != null && version.contains("2"))
         ? HttpClient.Version.HTTP_2
         : HttpClient.Version.HTTP_1_1;
@@ -148,12 +148,12 @@ public final class ExhortApi implements Api {
     //    // temp system property - as long as prod exhort url not implemented the multi-source v4
     // endpoint, this
     // property needs to be true
-    //    System.setProperty("EXHORT_DEV_MODE","true");
+    //    System.setProperty("TRUSTIFY_DA_DEV_MODE","true");
     commonHookBeginning(true);
     this.client = client;
     this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     // Take default from config.properties in case client didn't override DEV MODE
-    if (Environment.get(EXHORT_DEV_MODE) == null) {
+    if (Environment.get(TRUSTIFY_DA_DEV_MODE) == null) {
       try {
         InputStream exhortConfig =
             this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -161,11 +161,11 @@ public final class ExhortApi implements Api {
           LOG.info(
               "config.properties not found on the class path, fallback to default DEV MODE ="
                   + " false");
-          System.setProperty(EXHORT_DEV_MODE, "false");
+          System.setProperty(TRUSTIFY_DA_DEV_MODE, "false");
         } else {
           Properties properties = new Properties();
           properties.load(exhortConfig);
-          System.setProperty(EXHORT_DEV_MODE, (String) properties.get(EXHORT_DEV_MODE));
+          System.setProperty(TRUSTIFY_DA_DEV_MODE, (String) properties.get(TRUSTIFY_DA_DEV_MODE));
         }
       } catch (IOException e) {
         LOG.info(
@@ -173,7 +173,7 @@ public final class ExhortApi implements Api {
                 "Error loading config.properties , fallback to set default property DEV MODE ="
                     + " false, Error message = %s",
                 e.getMessage()));
-        System.setProperty(EXHORT_DEV_MODE, "false");
+        System.setProperty(TRUSTIFY_DA_DEV_MODE, "false");
       }
     }
 
@@ -182,14 +182,14 @@ public final class ExhortApi implements Api {
 
   public static HttpClient createHttpClient() {
     HttpClient.Builder builder = HttpClient.newBuilder().version(getHttpVersion());
-    String proxyUrl = Environment.get(EXHORT_PROXY_URL);
+    String proxyUrl = Environment.get(TRUSTIFY_DA_PROXY_URL);
     if (proxyUrl != null && !proxyUrl.isBlank()) {
       try {
         URI proxyUri = URI.create(proxyUrl);
         builder.proxy(
             ProxySelector.of(new InetSocketAddress(proxyUri.getHost(), proxyUri.getPort())));
       } catch (IllegalArgumentException e) {
-        LOG.warning("Invalid EXHORT_PROXY_URL: " + proxyUrl + ", using direct connection");
+        LOG.warning("Invalid TRUSTIFY_DA_PROXY_URL: " + proxyUrl + ", using direct connection");
       }
     }
     return builder.build();
@@ -225,8 +225,8 @@ public final class ExhortApi implements Api {
 
   public String getExhortUrl() {
     String endpoint;
-    if (Environment.getBoolean(EXHORT_DEV_MODE, false)) {
-      endpoint = Environment.get(DEV_EXHORT_BACKEND_URL, DEFAULT_ENDPOINT_DEV);
+    if (Environment.getBoolean(TRUSTIFY_DA_DEV_MODE, false)) {
+      endpoint = Environment.get(DEV_TRUSTIFY_DA_BACKEND_URL, DEFAULT_ENDPOINT_DEV);
 
     } else {
       endpoint = DEFAULT_ENDPOINT;
@@ -234,10 +234,10 @@ public final class ExhortApi implements Api {
     if (debugLoggingIsNeeded()) {
       LOG.info(
           String.format(
-              "EXHORT_DEV_MODE=%s,DEV_EXHORT_BACKEND_URL=%s, Chosen Backend URL=%s ,"
+              "TRUSTIFY_DA_DEV_MODE=%s,DEV_TRUSTIFY_DA_BACKEND_URL=%s, Chosen Backend URL=%s ,"
                   + " DEFAULT_ENDPOINT_DEV=%s , DEFAULT_ENDPOINT=%s",
-              Environment.getBoolean(EXHORT_DEV_MODE, false),
-              Environment.get(DEV_EXHORT_BACKEND_URL, DEFAULT_ENDPOINT_DEV),
+              Environment.getBoolean(TRUSTIFY_DA_DEV_MODE, false),
+              Environment.get(DEV_TRUSTIFY_DA_BACKEND_URL, DEFAULT_ENDPOINT_DEV),
               endpoint,
               DEFAULT_ENDPOINT_DEV,
               DEFAULT_ENDPOINT));
@@ -392,7 +392,7 @@ public final class ExhortApi implements Api {
 
   private static void logExhortRequestId(HttpResponse<?> response) {
     Optional<String> headerExRequestId =
-        response.headers().allValues(EXHORT_REQUEST_ID_HEADER_NAME).stream().findFirst();
+        response.headers().allValues(TRUSTIFY_DA_REQUEST_ID_HEADER_NAME).stream().findFirst();
     headerExRequestId.ifPresent(
         value ->
             LOG.info(
@@ -403,7 +403,7 @@ public final class ExhortApi implements Api {
   }
 
   public static boolean debugLoggingIsNeeded() {
-    return Environment.getBoolean("EXHORT_DEBUG", false);
+    return Environment.getBoolean("TRUSTIFY_DA_DEBUG", false);
   }
 
   @Override

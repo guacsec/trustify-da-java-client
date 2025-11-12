@@ -61,7 +61,7 @@ class Javascript_Provider_Test extends ExhortTest {
   @MethodSource({"testCases"})
   void test_the_provideStack(String pkgManager, String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpFolder = Files.createTempDirectory("exhort_test_");
+    var tmpFolder = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpFile = Files.createFile(tmpFolder.resolve("package.json"));
     var tmpLockFile = Files.createFile(tmpFolder.resolve(getLockFile(pkgManager)));
     try (var is =
@@ -151,7 +151,7 @@ class Javascript_Provider_Test extends ExhortTest {
     // load the pom target pom file
 
     // create temp file hosting our sut package.json
-    var tmpFolder = Files.createTempDirectory("exhort_test_");
+    var tmpFolder = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpFile = Files.createFile(tmpFolder.resolve("package.json"));
 
     try (var is =

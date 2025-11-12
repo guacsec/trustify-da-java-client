@@ -222,7 +222,7 @@ public final class GradleProvider extends BaseJavaProvider {
 
   private Path getDependencies(Path manifestPath) throws IOException {
     // create a temp file for storing the dependency tree in
-    var tempFile = Files.createTempFile("exhort_graph_", null);
+    var tempFile = Files.createTempFile("TRUSTIFY_DA_graph_", null);
     // the command will create the dependency tree in the temp file
     String gradleCommand = gradleExecutable + " dependencies";
 

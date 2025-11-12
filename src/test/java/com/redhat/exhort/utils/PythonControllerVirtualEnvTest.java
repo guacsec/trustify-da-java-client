@@ -17,7 +17,7 @@
 package com.redhat.exhort.utils;
 
 import static com.redhat.exhort.Provider.PROP_MATCH_MANIFEST_VERSIONS;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,7 +58,7 @@ class PythonControllerVirtualEnvTest extends ExhortTest {
   @Test
   @RestoreSystemProperties
   void test_Virtual_Environment_Install_Best_Efforts() throws JsonProcessingException {
-    System.setProperty(PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS, "true");
+    System.setProperty(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, "true");
     System.setProperty(PROP_MATCH_MANIFEST_VERSIONS, "false");
     String requirementsTxt =
         getFileFromString("requirements.txt", "flask==9.9.9\ndeprecated==15.15.99\n");
@@ -70,7 +70,7 @@ class PythonControllerVirtualEnvTest extends ExhortTest {
 
   @Test
   @RestoreSystemProperties
-  @SetSystemProperty(key = PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS, value = "true")
+  @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, value = "true")
   void test_Virtual_Environment_Install_Best_Efforts_Conflict_MMV_Should_Throw_Runtime_Exception() {
     String requirementsTxt =
         getFileFromString("requirements.txt", "flask==9.9.9\ndeprecated==15.15.99\n");

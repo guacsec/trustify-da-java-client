@@ -18,8 +18,8 @@ package com.redhat.exhort.impl;
 
 import static com.redhat.exhort.Provider.PROP_MATCH_MANIFEST_VERSIONS;
 import static com.redhat.exhort.image.ImageUtils.SKIP_VALIDATION_KEY;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PYTHON_VIRTUAL_ENV;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,7 +79,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(HelperExtension.class)
 @ExtendWith(MockitoExtension.class)
 @SetSystemProperty(key = "RHDA_SOURCE", value = "trustify-da-java-client-it")
-@SetSystemProperty(key = "EXHORT_DEV_MODE", value = "false")
+@SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
 @RestoreSystemProperties
 class ExhortApiIT extends ExhortTest {
 
@@ -318,8 +318,8 @@ class ExhortApiIT extends ExhortTest {
 
   private static void preparePythonEnvironment(Ecosystem.Type packageManager) {
     if (packageManager.equals(Ecosystem.Type.PYTHON)) {
-      System.setProperty(PROP_EXHORT_PYTHON_VIRTUAL_ENV, "true");
-      System.setProperty(PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS, "true");
+      System.setProperty(PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, "true");
+      System.setProperty(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, "true");
       System.setProperty(PROP_MATCH_MANIFEST_VERSIONS, "false");
     }
   }

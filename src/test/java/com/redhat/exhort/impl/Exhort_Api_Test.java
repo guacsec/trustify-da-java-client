@@ -80,10 +80,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@ClearSystemProperty(key = "EXHORT_SNYK_TOKEN")
-@ClearSystemProperty(key = "EXHORT_DEV_MODE")
-@ClearSystemProperty(key = "EXHORT_PROXY_URL")
-@ClearSystemProperty(key = "DEV_EXHORT_BACKEND_URL")
+@ClearSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN")
+@ClearSystemProperty(key = "TRUSTIFY_DA_DEV_MODE")
+@ClearSystemProperty(key = "TRUSTIFY_DA_PROXY_URL")
+@ClearSystemProperty(key = "DEV_TRUSTIFY_DA_BACKEND_URL")
 @ClearSystemProperty(key = "RHDA_TOKEN")
 @ClearSystemProperty(key = "RHDA_SOURCE")
 @SuppressWarnings("unchecked")
@@ -97,17 +97,17 @@ class Exhort_Api_Test extends ExhortTest {
 
   @AfterEach
   void cleanup() {
-    System.clearProperty("EXHORT_SNYK_TOKEN");
+    System.clearProperty("TRUSTIFY_DA_SNYK_TOKEN");
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SNYK_TOKEN", value = "snyk-token-from-env-var")
+  @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
   @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
   @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
   void stackAnalysisHtml_with_pom_xml_should_return_html_report_from_the_backend()
       throws IOException, ExecutionException, InterruptedException {
     // create a temporary pom.xml file
-    var tmpFile = Files.createTempFile("exhort_test_pom_", ".xml");
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
     try (var is =
         getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
       Files.write(tmpFile, is.readAllBytes());
@@ -162,13 +162,13 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SNYK_TOKEN", value = "snyk-token")
+  @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token")
   @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token")
   @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source")
   void stackAnalysis_with_pom_xml_should_return_json_object_from_the_backend()
       throws IOException, ExecutionException, InterruptedException {
     // create a temporary pom.xml file
-    var tmpFile = Files.createTempFile("exhort_test_pom_", ".xml");
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
     try (var is =
         getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
       Files.write(tmpFile, is.readAllBytes());
@@ -238,7 +238,7 @@ class Exhort_Api_Test extends ExhortTest {
         .willReturn(new Provider.Content("fake-body-content".getBytes(), "fake-content-type"));
 
     // we expect this to picked up because no env var to take precedence
-    System.setProperty("EXHORT_SNYK_TOKEN", "snyk-token-from-property");
+    System.setProperty("TRUSTIFY_DA_SNYK_TOKEN", "snyk-token-from-property");
     System.setProperty("RHDA_TOKEN", "rhda-token-from-property");
     System.setProperty("RHDA_SOURCE", "rhda-source-from-property");
 
@@ -308,7 +308,7 @@ class Exhort_Api_Test extends ExhortTest {
     }
 
     // create a temporary pom.xml file
-    var tmpFile = Files.createTempFile("exhort_test_pom_", ".xml");
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
     try (var is =
         getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
       Files.write(tmpFile, is.readAllBytes());
@@ -362,7 +362,7 @@ class Exhort_Api_Test extends ExhortTest {
   void componentAnalysis_with_pom_xml_as_path_should_return_json_object_from_the_backend()
       throws IOException, ExecutionException, InterruptedException {
     // load pom.xml
-    var tmpFile = Files.createTempFile("exhort_test_pom_", ".xml");
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
     try (var is =
         getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
       Files.write(tmpFile, is.readAllBytes());
@@ -373,7 +373,7 @@ class Exhort_Api_Test extends ExhortTest {
         .willReturn(new Provider.Content("fake-body-content".getBytes(), "fake-content-type"));
 
     // we expect this to picked up because no env var to take precedence
-    System.setProperty("EXHORT_SNYK_TOKEN", "snyk-token-from-property");
+    System.setProperty("TRUSTIFY_DA_SNYK_TOKEN", "snyk-token-from-property");
 
     // create an argument matcher to make sure we mock the response for the right request
     ArgumentMatcher<HttpRequest> matchesRequest =
@@ -419,45 +419,45 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DEV_MODE", value = "true")
-  @ClearSystemProperty(key = "DEV_EXHORT_BACKEND_URL")
+  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "true")
+  @ClearSystemProperty(key = "DEV_TRUSTIFY_DA_BACKEND_URL")
   @RestoreSystemProperties
-  void check_Exhort_Url_When_DEV_Mode_true_And_DEV_Exhort_Url_Set() {
+  void check_TRUSTIFY_DA_Url_When_DEV_Mode_true_And_DEV_TRUSTIFY_DA_Url_Set() {
     String dummyUrl = "http://dummy-url";
-    System.setProperty("DEV_EXHORT_BACKEND_URL", dummyUrl);
+    System.setProperty("DEV_TRUSTIFY_DA_BACKEND_URL", dummyUrl);
     ExhortApi exhortApi = new ExhortApi();
     then(exhortApi.getEndpoint()).isEqualTo(dummyUrl);
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DEV_MODE", value = "false")
-  void check_Exhort_Url_When_DEV_Mode_false_And_DEV_Exhort_Url_Set() {
+  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
+  void check_TRUSTIFY_DA_Url_When_DEV_Mode_false_And_DEV_TRUSTIFY_DA_Url_Set() {
     ExhortApi exhortApi = new ExhortApi();
     then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DEV_MODE", value = "true")
-  void check_Exhort_Url_When_DEV_Mode_true_Dev_Exhort_URL_Selected() {
+  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "true")
+  void check_TRUSTIFY_DA_Url_When_DEV_Mode_true_Dev_TRUSTIFY_DA_URL_Selected() {
     ExhortApi exhortApi = new ExhortApi();
     then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT_DEV);
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_DEV_MODE", value = "false")
-  void check_Exhort_Url_When_DEV_Mode_not_set_Then_Default_Exhort_URL_Selected() {
+  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
+  void check_TRUSTIFY_DA_Url_When_DEV_Mode_not_set_Then_Default_TRUSTIFY_DA_URL_Selected() {
     ExhortApi exhortApi = new ExhortApi();
     then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
   }
 
   @Test
-  void check_Exhort_Url_When_Nothing_Set_Then_Default_Exhort_URL_Selected() {
+  void check_TRUSTIFY_DA_Url_When_Nothing_Set_Then_Default_TRUSTIFY_DA_URL_Selected() {
     ExhortApi exhortApi = new ExhortApi();
     then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SNYK_TOKEN", value = "snyk-token-from-env-var")
+  @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
   @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
   @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
   @SetSystemProperty(key = SKIP_VALIDATION_KEY, value = "true")
@@ -557,7 +557,7 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SNYK_TOKEN", value = "snyk-token-from-env-var")
+  @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
   @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
   @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
   @SetSystemProperty(key = SKIP_VALIDATION_KEY, value = "true")
@@ -635,7 +635,7 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_SNYK_TOKEN", value = "snyk-token-from-env-var")
+  @SetSystemProperty(key = "TRUSTIFY_DA_SNYK_TOKEN", value = "snyk-token-from-env-var")
   @SetSystemProperty(key = "RHDA_TOKEN", value = "rhda-token-from-env-var")
   @SetSystemProperty(key = "RHDA_SOURCE", value = "rhda-source-from-env-var")
   void test_perform_batch_analysis()
@@ -806,7 +806,7 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PROXY_URL", value = "http://proxy.example.com:8080")
+  @SetSystemProperty(key = "TRUSTIFY_DA_PROXY_URL", value = "http://proxy.example.com:8080")
   void test_create_httpclient_applies_http_proxyselector() {
     HttpClient client = ExhortApi.createHttpClient();
     Optional<ProxySelector> selectorOpt = client.proxy();
@@ -824,7 +824,7 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "EXHORT_PROXY_URL", value = "://bad-url")
+  @SetSystemProperty(key = "TRUSTIFY_DA_PROXY_URL", value = "://bad-url")
   void test_create_httpclient_should_fallback_to_direct_when_proxyurl_is_invalid() {
     HttpClient client = ExhortApi.createHttpClient();
     Optional<ProxySelector> proxySelector = client.proxy();

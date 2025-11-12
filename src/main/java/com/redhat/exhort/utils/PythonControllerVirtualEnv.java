@@ -28,9 +28,9 @@ public class PythonControllerVirtualEnv extends PythonControllerBase {
   //  private System.Logger log = System.getLogger("name");
   public PythonControllerVirtualEnv(String pathToPythonBin) {
     this.pipBinaryDir =
-        Path.of(FileSystems.getDefault().getSeparator(), "tmp", "exhort_env", "bin");
+        Path.of(FileSystems.getDefault().getSeparator(), "tmp", "TRUSTIFY_DA_env", "bin");
     this.pythonEnvironmentDir =
-        Path.of(FileSystems.getDefault().getSeparator(), "tmp", "exhort_env");
+        Path.of(FileSystems.getDefault().getSeparator(), "tmp", "TRUSTIFY_DA_env");
     this.pathToPythonBin = pathToPythonBin;
   }
 

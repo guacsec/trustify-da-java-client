@@ -16,10 +16,10 @@
  */
 package com.redhat.exhort.providers;
 
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PIP_FREEZE;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PIP_PIPDEPTREE;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PIP_SHOW;
-import static com.redhat.exhort.utils.PythonControllerBase.PROP_EXHORT_PIP_USE_DEP_TREE;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PIP_FREEZE;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PIP_PIPDEPTREE;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PIP_SHOW;
+import static com.redhat.exhort.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PIP_USE_DEP_TREE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
@@ -57,7 +57,7 @@ class Python_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideStack(String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpPythonModuleDir = Files.createTempDirectory("exhort_test_");
+    var tmpPythonModuleDir = Files.createTempDirectory("trustify_da_test_");
     var tmpPythonFile = Files.createFile(tmpPythonModuleDir.resolve("requirements.txt"));
     var provider = new PythonPipProvider(tmpPythonFile);
     provider.setPythonController(pythonController);
@@ -110,11 +110,11 @@ class Python_Provider_Test extends ExhortTest {
 
   @ParameterizedTest
   @MethodSource("testFolders")
-  @SetSystemProperty(key = PythonControllerBase.PROP_EXHORT_PYTHON_VIRTUAL_ENV, value = "true")
+  @SetSystemProperty(key = PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, value = "true")
   @RestoreSystemProperties
   void test_the_provideStack_with_properties(String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpPythonModuleDir = Files.createTempDirectory("exhort_test_");
+    var tmpPythonModuleDir = Files.createTempDirectory("trustify_da_test_");
     var tmpPythonFile = Files.createFile(tmpPythonModuleDir.resolve("requirements.txt"));
     try (var is =
         getResourceAsStreamDecision(
@@ -135,8 +135,8 @@ class Python_Provider_Test extends ExhortTest {
     String pipFreezeContent = this.getStringFromFile("tst_manifests/pip/pip-freeze-all.txt");
     String base64PipShow = new String(Base64.getEncoder().encode(pipShowContent.getBytes()));
     String base64PipFreeze = new String(Base64.getEncoder().encode(pipFreezeContent.getBytes()));
-    System.setProperty(PROP_EXHORT_PIP_SHOW, base64PipShow);
-    System.setProperty(PROP_EXHORT_PIP_FREEZE, base64PipFreeze);
+    System.setProperty(PROP_TRUSTIFY_DA_PIP_SHOW, base64PipShow);
+    System.setProperty(PROP_TRUSTIFY_DA_PIP_FREEZE, base64PipFreeze);
     // cleanup
     Files.deleteIfExists(tmpPythonFile);
     Files.deleteIfExists(tmpPythonModuleDir);
@@ -147,12 +147,12 @@ class Python_Provider_Test extends ExhortTest {
 
   @ParameterizedTest
   @MethodSource("testFolders")
-  @SetSystemProperty(key = PythonControllerBase.PROP_EXHORT_PYTHON_VIRTUAL_ENV, value = "true")
-  @SetSystemProperty(key = PROP_EXHORT_PIP_USE_DEP_TREE, value = "true")
+  @SetSystemProperty(key = PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, value = "true")
+  @SetSystemProperty(key = PROP_TRUSTIFY_DA_PIP_USE_DEP_TREE, value = "true")
   @RestoreSystemProperties
   void test_the_provideStack_with_pipdeptree(String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpPythonModuleDir = Files.createTempDirectory("exhort_test_");
+    var tmpPythonModuleDir = Files.createTempDirectory("trustify_da_test_");
     var tmpPythonFile = Files.createFile(tmpPythonModuleDir.resolve("requirements.txt"));
     try (var is =
         getResourceAsStreamDecision(
@@ -171,7 +171,7 @@ class Python_Provider_Test extends ExhortTest {
     var content = new PythonPipProvider(tmpPythonFile).provideStack();
     String pipdeptreeContent = this.getStringFromFile("tst_manifests/pip/pipdeptree.json");
     String base64Pipdeptree = new String(Base64.getEncoder().encode(pipdeptreeContent.getBytes()));
-    System.setProperty(PROP_EXHORT_PIP_PIPDEPTREE, base64Pipdeptree);
+    System.setProperty(PROP_TRUSTIFY_DA_PIP_PIPDEPTREE, base64Pipdeptree);
     // cleanup
     Files.deleteIfExists(tmpPythonFile);
     Files.deleteIfExists(tmpPythonModuleDir);
@@ -200,8 +200,8 @@ class Python_Provider_Test extends ExhortTest {
     String pipFreezeContent = this.getStringFromFile("tst_manifests/pip/pip-freeze-all.txt");
     String base64PipShow = new String(Base64.getEncoder().encode(pipShowContent.getBytes()));
     String base64PipFreeze = new String(Base64.getEncoder().encode(pipFreezeContent.getBytes()));
-    System.setProperty(PROP_EXHORT_PIP_SHOW, base64PipShow);
-    System.setProperty(PROP_EXHORT_PIP_FREEZE, base64PipFreeze);
+    System.setProperty(PROP_TRUSTIFY_DA_PIP_SHOW, base64PipShow);
+    System.setProperty(PROP_TRUSTIFY_DA_PIP_FREEZE, base64PipFreeze);
     // when providing component content for our pom
     var content = new PythonPipProvider(Path.of(targetRequirements)).provideComponent();
     // verify expected SBOM is returned

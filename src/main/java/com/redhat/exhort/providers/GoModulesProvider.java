@@ -51,7 +51,8 @@ import java.util.stream.Collectors;
  */
 public final class GoModulesProvider extends Provider {
 
-  public static final String PROP_EXHORT_GO_MVS_LOGIC_ENABLED = "EXHORT_GO_MVS_LOGIC_ENABLED";
+  public static final String PROP_TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED =
+      "TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED";
   private static final Logger log = LoggersFactory.getLogger(GoModulesProvider.class.getName());
   public static final String DEFAULT_MAIN_VERSION = "v0.0.0";
   private final String goExecutable;
@@ -277,7 +278,7 @@ public final class GoModulesProvider extends Provider {
         startingIndex += deps.size();
       }
     }
-    boolean goMvsLogicEnabled = Environment.getBoolean(PROP_EXHORT_GO_MVS_LOGIC_ENABLED, true);
+    boolean goMvsLogicEnabled = Environment.getBoolean(PROP_TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED, true);
     if (goMvsLogicEnabled) {
       edges = getFinalPackagesVersionsForModule(edges, manifestPath);
     }

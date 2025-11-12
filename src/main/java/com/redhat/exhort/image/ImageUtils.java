@@ -40,14 +40,14 @@ import java.util.stream.StreamSupport;
 
 public class ImageUtils {
 
-  static final String EXHORT_SYFT_CONFIG_PATH = "EXHORT_SYFT_CONFIG_PATH";
-  static final String EXHORT_SYFT_IMAGE_SOURCE = "EXHORT_SYFT_IMAGE_SOURCE";
-  static final String EXHORT_IMAGE_PLATFORM = "EXHORT_IMAGE_PLATFORM";
-  static final String EXHORT_IMAGE_OS = "EXHORT_IMAGE_OS";
-  static final String EXHORT_IMAGE_ARCH = "EXHORT_IMAGE_ARCH";
-  static final String EXHORT_IMAGE_VARIANT = "EXHORT_IMAGE_VARIANT";
-  static final String EXHORT_SKOPEO_CONFIG_PATH = "EXHORT_SKOPEO_CONFIG_PATH";
-  static final String EXHORT_IMAGE_SERVICE_ENDPOINT = "EXHORT_IMAGE_SERVICE_ENDPOINT";
+  static final String TRUSTIFY_DA_SYFT_CONFIG_PATH = "TRUSTIFY_DA_SYFT_CONFIG_PATH";
+  static final String TRUSTIFY_DA_SYFT_IMAGE_SOURCE = "TRUSTIFY_DA_SYFT_IMAGE_SOURCE";
+  static final String TRUSTIFY_DA_IMAGE_PLATFORM = "TRUSTIFY_DA_IMAGE_PLATFORM";
+  static final String TRUSTIFY_DA_IMAGE_OS = "TRUSTIFY_DA_IMAGE_OS";
+  static final String TRUSTIFY_DA_IMAGE_ARCH = "TRUSTIFY_DA_IMAGE_ARCH";
+  static final String TRUSTIFY_DA_IMAGE_VARIANT = "TRUSTIFY_DA_IMAGE_VARIANT";
+  static final String TRUSTIFY_DA_SKOPEO_CONFIG_PATH = "TRUSTIFY_DA_SKOPEO_CONFIG_PATH";
+  static final String TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT = "TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT";
   private static final String MEDIA_TYPE_DOCKER2_MANIFEST =
       "application/vnd.docker.distribution.manifest.v2+json";
   private static final String MEDIA_TYPE_DOCKER2_MANIFEST_LIST =
@@ -135,8 +135,8 @@ public class ImageUtils {
     var docker = Operations.getCustomPathOrElse(DOCKER);
     var podman = Operations.getCustomPathOrElse(PODMAN);
 
-    var syftConfigPath = Environment.get(EXHORT_SYFT_CONFIG_PATH, "");
-    var imageSource = Environment.get(EXHORT_SYFT_IMAGE_SOURCE, "");
+    var syftConfigPath = Environment.get(TRUSTIFY_DA_SYFT_CONFIG_PATH, "");
+    var imageSource = Environment.get(TRUSTIFY_DA_SYFT_IMAGE_SOURCE, "");
     SyftImageSource.getImageSource(imageSource);
 
     var dockerPath =
@@ -205,19 +205,19 @@ public class ImageUtils {
   }
 
   public static Platform getImagePlatform() {
-    var platform = Environment.get(EXHORT_IMAGE_PLATFORM, "");
+    var platform = Environment.get(TRUSTIFY_DA_IMAGE_PLATFORM, "");
     if (!platform.isEmpty()) {
       return new Platform(platform);
     }
 
-    var imageSource = Environment.get(EXHORT_SYFT_IMAGE_SOURCE, "");
+    var imageSource = Environment.get(TRUSTIFY_DA_SYFT_IMAGE_SOURCE, "");
     SyftImageSource source = SyftImageSource.getImageSource(imageSource);
 
-    var os = Environment.get(EXHORT_IMAGE_OS, "");
+    var os = Environment.get(TRUSTIFY_DA_IMAGE_OS, "");
     if (os.isEmpty()) {
       os = source.getOs();
     }
-    var arch = Environment.get(EXHORT_IMAGE_ARCH, "");
+    var arch = Environment.get(TRUSTIFY_DA_IMAGE_ARCH, "");
     if (arch.isEmpty()) {
       arch = source.getArch();
     }
@@ -226,7 +226,7 @@ public class ImageUtils {
         return new Platform(os, arch, null);
       }
 
-      var variant = Environment.get(EXHORT_IMAGE_VARIANT, "");
+      var variant = Environment.get(TRUSTIFY_DA_IMAGE_VARIANT, "");
       if (variant.isEmpty()) {
         variant = source.getVariant();
       }
@@ -425,8 +425,8 @@ public class ImageUtils {
   static Operations.ProcessExecOutput execSkopeoInspect(ImageRef imageRef, boolean raw) {
     var skopeo = Operations.getExecutable(SKOPEO, ARG_VERSION);
 
-    var configPath = Environment.get(EXHORT_SKOPEO_CONFIG_PATH, "");
-    var daemonHost = Environment.get(EXHORT_IMAGE_SERVICE_ENDPOINT, "");
+    var configPath = Environment.get(TRUSTIFY_DA_SKOPEO_CONFIG_PATH, "");
+    var daemonHost = Environment.get(TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, "");
 
     String[] cmd;
     if (daemonHost.isEmpty()) {

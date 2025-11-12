@@ -211,14 +211,16 @@ public final class PythonPipProvider extends Provider {
   private PythonControllerBase getPythonController() {
     String pythonPipBinaries;
     boolean useVirtualPythonEnv;
-    if (!Environment.get(PythonControllerBase.PROP_EXHORT_PIP_SHOW, "").trim().isEmpty()
-        && !Environment.get(PythonControllerBase.PROP_EXHORT_PIP_FREEZE, "").trim().isEmpty()) {
+    if (!Environment.get(PythonControllerBase.PROP_TRUSTIFY_DA_PIP_SHOW, "").trim().isEmpty()
+        && !Environment.get(PythonControllerBase.PROP_TRUSTIFY_DA_PIP_FREEZE, "")
+            .trim()
+            .isEmpty()) {
       pythonPipBinaries = "python;;pip";
       useVirtualPythonEnv = false;
     } else {
       pythonPipBinaries = getExecutable("python", "--version");
       useVirtualPythonEnv =
-          Environment.getBoolean(PythonControllerBase.PROP_EXHORT_PYTHON_VIRTUAL_ENV, false);
+          Environment.getBoolean(PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, false);
     }
 
     String[] parts = pythonPipBinaries.split(";;");

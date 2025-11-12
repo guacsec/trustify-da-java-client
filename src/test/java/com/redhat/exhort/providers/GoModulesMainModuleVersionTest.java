@@ -40,9 +40,9 @@ class GoModulesMainModuleVersionTest {
   void setUp() {
     try {
       this.goModulesProvider = new GoModulesProvider(null);
-      this.testGitRepo = Files.createTempDirectory("exhort_tmp");
+      this.testGitRepo = Files.createTempDirectory("TRUSTIFY_DA_tmp");
       gitInit();
-      this.noGitRepo = Files.createTempDirectory("exhort_tmp");
+      this.noGitRepo = Files.createTempDirectory("TRUSTIFY_DA_tmp");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

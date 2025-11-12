@@ -63,7 +63,7 @@ public class Java_Maven_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideStack(String testFolder) throws IOException {
     // create temp file hosting our sut pom.xml
-    var tmpPomFile = Files.createTempFile("exhort_test_", ".xml");
+    var tmpPomFile = Files.createTempFile("TRUSTIFY_DA_test_", ".xml");
     try (var is =
         getResourceAsStreamDecision(
             getClass(), String.format("tst_manifests/maven/%s/pom.xml", testFolder))) {
@@ -168,7 +168,7 @@ public class Java_Maven_Provider_Test extends ExhortTest {
   void test_the_provideComponent_With_Path(String testFolder) throws IOException {
     // load the pom target pom file
     // create temp file hosting our sut pom.xml
-    var tmpPomFile = Files.createTempFile("exhort_test_", ".xml");
+    var tmpPomFile = Files.createTempFile("TRUSTIFY_DA_test_", ".xml");
     try (var is =
         getResourceAsStreamDecision(
             getClass(), String.format("tst_manifests/maven/%s/pom.xml", testFolder))) {

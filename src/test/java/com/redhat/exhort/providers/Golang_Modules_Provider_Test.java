@@ -64,7 +64,7 @@ class Golang_Modules_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideStack(String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpGoModulesDir = Files.createTempDirectory("exhort_test_");
+    var tmpGoModulesDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpGolangFile = Files.createFile(tmpGoModulesDir.resolve("go.mod"));
     try (var is =
         getResourceAsStreamDecision(
@@ -94,7 +94,7 @@ class Golang_Modules_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideComponent(String testFolder) throws IOException {
     // create temp file hosting our sut package.json
-    var tmpGoModulesDir = Files.createTempDirectory("exhort_test_");
+    var tmpGoModulesDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpGolangFile = Files.createFile(tmpGoModulesDir.resolve("go.mod"));
     try (var is =
         getResourceAsStreamDecision(
@@ -167,7 +167,7 @@ class Golang_Modules_Provider_Test extends ExhortTest {
 
   @Test
   void Test_Golang_MvS_Logic_Disabled() throws IOException {
-    System.setProperty(GoModulesProvider.PROP_EXHORT_GO_MVS_LOGIC_ENABLED, "false");
+    System.setProperty(GoModulesProvider.PROP_TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED, "false");
     String goModPath = getFileFromResource("go.mod", "msc/golang/mvs_logic/go.mod");
     Path manifest = Path.of(goModPath);
     GoModulesProvider goModulesProvider = new GoModulesProvider(manifest);
@@ -184,13 +184,13 @@ class Golang_Modules_Provider_Test extends ExhortTest {
             .filter(str -> str.contains("\"ref\" : \"pkg:golang/go.opencensus.io@"))
             .count());
 
-    System.clearProperty(GoModulesProvider.PROP_EXHORT_GO_MVS_LOGIC_ENABLED);
+    System.clearProperty(GoModulesProvider.PROP_TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED);
 
     resultSbom =
         dropIgnoredKeepFormat(
             goModulesProvider.getDependenciesSbom(manifest, true).getAsJsonString());
     // check that there is more than one version of package golang/go.opencensus.io in sbom for
-    // EXHORT_GO_MVS_LOGIC_ENABLED=false
+    // TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED=false
     assertTrue(
         Arrays.stream(resultSbom.split(System.lineSeparator()))
                 .filter(str -> str.contains("\"ref\" : \"pkg:golang/go.opencensus.io@"))

@@ -40,13 +40,13 @@ import java.util.stream.Stream;
 
 public abstract class PythonControllerBase {
 
-  public static final String PROP_EXHORT_PIP_PIPDEPTREE = "EXHORT_PIP_PIPDEPTREE";
-  public static final String PROP_EXHORT_PIP_FREEZE = "EXHORT_PIP_FREEZE";
-  public static final String PROP_EXHORT_PIP_USE_DEP_TREE = "EXHORT_PIP_USE_DEP_TREE";
-  public static final String PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS =
-      "EXHORT_PYTHON_INSTALL_BEST_EFFORTS";
-  public static final String PROP_EXHORT_PIP_SHOW = "EXHORT_PIP_SHOW";
-  public static final String PROP_EXHORT_PYTHON_VIRTUAL_ENV = "EXHORT_PYTHON_VIRTUAL_ENV";
+  public static final String PROP_TRUSTIFY_DA_PIP_PIPDEPTREE = "TRUSTIFY_DA_PIP_PIPDEPTREE";
+  public static final String PROP_TRUSTIFY_DA_PIP_FREEZE = "TRUSTIFY_DA_PIP_FREEZE";
+  public static final String PROP_TRUSTIFY_DA_PIP_USE_DEP_TREE = "TRUSTIFY_DA_PIP_USE_DEP_TREE";
+  public static final String PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS =
+      "TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS";
+  public static final String PROP_TRUSTIFY_DA_PIP_SHOW = "TRUSTIFY_DA_PIP_SHOW";
+  public static final String PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV = "TRUSTIFY_DA_PYTHON_VIRTUAL_ENV";
 
   private final Logger log = LoggersFactory.getLogger(this.getClass().getName());
   protected Path pythonEnvironmentDir;
@@ -78,7 +78,7 @@ public abstract class PythonControllerBase {
     }
     if (automaticallyInstallPackageOnEnvironment()) {
       boolean installBestEfforts =
-          Environment.getBoolean(PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS, false);
+          Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false);
       /*
        make best efforts to install the requirements.txt on the virtual environment created from
        the python3 passed in. that means that it will install the packages without referring to
@@ -90,7 +90,7 @@ public abstract class PythonControllerBase {
         if (matchManifestVersions) {
           throw new RuntimeException(
               "Conflicting settings, "
-                  + PythonControllerBase.PROP_EXHORT_PYTHON_INSTALL_BEST_EFFORTS
+                  + PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
                   + "=true can only work with "
                   + PROP_MATCH_MANIFEST_VERSIONS
                   + "=false");
@@ -223,26 +223,27 @@ public abstract class PythonControllerBase {
     args.add(pipBinaryLocation);
     args.add("show");
     args.addAll(depNames);
-    return executeCommandOrExtractFromEnv(PROP_EXHORT_PIP_SHOW, args.toArray(new String[] {}));
+    return executeCommandOrExtractFromEnv(PROP_TRUSTIFY_DA_PIP_SHOW, args.toArray(new String[] {}));
   }
 
   String getPipFreezeFromEnvironment() {
     return executeCommandOrExtractFromEnv(
-        PROP_EXHORT_PIP_FREEZE, pipBinaryLocation, "freeze", "--all");
+        PROP_TRUSTIFY_DA_PIP_FREEZE, pipBinaryLocation, "freeze", "--all");
   }
 
   List<PythonDependency> getDependencyTreeJsonFromPipDepTree() {
     executeCommandOrExtractFromEnv(
-        PROP_EXHORT_PIP_PIPDEPTREE, pipBinaryLocation, "install", "pipdeptree");
+        PROP_TRUSTIFY_DA_PIP_PIPDEPTREE, pipBinaryLocation, "install", "pipdeptree");
 
     String pipdeptreeJsonString = "";
     if (isVirtualEnv()) {
       pipdeptreeJsonString =
-          executeCommandOrExtractFromEnv(PROP_EXHORT_PIP_PIPDEPTREE, "./bin/pipdeptree", "--json");
+          executeCommandOrExtractFromEnv(
+              PROP_TRUSTIFY_DA_PIP_PIPDEPTREE, "./bin/pipdeptree", "--json");
     } else if (isRealEnv()) {
       pipdeptreeJsonString =
           executeCommandOrExtractFromEnv(
-              PROP_EXHORT_PIP_PIPDEPTREE, pathToPythonBin, "-m", "pipdeptree", "--json");
+              PROP_TRUSTIFY_DA_PIP_PIPDEPTREE, pathToPythonBin, "-m", "pipdeptree", "--json");
     }
     if (debugLoggingIsNeeded()) {
       String pipdeptreeMessage =
@@ -307,7 +308,7 @@ public abstract class PythonControllerBase {
                   + " better to install requirements.txt altogether) or turn on environment"
                   + " variable %s=true to automatically install it on"
                   + " virtual environment (will slow down the analysis)",
-              depName, PROP_EXHORT_PYTHON_VIRTUAL_ENV));
+              depName, PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV));
     }
 
     Map<String, Object> dataMap = new HashMap<>();
@@ -411,7 +412,7 @@ public abstract class PythonControllerBase {
   }
 
   private void fillCacheWithEnvironmentDeps(Map<StringInsensitive, PythonDependency> cache) {
-    boolean usePipDepTree = Environment.getBoolean(PROP_EXHORT_PIP_USE_DEP_TREE, false);
+    boolean usePipDepTree = Environment.getBoolean(PROP_TRUSTIFY_DA_PIP_USE_DEP_TREE, false);
     if (usePipDepTree) {
       getDependencyTreeJsonFromPipDepTree().forEach(d -> saveToCacheWithKeyVariations(cache, d));
     } else {

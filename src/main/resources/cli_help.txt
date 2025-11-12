@@ -1,4 +1,4 @@
-Exhort Java API CLI
+Dependency Analytics Java API CLI
 
 USAGE:
   java -jar trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]

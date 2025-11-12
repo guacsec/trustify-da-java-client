@@ -62,7 +62,7 @@ class AppTest extends ExhortTest {
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class)) {
       App.main(new String[0]);
 
-      mockedAppUtils.verify(() -> printLine(contains("Exhort Java API CLI")));
+      mockedAppUtils.verify(() -> printLine(contains("Dependency Analytics Java API CLI")));
     }
   }
 
@@ -72,7 +72,7 @@ class AppTest extends ExhortTest {
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class)) {
       App.main(new String[] {helpFlag});
 
-      mockedAppUtils.verify(() -> printLine(contains("Exhort Java API CLI")));
+      mockedAppUtils.verify(() -> printLine(contains("Dependency Analytics Java API CLI")));
       mockedAppUtils.verify(() -> printLine(contains("USAGE:")));
       mockedAppUtils.verify(
           () ->
@@ -88,7 +88,7 @@ class AppTest extends ExhortTest {
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class)) {
       App.main(new String[] {"stack", "--help"});
 
-      mockedAppUtils.verify(() -> printLine(contains("Exhort Java API CLI")));
+      mockedAppUtils.verify(() -> printLine(contains("Dependency Analytics Java API CLI")));
     }
   }
 
@@ -217,7 +217,7 @@ class AppTest extends ExhortTest {
       App.main(new String[] {"--help"});
 
       // Verify that help content is printed (loaded from cli_help.txt)
-      mockedAppUtils.verify(() -> printLine(contains("Exhort Java API CLI")));
+      mockedAppUtils.verify(() -> printLine(contains("Dependency Analytics Java API CLI")));
       mockedAppUtils.verify(() -> printLine(contains("USAGE:")));
       mockedAppUtils.verify(() -> printLine(contains("COMMANDS:")));
       mockedAppUtils.verify(() -> printLine(contains("EXAMPLES:")));

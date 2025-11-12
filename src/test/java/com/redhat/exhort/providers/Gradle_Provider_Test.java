@@ -60,7 +60,7 @@ abstract class Gradle_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideStack(String testFolder) throws IOException {
     // create temp file hosting our sut build.gradle
-    var tmpGradleDir = Files.createTempDirectory("exhort_test_");
+    var tmpGradleDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpGradleFile = Files.createFile(tmpGradleDir.resolve(getManifestName()));
     try (var is =
         getClass()
@@ -163,7 +163,7 @@ abstract class Gradle_Provider_Test extends ExhortTest {
   @MethodSource("testFolders")
   void test_the_provideComponent(String testFolder) throws IOException {
     // create temp file hosting our sut build.gradle
-    var tmpGradleDir = Files.createTempDirectory("exhort_test_");
+    var tmpGradleDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
     var tmpGradleFile = Files.createFile(tmpGradleDir.resolve(getManifestName()));
     try (var is =
         getClass()

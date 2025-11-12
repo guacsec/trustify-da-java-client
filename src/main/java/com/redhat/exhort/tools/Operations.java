@@ -48,9 +48,9 @@ public final class Operations {
   /**
    * Function for looking up custom executable path based on the default one provides as an
    * argument. I.e. if defaultExecutable=mvn, this function will look for a custom mvn path set as
-   * an environment variable or a java property with the name EXHORT_MVN_PATH. If not found, the
-   * original mvn passed as defaultExecutable will be returned. Note, environment variables takes
-   * precedence on java properties.
+   * an environment variable or a java property with the name TRUSTIFY_DA_MVN_PATH. If not found,
+   * the original mvn passed as defaultExecutable will be returned. Note, environment variables
+   * takes precedence on java properties.
    *
    * @param defaultExecutable default executable (uppercase spaces and dashes will be replaced with
    *     underscores).
@@ -64,7 +64,7 @@ public final class Operations {
     }
 
     var target = normalized.toUpperCase().replaceAll(" ", "_").replaceAll("-", "_");
-    var primaryKey = String.format("EXHORT_%s_PATH", target);
+    var primaryKey = String.format("TRUSTIFY_DA_%s_PATH", target);
     String primary = Environment.get(primaryKey);
     if (primary != null) {
       return primary;
@@ -316,7 +316,7 @@ public final class Operations {
    * Checks whether a wrapper preference is set for a given tool name.
    *
    * <p>This method looks for an environment variable with the name {@code
-   * EXHORT_PREFER_<TOOLNAME>W}, where {@code <TOOLNAME>} is the uppercase form of the provided
+   * TRUSTIFY_DA_PREFER_<TOOLNAME>W}, where {@code <TOOLNAME>} is the uppercase form of the provided
    * {@code name} parameter. If the environment variable is present (i.e., not {@code null}), the
    * method returns {@code true}.
    *
@@ -324,7 +324,7 @@ public final class Operations {
    * @return {@code true} if the corresponding environment variable is set; {@code false} otherwise
    */
   public static boolean getWrapperPreference(String name) {
-    return Environment.get("EXHORT_PREFER_" + name.toUpperCase() + "W") != null;
+    return Environment.get("TRUSTIFY_DA_PREFER_" + name.toUpperCase() + "W") != null;
   }
 
   /**
@@ -334,7 +334,7 @@ public final class Operations {
    * @return the configuration value if set and not blank, null otherwise
    */
   public static String getMavenConfig(String configName) {
-    String configValue = Environment.get("EXHORT_MVN_" + configName);
+    String configValue = Environment.get("TRUSTIFY_DA_MVN_" + configName);
     return (configValue != null && !configValue.isBlank()) ? configValue : null;
   }
 

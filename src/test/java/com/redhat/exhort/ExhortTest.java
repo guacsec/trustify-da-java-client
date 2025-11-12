@@ -58,7 +58,7 @@ public class ExhortTest {
   protected String getFileFromResource(String fileName, String path) {
     Path tmpFile;
     try {
-      var tmpDir = Files.createTempDirectory("exhort_test_");
+      var tmpDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
       tmpFile = Files.createFile(tmpDir.resolve(fileName));
       try (var is = getResourceAsStreamDecision(this.getClass(), path)) {
         if (Objects.nonNull(is)) {
@@ -81,7 +81,7 @@ public class ExhortTest {
     private final Path tmpDir;
 
     public TempDirFromResources() throws IOException {
-      tmpDir = Files.createTempDirectory("exhort_test_");
+      tmpDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
     }
 
     public class AddPath {
@@ -145,7 +145,7 @@ public class ExhortTest {
   protected String getFileFromString(String fileName, String content) {
     Path tmpFile;
     try {
-      var tmpDir = Files.createTempDirectory("exhort_test_");
+      var tmpDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
       tmpFile = Files.createFile(tmpDir.resolve(fileName));
       Files.write(tmpFile, content.getBytes());
 
