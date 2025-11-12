@@ -20,20 +20,13 @@ paths:
       summary:  Takes a client-resolved dependency graph to perform a full stack analysis from all the available Vulnerability sources
       security:
         - TrustDaTokenAuth: []
-        - SnykTokenAuth: []
-        - OssIndexUserAuth: []
-          OssIndexTokenAuth: []
       parameters:
         - name: providers
           in: query
           description: List of vulnerability providers to get the report from
           required: false
           schema:
-            enum:
-              - snyk
-              - oss-index
             type: string
-          example: snyk
       requestBody:
         required: true
         description: Dependency graph in SBOM format
@@ -75,20 +68,13 @@ paths:
       summary: Takes an array of client-resolved dependency graphs to perform a full stack analysis from all the available Vulnerability sources
       security:
         - TrustDaTokenAuth: [ ]
-        - SnykTokenAuth: [ ]
-        - OssIndexUserAuth: [ ]
-          OssIndexTokenAuth: [ ]
       parameters:
         - name: providers
           in: query
           description: List of vulnerability providers to get the report from
           required: false
           schema:
-            enum:
-              - snyk
-              - oss-index
             type: string
-          example: snyk
       requestBody:
         required: true
         description: An array of dependency graphs in SBOM format
@@ -138,9 +124,6 @@ paths:
       summary: Validates a vulnerability provider token
       security:
         - TrustDaTokenAuth: []
-        - SnykTokenAuth: []
-        - OssIndexUserAuth: []
-          OssIndexTokenAuth: []
       responses:
         '200':
           description: Successful token validation
@@ -184,18 +167,6 @@ components:
       type: apiKey
       in: header
       name: trust-da-token
-    SnykTokenAuth:
-      type: apiKey
-      in: header
-      name: ex-snyk-token
-    OssIndexUserAuth:
-      type: apiKey
-      in: header
-      name: ex-oss-index-name
-    OssIndexTokenAuth:
-      type: apiKey
-      in: header
-      name: ex-oss-index-token
   schemas:
     AnalysisReport:
       type: object

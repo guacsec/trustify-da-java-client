@@ -60,7 +60,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
@@ -86,38 +85,6 @@ public final class ExhortApi implements Api {
 
   public String getEndpoint() {
     return endpoint;
-  }
-
-  /** Enum for identifying token environment variables and their corresponding request headers. */
-  private enum TokenProvider {
-    SNYK,
-    OSS_INDEX;
-
-    /**
-     * Get the expected environment variable name.
-     *
-     * @return i.e. TRUSTIFY_DA_SNYK_TOKEN
-     */
-    String getVarName() {
-      return String.format("TRUSTIFY_DA_%s_TOKEN", this);
-    }
-
-    String getUserVarName() {
-      return String.format("TRUSTIFY_DA_%s_USER", this);
-    }
-
-    /**
-     * Get the expected request header name.
-     *
-     * @return i.e. ex-snyk-token
-     */
-    String getHeaderName() {
-      return String.format("ex-%s-token", this.toString().replace("_", "-").toLowerCase());
-    }
-
-    String getUserHeaderName() {
-      return String.format("ex-%s-user", this.toString().replace("_", "-").toLowerCase());
-    }
   }
 
   private final HttpClient client;
@@ -648,29 +615,6 @@ public final class ExhortApi implements Api {
             .setHeader("Content-Type", content.type)
             .POST(HttpRequest.BodyPublishers.ofString(new String(content.buffer)));
 
-    // include tokens from environment variables of java properties as request headers
-    Stream.of(ExhortApi.TokenProvider.values())
-        .forEach(
-            p -> {
-              var envToken = Environment.get(p.getVarName());
-              if (Objects.nonNull(envToken)) {
-                request.setHeader(p.getHeaderName(), envToken);
-              } else {
-                var propToken = Environment.get(p.getVarName());
-                if (Objects.nonNull(propToken)) {
-                  request.setHeader(p.getHeaderName(), propToken);
-                }
-              }
-              var envUser = Environment.get(p.getUserHeaderName());
-              if (Objects.nonNull(envUser)) {
-                request.setHeader(p.getUserHeaderName(), envUser);
-              } else {
-                var propUser = Environment.get(p.getUserVarName());
-                if (Objects.nonNull(propUser)) {
-                  request.setHeader(p.getUserHeaderName(), propUser);
-                }
-              }
-            });
     // set trust-da-token
     // Environment variable/property name = TRUST_DA_TOKEN
     String trustDaToken = calculateHeaderValue(TRUST_DA_TOKEN_HEADER);
