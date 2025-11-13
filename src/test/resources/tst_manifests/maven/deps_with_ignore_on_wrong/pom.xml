@@ -8,7 +8,7 @@
   <version>0.0.1</version>
 
   <dependencies>
-    <!--exhortignore-->
+    <!--trustify-da-ignore-->
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>

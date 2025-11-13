@@ -35,7 +35,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jdbc-postgresql</artifactId> <!-- exhortignore-->
+      <artifactId>quarkus-jdbc-postgresql</artifactId> <!-- trustify-da-ignore-->
       <version>2.13.6.Final</version>
     </dependency>
   </dependencies>
