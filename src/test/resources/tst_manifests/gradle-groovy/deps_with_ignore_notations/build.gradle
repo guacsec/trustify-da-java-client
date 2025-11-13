@@ -32,7 +32,7 @@ dependencies {
     api libs.io.quarkus.quarkus.container.image.docker
     api libs.jakarta.validation.jakarta.validation.api
     api libs.io.quarkus.quarkus.vertx.http
-    api libs.log4j // exhortignore
+    api libs.log4j // trustify-da-ignore
     compileOnly libs.io.quarkus.quarkus.hibernate.orm.deployment
 }
 

@@ -21,7 +21,7 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api:2.0.2")
     implementation("io.quarkus:quarkus-resteasy-multipart:2.13.7.Final")
     implementation("io.quarkus:quarkus-hibernate-orm-deployment:2.0.2.Final")
-    implementation("log4j:log4j:1.2.17") // exhortignore
+    implementation("log4j:log4j:1.2.17") // trustify-da-ignore
 }
 tasks.test {
     useJUnitPlatform()
