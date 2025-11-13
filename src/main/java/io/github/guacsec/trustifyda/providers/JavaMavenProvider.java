@@ -28,6 +28,7 @@ import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -277,7 +278,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
         if (!Objects.isNull(dependencyAggregator)) {
           // if we hit an ignore comment, mark aggregator to be ignored
           if (reader.getEventType() == XMLStreamConstants.COMMENT
-              && "exhortignore".equals(reader.getText().strip())) {
+              && IgnorePatternDetector.isIgnoreComment(reader.getText())) {
             dependencyAggregator.ignored = true;
             continue;
           }

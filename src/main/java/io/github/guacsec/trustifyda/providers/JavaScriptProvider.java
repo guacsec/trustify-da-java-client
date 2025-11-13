@@ -36,10 +36,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -238,18 +236,6 @@ public abstract class JavaScriptProvider extends Provider {
   protected String parseDepTreeOutput(String output) {
     // Do nothing by default
     return output;
-  }
-
-  protected List<String> getIgnoredDeps(JsonNode manifest) {
-    var ignored = new ArrayList<String>();
-    var ignoredNode = manifest.withArray("exhortignore");
-    if (ignoredNode == null) {
-      return ignored;
-    }
-    for (JsonNode n : ignoredNode) {
-      ignored.add(n.asText());
-    }
-    return ignored;
   }
 
   protected Map<String, String> getExecEnv() {
