@@ -29,6 +29,7 @@ import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import io.github.guacsec.trustifyda.utils.PythonControllerRealEnv;
 import io.github.guacsec.trustifyda.utils.PythonControllerVirtualEnv;
@@ -173,7 +174,7 @@ public final class PythonPipProvider extends Provider {
     String[] requirementsLines = requirementsDeps.split(System.lineSeparator());
     Set<PackageURL> collected =
         Arrays.stream(requirementsLines)
-            .filter(line -> line.contains("#exhortignore") || line.contains("# exhortignore"))
+            .filter(IgnorePatternDetector::containsPythonIgnorePattern)
             .map(PythonPipProvider::extractDepFull)
             .map(this::splitToNameVersion)
             .map(dep -> toPurl(dep[0], dep[1]))

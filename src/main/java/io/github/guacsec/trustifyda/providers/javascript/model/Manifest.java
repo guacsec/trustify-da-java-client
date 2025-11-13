@@ -70,12 +70,16 @@ public class Manifest {
   private Set<String> loadIgnored(JsonNode content) {
     var names = new HashSet<String>();
     if (content != null) {
-      var ignore = (ArrayNode) content.get("exhortignore");
-      if (ignore == null || ignore.isEmpty()) {
-        return Collections.emptySet();
-      }
+      processIgnoreArray(content, "exhortignore", names);
+      processIgnoreArray(content, "trustify-da-ignore", names);
+    }
+    return names.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(names);
+  }
+
+  private void processIgnoreArray(JsonNode content, String key, Set<String> names) {
+    var ignore = (ArrayNode) content.get(key);
+    if (ignore != null && !ignore.isEmpty()) {
       ignore.forEach(n -> names.add(n.asText()));
     }
-    return Collections.unmodifiableSet(names);
   }
 }
