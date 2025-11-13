@@ -39,10 +39,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import com.redhat.exhort.api.v4.AnalysisReport;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.tools.Operations;
@@ -506,7 +506,7 @@ class Exhort_Api_Test extends ExhortTest {
                       .equals(
                           URI.create(
                               String.format(
-                                  "%s/api/v4/batch-analysis", exhortApiSut.getEndpoint())))
+                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")
@@ -612,7 +612,7 @@ class Exhort_Api_Test extends ExhortTest {
                       .equals(
                           URI.create(
                               String.format(
-                                  "%s/api/v4/batch-analysis", exhortApiSut.getEndpoint())))
+                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")
@@ -657,7 +657,7 @@ class Exhort_Api_Test extends ExhortTest {
                       .equals(
                           URI.create(
                               String.format(
-                                  "%s/api/v4/batch-analysis", exhortApiSut.getEndpoint())))
+                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")

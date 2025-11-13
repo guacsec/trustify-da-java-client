@@ -30,10 +30,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
 
-import com.redhat.exhort.api.v4.AnalysisReport;
-import com.redhat.exhort.api.v4.ProviderReport;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
+import io.github.guacsec.trustifyda.api.v5.ProviderReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.providers.HelperExtension;
 import io.github.guacsec.trustifyda.providers.JavaScriptNpmProvider;

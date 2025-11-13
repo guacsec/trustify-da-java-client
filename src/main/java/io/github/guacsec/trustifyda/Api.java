@@ -16,7 +16,7 @@
  */
 package io.github.guacsec.trustifyda;
 
-import com.redhat.exhort.api.v4.AnalysisReport;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import java.io.IOException;
 import java.util.Arrays;

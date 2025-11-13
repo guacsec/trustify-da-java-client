@@ -6,7 +6,7 @@ module io.github.guacsec.trustifyda {
   requires jakarta.annotation;
   requires java.xml;
   requires jakarta.mail;
-  requires transitive exhort.api;
+  requires transitive trustifyda.api;
   requires cyclonedx.core.java;
   requires transitive packageurl.java;
   requires transitive java.logging;

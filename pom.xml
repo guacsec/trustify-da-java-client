@@ -18,11 +18,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <!-- Dependencies -->
-    <exhort-api.version>1.0.6</exhort-api.version>
+    <trustify-da-api-model.version>2.0.1</trustify-da-api-model.version>
     <jackson.version>2.19.2</jackson.version>
     <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
     <jakarta.mail.version>2.0.4</jakarta.mail.version>
     <cyclonedx.version>10.2.1</cyclonedx.version>
+    <tomlj.version>1.1.1</tomlj.version>
     <!-- Testing Dependencies -->
     <assertj.version>3.27.3</assertj.version>
     <junit-jupiter.version>5.10.5</junit-jupiter.version>
@@ -106,14 +107,14 @@
     <dependencies>
       <!-- Dependencies -->
       <dependency>
-        <groupId>com.redhat.ecosystemappeng</groupId>
-        <artifactId>exhort-api-spec</artifactId>
-        <version>${exhort-api.version}</version>
+        <groupId>io.github.guacsec</groupId>
+        <artifactId>trustify-da-api-model</artifactId>
+        <version>${trustify-da-api-model.version}</version>
       </dependency>
       <dependency>
         <groupId>org.tomlj</groupId>
         <artifactId>tomlj</artifactId>
-        <version>1.1.1</version>
+        <version>${tomlj.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -187,8 +188,8 @@
   <dependencies>
     <!-- Dependencies -->
     <dependency>
-      <groupId>com.redhat.ecosystemappeng</groupId>
-      <artifactId>exhort-api-spec</artifactId>
+      <groupId>io.github.guacsec</groupId>
+      <artifactId>trustify-da-api-model</artifactId>
     </dependency>
     <dependency>
       <groupId>org.tomlj</groupId>
@@ -405,8 +406,8 @@ limitations under the License.]]>
           <version>${jacoco-maven-plugin.version}</version>
           <configuration>
             <excludes>
-              <exclude>com/redhat/exhort/api/*</exclude>
-              <exclude>com/redhat/exhort/api/serialization/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/api/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/api/serialization/*</exclude>
               <exclude>io/github/guacsec/trustifyda/exception/*</exclude>
 <!-- This one excluding ExhortApi implementation calss from coverage report as it's not tested by surefire plugin, but with junit-platform-maven-plugin              -->
               <exclude>io/github/guacsec/trustifyda/impl/*</exclude>

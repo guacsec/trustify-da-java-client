@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import com.redhat.exhort.api.v4.AnalysisReport;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
@@ -379,7 +379,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v4/analysis", this.endpoint));
+    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -423,7 +423,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v4/analysis", this.endpoint));
+    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -464,7 +464,7 @@ public final class ExhortApi implements Api {
       throws IOException {
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v4/analysis", this.endpoint));
+    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
     var content = provider.provideStack();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
 
@@ -543,7 +543,7 @@ public final class ExhortApi implements Api {
       final String analysisName)
       throws IOException {
     String exClientTraceId = commonHookBeginning(false);
-    var uri = URI.create(String.format("%s/api/v4/batch-analysis", this.endpoint));
+    var uri = URI.create(String.format("%s/api/v5/batch-analysis", this.endpoint));
     var sboms = sbomsGenerator.get();
     var content =
         new Provider.Content(
