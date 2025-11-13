@@ -80,6 +80,8 @@ public final class ExhortApi implements Api {
   public static final String TRUST_DA_SOURCE_HEADER = "trust-da-source";
   public static final String TRUST_DA_OPERATION_TYPE_HEADER = "trust-da-operation-type";
   public static final String TRUSTIFY_DA_REQUEST_ID_HEADER_NAME = "ex-request-id";
+  public static final String S_API_V_5_ANALYSIS = "%s/api/v5/analysis";
+  public static final String S_API_V_5_BATCH_ANALYSIS = "%s/api/v5/batch-analysis";
 
   private final String endpoint;
 
@@ -379,7 +381,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -423,7 +425,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -464,7 +466,7 @@ public final class ExhortApi implements Api {
       throws IOException {
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format("%s/api/v5/analysis", this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
     var content = provider.provideStack();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
 
@@ -543,7 +545,7 @@ public final class ExhortApi implements Api {
       final String analysisName)
       throws IOException {
     String exClientTraceId = commonHookBeginning(false);
-    var uri = URI.create(String.format("%s/api/v5/batch-analysis", this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_BATCH_ANALYSIS, this.endpoint));
     var sboms = sbomsGenerator.get();
     var content =
         new Provider.Content(

@@ -87,6 +87,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @SuppressWarnings("unchecked")
 class Exhort_Api_Test extends ExhortTest {
 
+  public static final String S_API_V_5_BATCH_ANALYSIS = "%s/api/v5/batch-analysis";
   @Mock Provider mockProvider;
 
   @Mock HttpClient mockHttpClient;
@@ -505,8 +506,7 @@ class Exhort_Api_Test extends ExhortTest {
               r.uri()
                       .equals(
                           URI.create(
-                              String.format(
-                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
+                              String.format(S_API_V_5_BATCH_ANALYSIS, exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")
@@ -611,8 +611,7 @@ class Exhort_Api_Test extends ExhortTest {
               r.uri()
                       .equals(
                           URI.create(
-                              String.format(
-                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
+                              String.format(S_API_V_5_BATCH_ANALYSIS, exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")
@@ -656,8 +655,7 @@ class Exhort_Api_Test extends ExhortTest {
               r.uri()
                       .equals(
                           URI.create(
-                              String.format(
-                                  "%s/api/v5/batch-analysis", exhortApiSut.getEndpoint())))
+                              String.format(S_API_V_5_BATCH_ANALYSIS, exhortApiSut.getEndpoint())))
                   && r.headers().firstValue("Content-Type").get().equals(Api.CYCLONEDX_MEDIA_TYPE)
                   && r.headers()
                       .firstValue("Accept")
