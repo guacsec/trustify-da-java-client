@@ -34,13 +34,13 @@ encrypted-token-will-appear-here
 
 ```xml
 <servers>
-    ...
+    <!-- ... other servers -->
     <server>
         <id>github</id>
         <username>github-userid-goes-here</username>
         <password>encrypted-token-goes-here-including-curly-brackets</password>
     </server>
-    ...
+    <!-- ... other servers -->
 </servers>
 ```
 </li>
@@ -66,12 +66,12 @@ encrypted-token-will-appear-here
 
 ```xml
   <repositories>
-    ...
+    <!-- ... other repositories -->
     <repository>
       <id>github</id>
       <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
     </repository>
-    ...
+    <!-- ... other repositories -->
   </repositories>
 ```
 </li>
@@ -81,7 +81,7 @@ encrypted-token-will-appear-here
 
 ```groovy
 repositories {
-    ...
+    // ... other repositories
     maven {
         url 'https://maven.pkg.github.com/guacsec/trustify-da-java-client'
         credentials {
@@ -89,7 +89,7 @@ repositories {
             password System.getenv("GITHUB_TOKEN")
         }
     }
-    ...
+    // ... other repositories
 }
 ```
 </li>
@@ -232,7 +232,7 @@ Although both `trustify-da-ignore` and `exhortignore` patterns work identically 
 <li>
 <em>Golang</em> users can add in go.mod a comment with //trustify-da-ignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
 
-```go
+```mod
 module github.com/RHEcosystemAppEng/SaaSi/deployer
 
 go 1.19
@@ -330,7 +330,7 @@ You can specify the method to ignore dependencies in manifest (globally), by set
 There are 2 approaches for customizing <em>Trustify DA Java Client</em>. Using <em>Environment Variables</em> or
 <em>Java Properties</em>:
 
-```java
+```text
 System.setProperty("TRUSTIFY_DA_MVN_PATH", "/path/to/custom/mvn");
 System.setProperty("TRUSTIFY_DA_NPM_PATH", "/path/to/custom/npm");
 System.setProperty("TRUSTIFY_DA_PNPM_PATH", "/path/to/custom/pnpm");
@@ -489,7 +489,7 @@ export TRUSTIFY_DA_MVN_LOCAL_REPO=/home/user/custom-maven-repo
 ```
 
 Using Java properties:
-```java
+```text
 System.setProperty("TRUSTIFY_DA_MVN_USER_SETTINGS", "/home/user/.m2/custom-settings.xml");
 System.setProperty("TRUSTIFY_DA_MVN_LOCAL_REPO", "/home/user/custom-maven-repo");
 ```
