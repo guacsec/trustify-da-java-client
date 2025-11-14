@@ -278,7 +278,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
         if (!Objects.isNull(dependencyAggregator)) {
           // if we hit an ignore comment, mark aggregator to be ignored
           if (reader.getEventType() == XMLStreamConstants.COMMENT
-              && IgnorePatternDetector.isIgnoreComment(reader.getText())) {
+              && isIgnoreComment(reader.getText())) {
             dependencyAggregator.ignored = true;
             continue;
           }
@@ -491,5 +491,18 @@ public final class JavaMavenProvider extends BaseJavaProvider {
       result = result.toLowerCase();
     }
     return result;
+  }
+
+  /**
+   * Checks if a comment text exactly matches an ignore pattern. Used for XML comment detection in
+   * pom.xml files.
+   *
+   * @param commentText the comment text to check (will be stripped of whitespace)
+   * @return true if the comment exactly matches an ignore pattern
+   */
+  private boolean isIgnoreComment(String commentText) {
+    String stripped = commentText.strip();
+    return IgnorePatternDetector.IGNORE_PATTERN.equals(stripped)
+        || IgnorePatternDetector.LEGACY_IGNORE_PATTERN.equals(stripped);
   }
 }

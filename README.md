@@ -177,7 +177,10 @@ public class TrustifyExample {
 
 <h3>Excluding Packages</h3>
 <p>
-Excluding a package from any analysis can be achieved by marking the package for exclusion using either the <code>trustify-da-ignore</code> syntax or the legacy <code>exhortignore</code>.
+Excluding a package from any analysis can be achieved by marking the package for exclusion using either the <code>trustify-da-ignore</code> syntax.
+
+Although both `trustify-da-ignore` and `exhortignore` patterns work identically and can be used interchangeably. The `trustify-da-ignore` syntax is recommended for new projects, while `exhortignore` continues to be supported for backwards compatibility. You can gradually migrate your projects or use both patterns in the same manifest.
+
 </p>
 
 <ul>
@@ -220,19 +223,14 @@ Excluding a package from any analysis can be achieved by marking the package for
     "mongoose": "^5.9.18"
   },
   "trustify-da-ignore": [
-    "mongoose"
-  ],
-  "exhortignore": [
     "jsonwebtoken"
   ]
 }
 ```
-
-Both arrays can coexist in the same package.json file.
 </li>
 
 <li>
-<em>Golang</em> users can add comments in <em>go.mod</em>:
+<em>Golang</em> users can add in go.mod a comment with //trustify-da-ignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
 
 ```go
 module github.com/RHEcosystemAppEng/SaaSi/deployer
@@ -242,15 +240,15 @@ go 1.19
 require (
         github.com/gin-gonic/gin v1.9.1
         github.com/google/uuid v1.1.2
-        github.com/jessevdk/go-flags v1.5.0 //exhortignore
-        github.com/kr/pretty v0.3.1 //trustify-da-ignore
+        github.com/jessevdk/go-flags v1.5.0 //trustify-da-ignore
+        github.com/kr/pretty v0.3.1
         gopkg.in/yaml.v2 v2.4.0
         k8s.io/apimachinery v0.26.1
         k8s.io/client-go v0.26.1
 )
 
 require (
-        github.com/davecgh/go-spew v1.1.1 // indirect exhortignore
+        github.com/davecgh/go-spew v1.1.1 // indirect trustify-da-ignore
         github.com/emicklei/go-restful/v3 v3.9.0 // indirect
         github.com/go-logr/logr v1.2.3 // indirect trustify-da-ignore
 )
@@ -258,7 +256,7 @@ require (
 </li>
 
 <li>
-<em>Python pip</em> users can add comments in <em>requirements.txt</em>:
+<em>Python pip</em> users can add in requirement text a comment with #trustify-da-ignore(or # trustify-da-ignore) to the right of the same artifact to be ignored, for example:
 
 ```properties
 anyio==3.6.2
@@ -266,7 +264,7 @@ asgiref==3.4.1
 beautifulsoup4==4.12.2
 certifi==2023.7.22
 chardet==4.0.0
-click==8.0.4 #exhortignore
+click==8.0.4 #trustify-da-ignore
 contextlib2==21.6.0
 fastapi==0.75.1
 Flask==2.0.3
@@ -292,7 +290,8 @@ zipp==3.6.0
 </li>
 
 <li>
-<em>Gradle</em> users can add comments in <em>build.gradle</em>:
+<em>Gradle</em> users can add in build.gradle a comment with //trustify-da-ignore next to the package to be ignored:
+```build.gradle
 
 ```groovy
 plugins {
@@ -307,8 +306,7 @@ repositories {
 }
 
 dependencies {
-    implementation "groupId:artifactId:version" // exhortignore
-    implementation "anotherGroup:anotherArtifact:version" // trustify-da-ignore
+    implementation "groupId:artifactId:version" // trustify-da-ignore
 }
 
 test {
@@ -318,9 +316,6 @@ test {
 </li>
 
 </ul>
-
-#### Migration from exhortignore to trustify-da-ignore
-Both `exhortignore` and `trustify-da-ignore` patterns work identically and can be used interchangeably. The `trustify-da-ignore` syntax is recommended for new projects, while `exhortignore` continues to be supported for backwards compatibility. You can gradually migrate your projects or use both patterns in the same manifest.
 
 #### Ignore Strategies - experimental
 

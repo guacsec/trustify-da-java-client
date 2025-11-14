@@ -23,7 +23,7 @@ package io.github.guacsec.trustifyda.utils;
 public class IgnorePatternDetector {
 
   public static final String LEGACY_IGNORE_PATTERN = "exhortignore";
-  public static final String NEW_IGNORE_PATTERN = "trustify-da-ignore";
+  public static final String IGNORE_PATTERN = "trustify-da-ignore";
 
   /**
    * Checks if a text line contains any ignore pattern (exhortignore or trustify-da-ignore). Used
@@ -33,32 +33,6 @@ public class IgnorePatternDetector {
    * @return true if the text contains any ignore pattern
    */
   public static boolean containsIgnorePattern(String text) {
-    return text.contains(LEGACY_IGNORE_PATTERN) || text.contains(NEW_IGNORE_PATTERN);
-  }
-
-  /**
-   * Checks if a comment text exactly matches an ignore pattern. Used for XML comment detection in
-   * pom.xml files.
-   *
-   * @param commentText the comment text to check (will be stripped of whitespace)
-   * @return true if the comment exactly matches an ignore pattern
-   */
-  public static boolean isIgnoreComment(String commentText) {
-    String stripped = commentText.strip();
-    return LEGACY_IGNORE_PATTERN.equals(stripped) || NEW_IGNORE_PATTERN.equals(stripped);
-  }
-
-  /**
-   * Checks if a text line contains a Python pip ignore pattern. Handles both '#exhortignore' and
-   * '#trustify-da-ignore' with optional spacing.
-   *
-   * @param line the line to check
-   * @return true if the line contains a Python pip ignore pattern
-   */
-  public static boolean containsPythonIgnorePattern(String line) {
-    return line.contains("#" + LEGACY_IGNORE_PATTERN)
-        || line.contains("# " + LEGACY_IGNORE_PATTERN)
-        || line.contains("#" + NEW_IGNORE_PATTERN)
-        || line.contains("# " + NEW_IGNORE_PATTERN);
+    return text.contains(LEGACY_IGNORE_PATTERN) || text.contains(IGNORE_PATTERN);
   }
 }
