@@ -28,6 +28,7 @@ import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import io.github.guacsec.trustifyda.vcs.GitVersionControlSystemImpl;
 import io.github.guacsec.trustifyda.vcs.TagInfo;
 import io.github.guacsec.trustifyda.vcs.VersionControlSystem;
@@ -459,15 +460,16 @@ public final class GoModulesProvider extends Provider {
 
   public boolean IgnoredLine(String line) {
     boolean result = false;
-    if (line.contains("exhortignore")) {
-      // if exhortignore is alone in a comment or is in a comment together with indirect or as a
+    if (IgnorePatternDetector.containsIgnorePattern(line)) {
+      // if exhortignore or trustify-da-ignore is alone in a comment or is in a comment together
+      // with indirect or as a
       // comment inside a
       // comment ( e.g // indirect  //exhort)
       // then this line is to be checked if it's a comment after a package name.
-      if (Pattern.matches(".+//\\s*exhortignore", line)
-          || Pattern.matches(".+//\\sindirect (//)?\\s*exhortignore", line)) {
+      if (Pattern.matches(".+//\\s*(exhortignore|trustify-da-ignore)", line)
+          || Pattern.matches(".+//\\sindirect (//)?\\s*(exhortignore|trustify-da-ignore)", line)) {
         String trimmedRow = line.trim();
-        // filter out lines where exhortignore has no meaning
+        // filter out lines where exhortignore or trustify-da-ignore has no meaning
         if (!trimmedRow.startsWith("module ")
             && !trimmedRow.startsWith("go ")
             && !trimmedRow.startsWith("require (")

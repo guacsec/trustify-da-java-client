@@ -34,13 +34,13 @@ encrypted-token-will-appear-here
 
 ```xml
 <servers>
-    ...
+    <!-- ... other servers -->
     <server>
         <id>github</id>
         <username>github-userid-goes-here</username>
         <password>encrypted-token-goes-here-including-curly-brackets</password>
     </server>
-    ...
+    <!-- ... other servers -->
 </servers>
 ```
 </li>
@@ -66,12 +66,12 @@ encrypted-token-will-appear-here
 
 ```xml
   <repositories>
-    ...
+    <!-- ... other repositories -->
     <repository>
       <id>github</id>
       <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
     </repository>
-    ...
+    <!-- ... other repositories -->
   </repositories>
 ```
 </li>
@@ -81,7 +81,7 @@ encrypted-token-will-appear-here
 
 ```groovy
 repositories {
-    ...
+    // ... other repositories
     maven {
         url 'https://maven.pkg.github.com/guacsec/trustify-da-java-client'
         credentials {
@@ -89,7 +89,7 @@ repositories {
             password System.getenv("GITHUB_TOKEN")
         }
     }
-    ...
+    // ... other repositories
 }
 ```
 </li>
@@ -177,7 +177,10 @@ public class TrustifyExample {
 
 <h3>Excluding Packages</h3>
 <p>
-Excluding a package from any analysis can be achieved by marking the package for exclusion.
+Excluding a package from any analysis can be achieved by marking the package for exclusion using either the <code>trustify-da-ignore</code> syntax.
+
+Although both `trustify-da-ignore` and `exhortignore` patterns work identically and can be used interchangeably. The `trustify-da-ignore` syntax is recommended for new projects, while `exhortignore` continues to be supported for backwards compatibility. You can gradually migrate your projects or use both patterns in the same manifest.
+
 </p>
 
 <ul>
@@ -185,6 +188,14 @@ Excluding a package from any analysis can be achieved by marking the package for
 <em>Java Maven</em> users can add a comment in <em>pom.xml</em>
 
 ```xml
+<!-- Using trustify-da-ignore syntax -->
+<dependency> <!--trustify-da-ignore-->
+    <groupId>...</groupId>
+    <artifactId>...</artifactId>
+    <version>0.0.9-SNAPSHOT</version>
+</dependency>
+
+<!-- Using legacy exhortignore syntax -->
 <dependency> <!--exhortignore-->
   <groupId>...</groupId>
   <artifactId>...</artifactId>
@@ -193,10 +204,8 @@ Excluding a package from any analysis can be achieved by marking the package for
 ```
 </li>
 
-</ul>
-<ul>
 <li>
-<em>Javascript NPM </em> users can add a root (key, value) pair with value of list of names (strings) to be ignored (without versions), and key called <b>exhortignore</b> in <em>package.json</em>,  example:
+<em>Javascript NPM</em> users can add ignore arrays in <em>package.json</em>:
 
 ```json
 {
@@ -213,15 +222,17 @@ Excluding a package from any analysis can be achieved by marking the package for
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.18"
   },
-  "exhortignore": [
+  "trustify-da-ignore": [
     "jsonwebtoken"
   ]
 }
-
 ```
+</li>
 
-<em>Golang</em> users can add in go.mod a comment with //exhortignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
-```go
+<li>
+<em>Golang</em> users can add in go.mod a comment with //trustify-da-ignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
+
+```mod
 module github.com/RHEcosystemAppEng/SaaSi/deployer
 
 go 1.19
@@ -229,7 +240,7 @@ go 1.19
 require (
         github.com/gin-gonic/gin v1.9.1
         github.com/google/uuid v1.1.2
-        github.com/jessevdk/go-flags v1.5.0 //exhortignore
+        github.com/jessevdk/go-flags v1.5.0 //trustify-da-ignore
         github.com/kr/pretty v0.3.1
         gopkg.in/yaml.v2 v2.4.0
         k8s.io/apimachinery v0.26.1
@@ -237,21 +248,23 @@ require (
 )
 
 require (
-        github.com/davecgh/go-spew v1.1.1 // indirect exhortignore
+        github.com/davecgh/go-spew v1.1.1 // indirect trustify-da-ignore
         github.com/emicklei/go-restful/v3 v3.9.0 // indirect
-        github.com/go-logr/logr v1.2.3 // indirect //exhortignore
-
+        github.com/go-logr/logr v1.2.3 // indirect trustify-da-ignore
 )
 ```
+</li>
 
-<em>Python pip</em> users can add in requirement text a comment with #exhortignore(or # exhortignore) to the right of the same artifact to be ignored, for example:
+<li>
+<em>Python pip</em> users can add in requirement text a comment with #trustify-da-ignore(or # trustify-da-ignore) to the right of the same artifact to be ignored, for example:
+
 ```properties
 anyio==3.6.2
 asgiref==3.4.1
 beautifulsoup4==4.12.2
 certifi==2023.7.22
 chardet==4.0.0
-click==8.0.4 #exhortignore
+click==8.0.4 #trustify-da-ignore
 contextlib2==21.6.0
 fastapi==0.75.1
 Flask==2.0.3
@@ -262,9 +275,9 @@ importlib-metadata==4.8.3
 itsdangerous==2.0.1
 Jinja2==3.0.3
 MarkupSafe==2.0.1
-pydantic==1.9.2 # exhortignore
+pydantic==1.9.2 # trustify-da-ignore
 requests==2.25.1
-six==1.16.0 
+six==1.16.0
 sniffio==1.2.0
 soupsieve==2.3.2.post1
 starlette==0.17.1
@@ -273,12 +286,16 @@ urllib3==1.26.16
 uvicorn==0.17.0
 Werkzeug==2.0.3
 zipp==3.6.0
-
 ```
-<em>Gradle</em> users can add in build.gradle a comment with //exhortignore next to the package to be ignored:
+</li>
+
+<li>
+<em>Gradle</em> users can add in build.gradle a comment with //trustify-da-ignore next to the package to be ignored:
 ```build.gradle
+
+```groovy
 plugins {
-id 'java'
+    id 'java'
 }
 
 group = 'groupName'
@@ -289,32 +306,31 @@ repositories {
 }
 
 dependencies {
-    implementation "groupId:artifactId:version" // exhortignore
+    implementation "groupId:artifactId:version" // trustify-da-ignore
 }
+
 test {
     useJUnitPlatform()
 }
 ```
-</ul>
-All of the 5 above examples are valid for marking a package to be ignored 
-
-#### Ignore Strategies - experimental
- You can specify the method to ignore dependencies in manifest (globally), by setting the environment variable `TRUSTIFY_DA_IGNORE_METHOD` to one of the following values: \
- **_Possible values:_**
-- `insensitive` - ignoring the dependency and all of its subtree(all transitives) - default.
-- `sensitive` - ignoring the dependency but let its transitives remain if they are also transitive of another dependency in the tree or if they're direct dependency of root in the dependency tree.
-  
-
 </li>
 
 </ul>
+
+#### Ignore Strategies - experimental
+
+You can specify the method to ignore dependencies in manifest (globally), by setting the environment variable `TRUSTIFY_DA_IGNORE_METHOD` to one of the following values:
+
+**Possible values:**
+- `insensitive` - ignoring the dependency and all of its subtree(all transitives) - default.
+- `sensitive` - ignoring the dependency but let its transitives remain if they are also transitive of another dependency in the tree or if they're direct dependency of root in the dependency tree.
 
 <h3>Customization</h3>
 <p>
 There are 2 approaches for customizing <em>Trustify DA Java Client</em>. Using <em>Environment Variables</em> or
 <em>Java Properties</em>:
 
-```java
+```text
 System.setProperty("TRUSTIFY_DA_MVN_PATH", "/path/to/custom/mvn");
 System.setProperty("TRUSTIFY_DA_NPM_PATH", "/path/to/custom/npm");
 System.setProperty("TRUSTIFY_DA_PNPM_PATH", "/path/to/custom/pnpm");
@@ -473,7 +489,7 @@ export TRUSTIFY_DA_MVN_LOCAL_REPO=/home/user/custom-maven-repo
 ```
 
 Using Java properties:
-```java
+```text
 System.setProperty("TRUSTIFY_DA_MVN_USER_SETTINGS", "/home/user/.m2/custom-settings.xml");
 System.setProperty("TRUSTIFY_DA_MVN_LOCAL_REPO", "/home/user/custom-maven-repo");
 ```

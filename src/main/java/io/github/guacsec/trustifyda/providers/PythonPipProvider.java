@@ -29,6 +29,7 @@ import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import io.github.guacsec.trustifyda.utils.PythonControllerRealEnv;
 import io.github.guacsec.trustifyda.utils.PythonControllerVirtualEnv;
@@ -168,12 +169,26 @@ public final class PythonPipProvider extends Provider {
     }
   }
 
+  /**
+   * Checks if a text line contains a Python pip ignore pattern. Handles both '#exhortignore' and
+   * '#trustify-da-ignore' with optional spacing.
+   *
+   * @param line the line to check
+   * @return true if the line contains a Python pip ignore pattern
+   */
+  private boolean containsPythonIgnorePattern(String line) {
+    return line.contains("#" + IgnorePatternDetector.IGNORE_PATTERN)
+        || line.contains("# " + IgnorePatternDetector.IGNORE_PATTERN)
+        || line.contains("#" + IgnorePatternDetector.LEGACY_IGNORE_PATTERN)
+        || line.contains("# " + IgnorePatternDetector.LEGACY_IGNORE_PATTERN);
+  }
+
   private Set<PackageURL> getIgnoredDependencies(String requirementsDeps) {
 
     String[] requirementsLines = requirementsDeps.split(System.lineSeparator());
     Set<PackageURL> collected =
         Arrays.stream(requirementsLines)
-            .filter(line -> line.contains("#exhortignore") || line.contains("# exhortignore"))
+            .filter(this::containsPythonIgnorePattern)
             .map(PythonPipProvider::extractDepFull)
             .map(this::splitToNameVersion)
             .map(dep -> toPurl(dep[0], dep[1]))

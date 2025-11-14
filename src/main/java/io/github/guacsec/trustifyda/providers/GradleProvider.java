@@ -27,6 +27,7 @@ import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -202,7 +203,7 @@ public final class GradleProvider extends BaseJavaProvider {
   }
 
   private boolean isIgnoredLine(String line) {
-    return line.contains("exhortignore");
+    return IgnorePatternDetector.containsIgnorePattern(line);
   }
 
   private String extractPackageName(String line) {

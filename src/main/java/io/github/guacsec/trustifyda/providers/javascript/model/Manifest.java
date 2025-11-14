@@ -18,9 +18,9 @@ package io.github.guacsec.trustifyda.providers.javascript.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.providers.JavaScriptProvider;
+import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,14 +68,18 @@ public class Manifest {
   }
 
   private Set<String> loadIgnored(JsonNode content) {
-    var names = new HashSet<String>();
-    if (content != null) {
-      var ignore = (ArrayNode) content.get("exhortignore");
-      if (ignore == null || ignore.isEmpty()) {
-        return Collections.emptySet();
-      }
-      ignore.forEach(n -> names.add(n.asText()));
+    if (content == null) {
+      return Collections.emptySet();
     }
-    return Collections.unmodifiableSet(names);
+    var node = content.get(IgnorePatternDetector.IGNORE_PATTERN);
+    if (node == null || node.isEmpty()) {
+      node = content.get(IgnorePatternDetector.LEGACY_IGNORE_PATTERN);
+    }
+    if (node != null && !node.isEmpty()) {
+      var names = new HashSet<String>();
+      node.forEach(n -> names.add(n.asText()));
+      return Collections.unmodifiableSet(names);
+    }
+    return Collections.emptySet();
   }
 }

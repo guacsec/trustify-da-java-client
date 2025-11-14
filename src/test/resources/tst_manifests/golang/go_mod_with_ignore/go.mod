@@ -5,7 +5,7 @@ go 1.19
 require (
         github.com/gin-gonic/gin v1.9.1
         github.com/google/uuid v1.1.2
-        github.com/jessevdk/go-flags v1.5.0 //exhortignore
+        github.com/jessevdk/go-flags v1.5.0 //trustify-da-ignore
         github.com/kr/pretty v0.3.1
         gopkg.in/yaml.v2 v2.4.0
         k8s.io/apimachinery v0.26.1
@@ -15,13 +15,13 @@ require (
 require (
         github.com/davecgh/go-spew v1.1.1 // indirect
         github.com/emicklei/go-restful/v3 v3.9.0 // indirect
-        github.com/go-logr/logr v1.2.3 // indirect exhortignore
+        github.com/go-logr/logr v1.2.3 // indirect trustify-da-ignore
         github.com/go-openapi/jsonpointer v0.19.5 // indirect
         github.com/go-openapi/jsonreference v0.20.0 // indirect
         github.com/go-openapi/swag v0.19.14 // indirect
         github.com/gogo/protobuf v1.3.2 // indirect
         github.com/golang/protobuf v1.5.2 // indirect
-        github.com/google/gnostic v0.5.7-v3refs // indirect //exhortignore
+        github.com/google/gnostic v0.5.7-v3refs // indirect //trustify-da-ignore
         github.com/google/go-cmp v0.5.9 // indirect
         github.com/google/gofuzz v1.1.0 // indirect
         github.com/imdario/mergo v0.3.6 // indirect
