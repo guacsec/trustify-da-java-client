@@ -202,7 +202,7 @@ Content-Disposition: attachment; filename=report.html
             <th scope="col"># Transitive</th>
             <th scope="col">Highest CVSS</th>
             <th scope="col">Highest Severity</th>
-            <th scope="col">Red Hat remediation available</th>
+            <th scope="col">Trustify remediation available</th>
         </tr>
         </thead>
         <tbody>
@@ -242,7 +242,7 @@ Content-Disposition: attachment; filename=report.html
                         </div>
                     </td>
                     <td>
-                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-1300176?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-1300176"
+                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-1300176?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-1300176"
                             target="_blank">
                                 SNYK-JAVA-LOG4J-1300176
                             </a>
@@ -299,7 +299,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2019-17571
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-572732?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-572732"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-572732?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-572732"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-572732
                                                             </a>
@@ -335,7 +335,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2022-23305
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342645?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342645"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342645?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342645"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-2342645
                                                             </a>
@@ -371,7 +371,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2022-23307
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342646?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342646"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342646?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342646"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-2342646
                                                             </a>
@@ -407,7 +407,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2022-23302
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342647?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342647"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2342647?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2342647"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-2342647
                                                             </a>
@@ -443,7 +443,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2021-4104
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2316893?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2316893"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-2316893?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-2316893"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-2316893
                                                             </a>
@@ -479,7 +479,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2023-26464
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-3358774?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-3358774"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-3358774?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-3358774"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-3358774
                                                             </a>
@@ -515,7 +515,7 @@ Content-Disposition: attachment; filename=report.html
                                                             CVE-2020-9488
                                                 </td>
                                                 <td>
-                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-1300176?utm_medium=Partner&utm_source=RedHat&utm_campaign=Code-Ready-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-1300176"
+                                                            <a href="https://security.snyk.io/vuln/SNYK-JAVA-LOG4J-1300176?utm_medium=Partner&utm_source=RedHat&utm_campaign=Trustify-Analytics-2020&utm_content=vuln/SNYK-JAVA-LOG4J-1300176"
                                                             target="_blank">
                                                                 SNYK-JAVA-LOG4J-1300176
                                                             </a>

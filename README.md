@@ -1,9 +1,9 @@
-# CodeReady Dependency Analytics Java API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
+# Trustify DA Java Client<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
-* Looking for our JavaScript/TypeScript API? Try [Exhort JavaScript API](https://github.com/trustification/exhort-javascript-api).
-* Looking for our Backend implementation? Try [Exhort](https://github.com/trustification/exhort).
+* Looking for our JavaScript/TypeScript API? Try [Trustify DA JavaScript Client](https://github.com/guacsec/trustify-da-javascript-client).
+* Looking for our Backend implementation? Try [Trustify Dependency Analytics](https://github.com/guacsec/trustify-dependency-analytics).
 
-The _Exhort Java API_ module is deployed to _GitHub Package Registry_.
+The _Trustify DA Java Client_ module is deployed to _GitHub Package Registry_.
 
 <details>
 <summary>Click here for configuring <em>GHPR</em> registry access.</summary>
@@ -69,7 +69,7 @@ encrypted-token-will-appear-here
     ...
     <repository>
       <id>github</id>
-      <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+      <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
     </repository>
     ...
   </repositories>
@@ -83,7 +83,7 @@ encrypted-token-will-appear-here
 repositories {
     ...
     maven {
-        url 'https://maven.pkg.github.com/trustification/exhort-java-api'
+        url 'https://maven.pkg.github.com/guacsec/trustify-da-java-client'
         credentials {
             username System.getenv("GITHUB_USERNAME")
             password System.getenv("GITHUB_TOKEN")
@@ -102,8 +102,8 @@ repositories {
 
 ```xml
 <dependency>
-    <groupId>com.redhat.exhort</groupId>
-    <artifactId>exhort-java-api</artifactId>
+    <groupId>io.github.guacsec</groupId>
+    <artifactId>trustify-da-java-client</artifactId>
     <version>0.0.9-SNAPSHOT</version>
 </dependency>
 ```
@@ -113,7 +113,7 @@ repositories {
 <em>Gradle</em> users, add a dependency in <em>build.gradle</em>
 
 ```groovy
-implementation 'com.redhat.exhort:exhort-java-api:${exhort-java-api.version}'
+implementation 'io.github.guacsec:trustify-da-java-client:${trustify-da-java-client.version}'
 ```
 </li>
 </ul>
@@ -124,7 +124,7 @@ If working with modules, configure module read
 
 ```java
 module x { // module-info.java
-    requires com.redhat.exhort;
+    requires io.github.guacsec;
 }
 ```
 </li>
@@ -133,16 +133,16 @@ module x { // module-info.java
 Code example
 
 ```java
-import com.redhat.exhort.Api.MixedReport;
-import com.redhat.exhort.impl.ExhortApi;
-import com.redhat.exhort.AnalysisReport;
+import io.github.guacsec.trustifyda.Api.MixedReport;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
+import io.github.guacsec.trustifyda.AnalysisReport;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
-public class ExhortExample {
+public class TrustifyExample {
     public static void main(String... args) throws Exception {
-        // instantiate the Exhort API implementation
+        // instantiate the Trustify DA Java Client implementation
         var exhortApi = new ExhortApi();
 
         // get a byte array future holding a html Stack Analysis report
@@ -299,7 +299,7 @@ test {
 All of the 5 above examples are valid for marking a package to be ignored 
 
 #### Ignore Strategies - experimental
- You can specify the method to ignore dependencies in manifest (globally), by setting the environment variable `EXHORT_IGNORE_METHOD` to one of the following values: \
+ You can specify the method to ignore dependencies in manifest (globally), by setting the environment variable `TRUSTIFY_DA_IGNORE_METHOD` to one of the following values: \
  **_Possible values:_**
 - `insensitive` - ignoring the dependency and all of its subtree(all transitives) - default.
 - `sensitive` - ignoring the dependency but let its transitives remain if they are also transitive of another dependency in the tree or if they're direct dependency of root in the dependency tree.
@@ -311,26 +311,26 @@ All of the 5 above examples are valid for marking a package to be ignored
 
 <h3>Customization</h3>
 <p>
-There are 2 approaches for customizing <em>Exhort Java API</em>. Using <em>Environment Variables</em> or
+There are 2 approaches for customizing <em>Trustify DA Java Client</em>. Using <em>Environment Variables</em> or
 <em>Java Properties</em>:
 
 ```java
-System.setProperty("EXHORT_MVN_PATH", "/path/to/custom/mvn");
-System.setProperty("EXHORT_NPM_PATH", "/path/to/custom/npm");
-System.setProperty("EXHORT_PNPM_PATH", "/path/to/custom/pnpm");
-System.setProperty("EXHORT_YARN_PATH", "/path/to/custom/yarn");
-System.setProperty("EXHORT_GO_PATH", "/path/to/custom/go");
-System.setProperty("EXHORT_GRADLE_PATH", "/path/to/custom/gradle");
+System.setProperty("TRUSTIFY_DA_MVN_PATH", "/path/to/custom/mvn");
+System.setProperty("TRUSTIFY_DA_NPM_PATH", "/path/to/custom/npm");
+System.setProperty("TRUSTIFY_DA_PNPM_PATH", "/path/to/custom/pnpm");
+System.setProperty("TRUSTIFY_DA_YARN_PATH", "/path/to/custom/yarn");
+System.setProperty("TRUSTIFY_DA_GO_PATH", "/path/to/custom/go");
+System.setProperty("TRUSTIFY_DA_GRADLE_PATH", "/path/to/custom/gradle");
 //python - python3, pip3 take precedence if python version > 3 installed
-System.setProperty("EXHORT_PYTHON3_PATH", "/path/to/python3");
-System.setProperty("EXHORT_PIP3_PATH", "/path/to/pip3");
-System.setProperty("EXHORT_PYTHON_PATH", "/path/to/python");
-System.setProperty("EXHORT_PIP_PATH", "/path/to/pip");
+System.setProperty("TRUSTIFY_DA_PYTHON3_PATH", "/path/to/python3");
+System.setProperty("TRUSTIFY_DA_PIP3_PATH", "/path/to/pip3");
+System.setProperty("TRUSTIFY_DA_PYTHON_PATH", "/path/to/python");
+System.setProperty("TRUSTIFY_DA_PIP_PATH", "/path/to/pip");
 // Configure proxy for all requests
-System.setProperty("EXHORT_PROXY_URL", "http://proxy.example.com:8080");
+System.setProperty("TRUSTIFY_DA_PROXY_URL", "http://proxy.example.com:8080");
 // Configure Maven settings and repository
-System.setProperty("EXHORT_MVN_USER_SETTINGS", "/path/to/custom/settings.xml");
-System.setProperty("EXHORT_MVN_LOCAL_REPO", "/path/to/custom/local/repository");
+System.setProperty("TRUSTIFY_DA_MVN_USER_SETTINGS", "/path/to/custom/settings.xml");
+System.setProperty("TRUSTIFY_DA_MVN_LOCAL_REPO", "/path/to/custom/local/repository");
 ```
 
 > Environment variables takes precedence.
@@ -350,7 +350,7 @@ The HTTP Client Library can be configured to use HTTP Protocol version through e
 
 </tr>
 <tr>
-<td>HTTP_VERSION_EXHORT_CLIENT</td>
+<td>HTTP_VERSION_TRUSTIFY_DA_CLIENT</td>
 <td>[HTTP_1_1 , HTTP_2]</td>
 <td>HTTP_1_1</td>
 </tr>
@@ -364,12 +364,12 @@ You can set the proxy URL in two ways:
 
 1. Using environment variable:
 ```
-export EXHORT_PROXY_URL=http://proxy.example.com:8080
+export TRUSTIFY_DA_PROXY_URL=http://proxy.example.com:8080
 ```
 
 2. Using Java Properties when calling the API programmatically:
 ```
-System.setProperty("EXHORT_PROXY_URL", "http://proxy.example.com:8080");
+System.setProperty("TRUSTIFY_DA_PROXY_URL", "http://proxy.example.com:8080");
 ```
 </p>
 
@@ -389,52 +389,52 @@ following keys for setting custom paths for the said executables.
 <tr>
 <td><a href="https://maven.apache.org/">Maven</a></td>
 <td><em>mvn</em></td>
-<td>EXHORT_MVN_PATH</td>
+<td>TRUSTIFY_DA_MVN_PATH</td>
 </tr>
 <tr>
 <td><a href="https://www.npmjs.com/">Node Package Manager (npm)</a></td>
 <td><em>npm</em></td>
-<td>EXHORT_NPM_PATH</td>
+<td>TRUSTIFY_DA_NPM_PATH</td>
 </tr>
 <tr>
 <td><a href="https://pnpm.io/">pnpm</a></td>
 <td><em>pnpm</em></td>
-<td>EXHORT_PNPM_PATH</td>
+<td>TRUSTIFY_DA_PNPM_PATH</td>
 </tr>
 <tr>
 <td><a href="https://classic.yarnpkg.com/">Yarn (Classic)</a> / <a href="https://yarnpkg.com/">Yarn (Berry)</a></td>
 <td><em>yarn</em></td>
-<td>EXHORT_YARN_PATH</td>
+<td>TRUSTIFY_DA_YARN_PATH</td>
 </tr>
 <tr>
 <td><a href="https://go.dev/blog/using-go-modules/">Go Modules</a></td>
 <td><em>go</em></td>
-<td>EXHORT_GO_PATH</td>
+<td>TRUSTIFY_DA_GO_PATH</td>
 </tr>
 <tr>
 <td><a href="https://gradle.org/">Gradle</a></td>
 <td><em>gradle</em></td>
-<td>EXHORT_GRADLE_PATH</td>
+<td>TRUSTIFY_DA_GRADLE_PATH</td>
 </tr>
 <tr>
 <td><a href="https://www.python.org/">Python programming language</a></td>
 <td><em>python3</em></td>
-<td>EXHORT_PYTHON3_PATH</td>
+<td>TRUSTIFY_DA_PYTHON3_PATH</td>
 </tr>
 <tr>
 <td><a href="https://pypi.org/project/pip/">Python pip Package Installer</a></td>
 <td><em>pip3</em></td>
-<td>EXHORT_PIP3_PATH</td>
+<td>TRUSTIFY_DA_PIP3_PATH</td>
 </tr>
 <tr>
 <td><a href="https://www.python.org/">Python programming language</a></td>
 <td><em>python</em></td>
-<td>EXHORT_PYTHON_PATH</td>
+<td>TRUSTIFY_DA_PYTHON_PATH</td>
 </tr>
 <tr>
 <td><a href="https://pypi.org/project/pip/">Python pip Package Installer</a></td>
 <td><em>pip</em></td>
-<td>EXHORT_PIP_PATH</td>
+<td>TRUSTIFY_DA_PIP_PATH</td>
 </tr>
 
 </table>
@@ -452,13 +452,13 @@ You can customize Maven behavior by setting additional environment variables or 
 </tr>
 <tr>
 <td>Maven User Settings</td>
-<td>EXHORT_MVN_USER_SETTINGS</td>
+<td>TRUSTIFY_DA_MVN_USER_SETTINGS</td>
 <td>Path to custom Maven settings.xml file</td>
 <td><em>Uses Maven's default settings</em></td>
 </tr>
 <tr>
 <td>Maven Local Repository</td>
-<td>EXHORT_MVN_LOCAL_REPO</td>
+<td>TRUSTIFY_DA_MVN_LOCAL_REPO</td>
 <td>Path to custom Maven local repository directory</td>
 <td><em>Uses Maven's default local repository</em></td>
 </tr>
@@ -468,14 +468,14 @@ You can customize Maven behavior by setting additional environment variables or 
 
 Using environment variables:
 ```bash
-export EXHORT_MVN_USER_SETTINGS=/home/user/.m2/custom-settings.xml
-export EXHORT_MVN_LOCAL_REPO=/home/user/custom-maven-repo
+export TRUSTIFY_DA_MVN_USER_SETTINGS=/home/user/.m2/custom-settings.xml
+export TRUSTIFY_DA_MVN_LOCAL_REPO=/home/user/custom-maven-repo
 ```
 
 Using Java properties:
 ```java
-System.setProperty("EXHORT_MVN_USER_SETTINGS", "/home/user/.m2/custom-settings.xml");
-System.setProperty("EXHORT_MVN_LOCAL_REPO", "/home/user/custom-maven-repo");
+System.setProperty("TRUSTIFY_DA_MVN_USER_SETTINGS", "/home/user/.m2/custom-settings.xml");
+System.setProperty("TRUSTIFY_DA_MVN_LOCAL_REPO", "/home/user/custom-maven-repo");
 ```
 
 > Environment variables take precedence over Java properties.
@@ -521,7 +521,7 @@ The MVS-based resolution is **enabled by default**.
 If you want to disable this behavior and instead include **all transitive module versions** (as listed in `go.mod` dependencies), set the system property or environment variable:
 
 ```bash
-EXHORT_GO_MVS_LOGIC_ENABLED=false
+TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED=false
 ```
 
 ####  Python Support
@@ -530,8 +530,8 @@ By default, Python support assumes that the package is installed using the pip/p
 Binaries passed to environment variables. If the package is not installed , then an error will be thrown.
 
 There is an experimental feature of installing the requirement.txt on a virtual env(only python3 or later is supported for this feature) - in this case,
-it's important to pass in a path to python3 binary as `EXHORT_PYTHON3_PATH` or instead make sure that python3 is on the system path.
-in such case, You can use that feature by setting environment variable `EXHORT_PYTHON_VIRTUAL_ENV` to true 
+it's important to pass in a path to python3 binary as `TRUSTIFY_DA_PYTHON3_PATH` or instead make sure that python3 is on the system path.
+in such case, You can use that feature by setting environment variable `TRUSTIFY_DA_PYTHON_VIRTUAL_ENV` to true 
 
 ##### "Best Efforts Installation"
 Since Python pip packages are very sensitive/picky regarding python version changes( every small range of versions is only tailored for a certain python version), I'm introducing this feature, that
@@ -539,18 +539,18 @@ tries to install all packages in requirements.txt onto created virtual environme
 This increasing the chances and the probability a lot that the automatic installation will succeed.
 
 ##### Usage
-A New setting is introduced - `EXHORT_PYTHON_INSTALL_BEST_EFFORTS` (as both env variable/key in `options` object)
-1. `EXHORT_PYTHON_INSTALL_BEST_EFFORTS`="false" - install requirements.txt while respecting declared versions for all packages.
-2. `EXHORT_PYTHON_INSTALL_BEST_EFFORTS`="true" - install all packages from requirements.txt, not respecting the declared version, but trying to install a version tailored for the used python version, when using this setting,you must set setting `MATCH_MANIFEST_VERSIONS`="false"
+A New setting is introduced - `TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS` (as both env variable/key in `options` object)
+1. `TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS`="false" - install requirements.txt while respecting declared versions for all packages.
+2. `TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS`="true" - install all packages from requirements.txt, not respecting the declared version, but trying to install a version tailored for the used python version, when using this setting,you must set setting `MATCH_MANIFEST_VERSIONS`="false"
 
 ##### Using `pipdeptree`
 By Default, The API algorithm will use native commands of PIP installer as data source to build the dependency tree.
 It's also possible, to use lightweight Python PIP utility [pipdeptree](https://pypi.org/project/pipdeptree/) as data source instead, in order to activate this,
-Need to set environment variable/system property - `EXHORT_PIP_USE_DEP_TREE` to true.
+Need to set environment variable/system property - `TRUSTIFY_DA_PIP_USE_DEP_TREE` to true.
 
 ### CLI Support
 
-The Exhort Java API includes a command-line interface for standalone usage.
+The Trustify DA Java Client includes a command-line interface for standalone usage.
 
 #### Building the CLI
 
@@ -561,20 +561,20 @@ mvn clean package
 ```
 
 This creates two JAR files in the `target/` directory:
-- `exhort-java-api.jar` - Library JAR (for programmatic use)
-- `exhort-java-api-cli.jar` - CLI JAR (includes all dependencies)
+- `trustify-da-java-client.jar` - Library JAR (for programmatic use)
+- `trustify-da-java-client-cli.jar` - CLI JAR (includes all dependencies)
 
 #### Usage
 
 ```shell
-java -jar target/exhort-java-api-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
+java -jar target/trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
 ```
 
 #### Commands
 
 **Stack Analysis**
 ```shell
-java -jar exhort-java-api-cli.jar stack <file_path> [--summary|--html]
+java -jar trustify-da-java-client-cli.jar stack <file_path> [--summary|--html]
 ```
 Perform stack analysis on the specified manifest file.
 
@@ -585,7 +585,7 @@ Options:
 
 **Component Analysis**
 ```shell
-java -jar exhort-java-api-cli.jar component <file_path> [--summary]
+java -jar trustify-da-java-client-cli.jar component <file_path> [--summary]
 ```
 Perform component analysis on the specified manifest file.
 
@@ -597,22 +597,22 @@ Options:
 
 ```shell
 # Stack analysis with JSON output (default)
-java -jar exhort-java-api-cli.jar stack /path/to/pom.xml
+java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
 
 # Stack analysis with summary
-java -jar exhort-java-api-cli.jar stack /path/to/package.json --summary
+java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
 
 # Stack analysis with HTML output
-java -jar exhort-java-api-cli.jar stack /path/to/build.gradle --html
+java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
 
 # Component analysis with JSON output (default)
-java -jar exhort-java-api-cli.jar component /path/to/requirements.txt
+java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
 
 # Component analysis with summary
-java -jar exhort-java-api-cli.jar component /path/to/go.mod --summary
+java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
 
 # Show help
-java -jar exhort-java-api-cli.jar --help
+java -jar trustify-da-java-client-cli.jar --help
 ```
 
 ### Image Support 
@@ -621,20 +621,20 @@ Generate vulnerability analysis report for container images.
 
 #### Code Example
 ```java
-package com.redhat.exhort;
+package io.github.guacsec.trustifyda;
 
-import com.redhat.exhort.api.AnalysisReport;
-import com.redhat.exhort.image.ImageRef;
-import com.redhat.exhort.impl.ExhortApi;
+import io.github.guacsec.trustifyda.api.AnalysisReport;
+import io.github.guacsec.trustifyda.image.ImageRef;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public class ExhortImageExample {
+public class TrustifyImageExample {
 
     public static void main(String[] args) throws Exception {
-        // instantiate the Exhort API implementation
+        // instantiate the Trustify DA Java Client implementation
         var exhortApi = new ExhortApi();
 
         // create a reference to image test1 by specifying image name and its platform when applicable
@@ -667,23 +667,23 @@ Customize image analysis optionally by using *Environment Variables* or *Java Pr
 
 | Env / Property                | Description                                                                                                                                                     | Default Value                                                                                                                                 |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| EXHORT_SYFT_PATH              | Custom path to the `syft` executable                                                                                                                            | syft                                                                                                                                          |
-| EXHORT_SYFT_CONFIG_PATH       | Custom path to the `syft` [configuration file](https://github.com/anchore/syft?tab=readme-ov-file#configuration)                                                | .syft.yaml, .syft/config.yaml, $HOME/.syft.yaml                                                                                               |
-| EXHORT_SYFT_IMAGE_SOURCE      | [Source](https://github.com/anchore/syft?tab=readme-ov-file#supported-sources) from which `syft` looks for the images (e.g. docker, podman, registry)           | (By default, Syft attempts to resolve it using: the Docker, Podman, and Containerd daemons followed by direct registry access, in that order) |
-| EXHORT_SKOPEO_PATH            | Custom path to the `skopeo` executable                                                                                                                          | skopeo                                                                                                                                        |
-| EXHORT_SKOPEO_CONFIG_PATH     | Custom path to the [authentication file](https://github.com/containers/skopeo/blob/main/docs/skopeo-inspect.1.md#options) used by `skopeo inspect`              | $HOME/.docker/config.json                                                                                                                     |
-| EXHORT_IMAGE_SERVICE_ENDPOINT | [Host endpoint](https://github.com/containers/skopeo/blob/main/docs/skopeo-inspect.1.md#options) of the container runtime daemon / service                      |                                                                                                                                               |
-| EXHORT_DOCKER_PATH            | Custom path to the `docker` executable                                                                                                                          | docker                                                                                                                                        |
-| EXHORT_PODMAN_PATH            | Custom path to the `podman` executable                                                                                                                          | podman                                                                                                                                        |
-| EXHORT_IMAGE_PLATFORM         | Default platform used for multi-arch images                                                                                                                     |                                                                                                                                               |
-| EXHORT_IMAGE_OS               | Default OS used for multi-arch images when `EXHORT_IMAGE_PLATFORM` is not set                                                                                   |                                                                                                                                               |
-| EXHORT_IMAGE_ARCH             | Default Architecture used for multi-arch images when `EXHORT_IMAGE_PLATFORM` is not set                                                                         |                                                                                                                                               |
-| EXHORT_IMAGE_VARIANT          | Default Variant used for multi-arch images when `EXHORT_IMAGE_PLATFORM` is not set                                                                              |                                                                                                                                               |
+| TRUSTIFY_DA_SYFT_PATH              | Custom path to the `syft` executable                                                                                                                            | syft                                                                                                                                          |
+| TRUSTIFY_DA_SYFT_CONFIG_PATH       | Custom path to the `syft` [configuration file](https://github.com/anchore/syft?tab=readme-ov-file#configuration)                                                | .syft.yaml, .syft/config.yaml, $HOME/.syft.yaml                                                                                               |
+| TRUSTIFY_DA_SYFT_IMAGE_SOURCE      | [Source](https://github.com/anchore/syft?tab=readme-ov-file#supported-sources) from which `syft` looks for the images (e.g. docker, podman, registry)           | (By default, Syft attempts to resolve it using: the Docker, Podman, and Containerd daemons followed by direct registry access, in that order) |
+| TRUSTIFY_DA_SKOPEO_PATH            | Custom path to the `skopeo` executable                                                                                                                          | skopeo                                                                                                                                        |
+| TRUSTIFY_DA_SKOPEO_CONFIG_PATH     | Custom path to the [authentication file](https://github.com/containers/skopeo/blob/main/docs/skopeo-inspect.1.md#options) used by `skopeo inspect`              | $HOME/.docker/config.json                                                                                                                     |
+| TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT | [Host endpoint](https://github.com/containers/skopeo/blob/main/docs/skopeo-inspect.1.md#options) of the container runtime daemon / service                      |                                                                                                                                               |
+| TRUSTIFY_DA_DOCKER_PATH            | Custom path to the `docker` executable                                                                                                                          | docker                                                                                                                                        |
+| TRUSTIFY_DA_PODMAN_PATH            | Custom path to the `podman` executable                                                                                                                          | podman                                                                                                                                        |
+| TRUSTIFY_DA_IMAGE_PLATFORM         | Default platform used for multi-arch images                                                                                                                     |                                                                                                                                               |
+| TRUSTIFY_DA_IMAGE_OS               | Default OS used for multi-arch images when `TRUSTIFY_DA_IMAGE_PLATFORM` is not set                                                                                   |                                                                                                                                               |
+| TRUSTIFY_DA_IMAGE_ARCH             | Default Architecture used for multi-arch images when `TRUSTIFY_DA_IMAGE_PLATFORM` is not set                                                                         |                                                                                                                                               |
+| TRUSTIFY_DA_IMAGE_VARIANT          | Default Variant used for multi-arch images when `TRUSTIFY_DA_IMAGE_PLATFORM` is not set                                                                              |                                                                                                                                               |
 
 ### Known Issues
 
 - For pip requirements.txt - It's been observed that for python versions 3.11.x, there might be slowness for invoking the analysis.
-  If you encounter a performance issue with python version >= 3.11.x, kindly try to set environment variable/system property `EXHORT_PIP_USE_DEP_TREE`=true, before calling the analysis - this should fix the performance issue.
+  If you encounter a performance issue with python version >= 3.11.x, kindly try to set environment variable/system property `TRUSTIFY_DA_PIP_USE_DEP_TREE`=true, before calling the analysis - this should fix the performance issue.
 
 
 
@@ -694,5 +694,5 @@ Customize image analysis optionally by using *Environment Variables* or *Java Pr
 
 
 <!-- Badge links -->
-[0]: https://img.shields.io/github/v/release/trustification/exhort-java-api?color=green&label=latest
-[1]: https://img.shields.io/github/v/release/trustification/exhort-java-api?color=yellow&include_prereleases&label=snapshot
+[0]: https://img.shields.io/github/v/release/guacsec/trustify-da-java-client?color=green&label=latest
+[1]: https://img.shields.io/github/v/release/guacsec/trustify-da-java-client?color=yellow&include_prereleases&label=snapshot

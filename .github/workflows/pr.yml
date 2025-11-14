@@ -49,8 +49,8 @@ jobs:
         echo "python-bin-location=$(echo $pythonLocation)/bin" >> $GITHUB_OUTPUT
     - name: Verify the project and create coverage report
       env:
-        EXHORT_PYTHON3_PATH: "${{steps.python-location.outputs.python-bin-location}}/python3"
-        EXHORT_PIP3_PATH: "${{steps.python-location.outputs.python-bin-location}}/pip3"
+        TRUSTIFY_DA_PYTHON3_PATH: "${{steps.python-location.outputs.python-bin-location}}/python3"
+        TRUSTIFY_DA_PIP3_PATH: "${{steps.python-location.outputs.python-bin-location}}/pip3"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mvn verify -Pits,cov -B -ff

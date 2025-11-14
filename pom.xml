@@ -3,12 +3,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.redhat.exhort</groupId>
-  <artifactId>exhort-java-api</artifactId>
+  <groupId>io.github.guacsec</groupId>
+  <artifactId>trustify-da-java-client</artifactId>
   <version>0.0.9-SNAPSHOT</version>
-  <name>Exhort Java API</name>
-  <description>Exhort Java API</description>
-  <url>https://github.com/trustification/exhort-java-api#readme</url>
+  <name>Trustify DA Java Client</name>
+  <description>Trustify DA Java Client</description>
+  <url>https://github.com/guacsec/trustify-da-java-client#readme</url>
   <inceptionYear>2023</inceptionYear>
 
   <properties>
@@ -18,11 +18,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <!-- Dependencies -->
-    <exhort-api.version>1.0.6</exhort-api.version>
+    <trustify-da-api-model.version>2.0.1</trustify-da-api-model.version>
     <jackson.version>2.19.2</jackson.version>
     <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
     <jakarta.mail.version>2.0.4</jakarta.mail.version>
     <cyclonedx.version>10.2.1</cyclonedx.version>
+    <tomlj.version>1.1.1</tomlj.version>
     <!-- Testing Dependencies -->
     <assertj.version>3.27.3</assertj.version>
     <junit-jupiter.version>5.10.5</junit-jupiter.version>
@@ -87,33 +88,33 @@
 
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/trustification/exhort-java-api/issues</url>
+    <url>https://github.com/guacsec/trustify-da-java-client/issues</url>
   </issueManagement>
 
   <scm>
-    <url>https://github.com/trustification/exhort-java-api</url>
-    <connection>scm:git:git@github.com:trustification/exhort-java-api.git</connection>
-    <developerConnection>scm:git:git@github.com:trustification/exhort-java-api.git</developerConnection>
+    <url>https://github.com/guacsec/trustify-da-java-client</url>
+    <connection>scm:git:git@github.com:guacsec/trustify-da-java-client.git</connection>
+    <developerConnection>scm:git:git@github.com:guacsec/trustify-da-java-client.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
   <ciManagement>
     <system>GitHub Workflows</system>
-    <url>https://github.com/trustification/exhort-java-api/actions</url>
+    <url>https://github.com/guacsec/trustify-da-java-client/actions</url>
   </ciManagement>
 
   <dependencyManagement>
     <dependencies>
       <!-- Dependencies -->
       <dependency>
-        <groupId>com.redhat.ecosystemappeng</groupId>
-        <artifactId>exhort-api-spec</artifactId>
-        <version>${exhort-api.version}</version>
+        <groupId>io.github.guacsec</groupId>
+        <artifactId>trustify-da-api-model</artifactId>
+        <version>${trustify-da-api-model.version}</version>
       </dependency>
       <dependency>
         <groupId>org.tomlj</groupId>
         <artifactId>tomlj</artifactId>
-        <version>1.1.1</version>
+        <version>${tomlj.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -187,8 +188,8 @@
   <dependencies>
     <!-- Dependencies -->
     <dependency>
-      <groupId>com.redhat.ecosystemappeng</groupId>
-      <artifactId>exhort-api-spec</artifactId>
+      <groupId>io.github.guacsec</groupId>
+      <artifactId>trustify-da-api-model</artifactId>
     </dependency>
     <dependency>
       <groupId>org.tomlj</groupId>
@@ -405,13 +406,13 @@ limitations under the License.]]>
           <version>${jacoco-maven-plugin.version}</version>
           <configuration>
             <excludes>
-              <exclude>com/redhat/exhort/api/*</exclude>
-              <exclude>com/redhat/exhort/api/serialization/*</exclude>
-              <exclude>com/redhat/exhort/exception/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/api/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/api/serialization/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/exception/*</exclude>
 <!-- This one excluding ExhortApi implementation calss from coverage report as it's not tested by surefire plugin, but with junit-platform-maven-plugin              -->
-              <exclude>com/redhat/exhort/impl/*</exclude>
-              <exclude>com/redhat/exhort/logging/*</exclude>
-              <exclude>com/redhat/exhort/image/ImageUtils.class</exclude>
+              <exclude>io/github/guacsec/trustifyda/impl/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/logging/*</exclude>
+              <exclude>io/github/guacsec/trustifyda/image/ImageUtils.class</exclude>
 
             </excludes>
             <propertyName>jacoco.java.option</propertyName>
@@ -664,7 +665,7 @@ limitations under the License.]]>
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.redhat.exhort.cli.App</mainClass>
+              <mainClass>io.github.guacsec.trustifyda.cli.App</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -704,7 +705,7 @@ limitations under the License.]]>
               <transformers>
                 <!-- Main class transformer -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.redhat.exhort.cli.App</mainClass>
+                  <mainClass>io.github.guacsec.trustifyda.cli.App</mainClass>
                 </transformer>
 
                 <!-- Service files transformer for Jackson and other services -->
@@ -890,11 +891,11 @@ limitations under the License.]]>
       <distributionManagement>
         <repository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
         </repository>
         <snapshotRepository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/trustification/exhort-java-api</url>
+          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
         </snapshotRepository>
       </distributionManagement>
       <build>

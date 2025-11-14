@@ -18,7 +18,7 @@ jobs:
     name: Deploy snapshot
     env:
       RUN_PYTHON_BIN: ${{ vars.RUN_PYTHON_BIN }}
-    if: github.repository_owner == 'trustification' && github.event.pull_request.merged == true &&  !startsWith(github.head_ref, 'release/')
+    if: github.repository_owner == 'guacsec' && github.event.pull_request.merged == true &&  !startsWith(github.head_ref, 'release/')
     outputs:
       project_version: ${{ steps.project.outputs.version }}
     steps:
@@ -40,7 +40,7 @@ jobs:
       - name: Deploy snapshot to GitHub
         if: |
           contains(steps.project.outputs.version, 'SNAPSHOT') &&
-          github.repository == 'trustification/exhort-java-api'
+          github.repository == 'guacsec/trustify-da-java-client'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: mvn deploy -Pprepare-deployment,deploy-github -B -ff -DskipTests=true -Dskip.junit_platform=true
@@ -52,7 +52,7 @@ jobs:
     needs: deploy
     if: |
       contains(needs.deploy.outputs.project_version, 'SNAPSHOT') &&
-      github.repository_owner == 'trustification' && github.event.pull_request.merged == true &&  !startsWith(github.head_ref, 'release/')
+      github.repository_owner == 'guacsec' && github.event.pull_request.merged == true &&  !startsWith(github.head_ref, 'release/')
     steps:
       - name: Check for existing ${{ needs.deploy.outputs.project_version }} release
         id: existing_release

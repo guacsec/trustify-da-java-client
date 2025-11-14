@@ -1,7 +1,7 @@
-Exhort Java API CLI
+Dependency Analytics Java API CLI
 
 USAGE:
-  java -jar exhort-java-api.jar <COMMAND> <FILE_PATH> [OPTIONS]
+  java -jar trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
 
 COMMANDS:
   stack <file_path> [--summary|--html]
@@ -21,7 +21,7 @@ OPTIONS:
   -h, --help     Show this help message
 
 EXAMPLES:
-  java -jar exhort-java-api.jar stack /path/to/pom.xml
-  java -jar exhort-java-api.jar stack /path/to/package.json --summary
-  java -jar exhort-java-api.jar stack /path/to/build.gradle --html
-  java -jar exhort-java-api.jar component /path/to/requirements.txt
+  java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
+  java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
+  java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
+  java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt

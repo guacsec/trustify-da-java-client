@@ -2,22 +2,22 @@
   jdk.attach,jdk.unsupported,org.assertj.core,org.junit.jupiter.params,org.mockito,org.mockito.junit.jupiter,net.bytebuddy,net.bytebuddy.agent
 
 --add-reads
-  com.redhat.exhort=org.assertj.core,org.junit.jupiter.api
+  io.github.guacsec.trustifyda=org.assertj.core,org.junit.jupiter.api
 --add-reads
-  com.redhat.exhort=org.junit.jupiter.params,org.mockito
+  io.github.guacsec.trustifyda=org.junit.jupiter.params,org.mockito
 --add-reads
   org.mockito=java.net.http
 
 --add-opens
-  com.redhat.exhort/com.redhat.exhort.impl=org.junit.platform.commons
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.impl=org.junit.platform.commons
 --add-opens
-  com.redhat.exhort/com.redhat.exhort.providers=org.junit.platform.commons
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.providers=org.junit.platform.commons
 --add-opens
-  com.redhat.exhort/com.redhat.exhort.tools=org.junit.platform.commons
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.tools=org.junit.platform.commons
 --add-opens
-  com.redhat.exhort/com.redhat.exhort.image=org.junit.platform.commons
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.image=org.junit.platform.commons
 --add-opens
-  com.redhat.exhort/com.redhat.exhort.image=org.mockito
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.image=org.mockito
 --add-opens
   java.base/java.lang=org.junitpioneer
 --add-opens

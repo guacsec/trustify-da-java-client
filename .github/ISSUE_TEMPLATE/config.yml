@@ -2,5 +2,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: GitHub Discussions
-    url: https://github.com/trustification/exhort-java-api/discussions/
+    url: https://github.com/guacsec/trustify-da-java-client/discussions/
     about: You can also use Discussions for questions and ideas.
