@@ -3,6 +3,11 @@ name: Release Version
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Custom version (optional)'
+        required: false
+        type: string
   pull_request_target:
     types:
       - closed
@@ -14,123 +19,134 @@ on:
       - 'main'
 
 jobs:
-  deploy:
+  release:
+    if: github.repository_owner == 'guacsec'
     runs-on: ubuntu-latest
-    name: Deploy release
-    environment: staging
-#     only trigger the workflow on the base repository and if the merged branch name starts with release.
-    if: (github.repository_owner == 'guacsec' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/') ) || (github.repository_owner == 'guacsec' && github.ref_name == 'main' && contains(github.event.commits[0].message, 'release/directly'))
-    outputs:
-      project_version: ${{ steps.project.outputs.version }}
-      last_release_tag: ${{ steps.last-release.outputs.tag-name }}
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
-        with:
-          ssh-key: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v5
 
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: 17
-          cache: maven
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: create ssh agent
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.GITHUB_TOKEN }}
+      - name: Import GPG key for Maven
+        run: |
+          mkdir -p ~/.gnupg
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Configure git
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-
 
       - name: get previous released annotated tag
         id: last-release
         run: |
           echo "tag-name=$(git describe | awk -F '-' '{print $1}')" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy release to GitHub
+      - name: Set version
+        if: github.event.inputs.version != ''
+        run: mvn -B versions:set -DnewVersion=${{ github.event.inputs.version }} -DgenerateBackupPoms=false
+
+      - name: Remove snapshot
+        if: github.event.inputs.version == ''
+        run: mvn -B versions:set -DremoveSnapshot -DgenerateBackupPoms=false
+
+      - name: Get version
+        id: get_version
         run: |
-          mvn release:prepare release:perform -B -ff
+          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if Maven artifact version exists
+        id: check_maven
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          GROUP_ID="io.github.guacsec"
+          ARTIFACT_ID="trustify-da-java-client"
+          echo "Checking if Maven artifact $GROUP_ID:$ARTIFACT_ID:$VERSION exists..."
+
+          # Check Maven Central for the artifact
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://repo1.maven.org/maven2/io/github/guacsec/trustify-da-java-client/$VERSION/trustify-da-java-client-$VERSION.pom")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "maven_exists=true" >> $GITHUB_OUTPUT
+            echo "Maven artifact $GROUP_ID:$ARTIFACT_ID:$VERSION already exists, skipping Maven publish"
+          else
+            echo "maven_exists=false" >> $GITHUB_OUTPUT
+            echo "Maven artifact $GROUP_ID:$ARTIFACT_ID:$VERSION does not exist (HTTP $HTTP_CODE), will publish"
+          fi
+        continue-on-error: true
+
+      - name: Show artifact check results
+        run: |
+          echo "=== Artifact Check Results ==="
+          echo "Maven artifact exists: ${{ steps.check_maven.outputs.maven_exists }}"
+          echo "Will publish to Maven Central: ${{ steps.check_maven.outputs.maven_exists == 'false' }}"
+
+      - name: Compute Maven profiles
+        id: compute_profiles
+        run: |
+          PROFILES="gpg-sign"
+          if [ "${{ steps.check_maven.outputs.maven_exists }}" = "false" ]; then
+            PROFILES="${PROFILES},publish-maven"
+          fi
+          echo "profiles=$PROFILES" >> $GITHUB_OUTPUT
+
+      - name: Build and publish to Maven Central
+        if: steps.check_maven.outputs.maven_exists == 'false'
+        run: |
+          mvn -B deploy -P${{ steps.compute_profiles.outputs.profiles }} --settings .github/workflows/maven/settings.xml
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
 
-      - name: Get pom version of released artifact
-        id: project
+      - name: Skip publishing - artifact already exists
+        if: steps.check_maven.outputs.maven_exists == 'true'
         run: |
-          git checkout HEAD^ pom.xml
-          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
-          git restore pom.xml --staged --worktree
+          echo "Maven artifact already exists, skipping publish step"
+          echo "Maven exists: ${{ steps.check_maven.outputs.maven_exists }}"
 
-
-  release:
-    runs-on: ubuntu-latest
-    name: Release
-    if: (github.repository_owner == 'guacsec' && startsWith(github.head_ref, 'release/')) || (github.repository_owner == 'guacsec' && github.ref_name == 'main' && contains(github.event.commits[0].message, 'release/directly'))
-    environment: staging
-    needs: deploy
-    steps:
-
-      - name: Create release notes for ${{ needs.deploy.outputs.project_version }} release
-        uses: actions/github-script@v7
-        id: release-notes
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const repo_name = context.payload.repository.full_name
-            const response = await github.request('POST /repos/' + repo_name + '/releases' + '/generate-notes', {
-              tag_name: '${{ needs.deploy.outputs.project_version }}',
-              previous_tag_name: '${{ needs.deploy.outputs.last_release_tag }}'
-            })
-            return response.data.body
+          name: Release ${{ github.event.inputs.version || steps.get_version.outputs.version }}
+          tag_name: v${{ github.event.inputs.version || steps.get_version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create new ${{ needs.deploy.outputs.project_version }} release
-        uses: actions/github-script@v7
+      - name: Update to next version
+        if: success()
+        run: |
+          mvn -B release:update-versions
+          # Run the phase that triggers README.md update
+          mvn -B validate
+
+      - name: Create Pull Request with next version
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const repo_name = context.payload.repository.full_name
-            const response = await github.request('POST /repos/' + repo_name + '/releases', {
-              tag_name: '${{ needs.deploy.outputs.project_version }}',
-              name: '${{ needs.deploy.outputs.project_version }}',
-              body: ${{ steps.release-notes.outputs.result }},
-              draft: false,
-              prerelease: false,
-              make_latest: 'true'
-            })
+          commit-message: "build(release): update to next development version"
+          branch: chore/bump-version
+          title: "chore: bump to next development version"
+          signoff: true
+          body: |
+            This PR updates the project to the next development version after the release.
 
-      - name: Checkout sources
-        uses: actions/checkout@v3
-        with:
-          ssh-key: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Configure git
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-
-      - name: Get pom version of new snapshot artifact
-        id: project_snapshot
-        run: |
-          git pull
-          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
-
-
-      - name: Update readme usage section
-        run: >
-          sed -i
-          's/<version>.*<\/version>/<version>${{ steps.project_snapshot.outputs.version }}<\/version>/g'
-          README.md
-
-      - name: Push modifications
-        run: |
-          git add README.md
-          git commit -m "docs: updated usage section with version ${{ steps.project_snapshot.outputs.version }} [skip ci]"
-          git push

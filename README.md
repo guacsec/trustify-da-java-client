@@ -696,6 +696,21 @@ Customize image analysis optionally by using *Environment Variables* or *Java Pr
 | TRUSTIFY_DA_IMAGE_ARCH             | Default Architecture used for multi-arch images when `TRUSTIFY_DA_IMAGE_PLATFORM` is not set                                                                         |                                                                                                                                               |
 | TRUSTIFY_DA_IMAGE_VARIANT          | Default Variant used for multi-arch images when `TRUSTIFY_DA_IMAGE_PLATFORM` is not set                                                                              |                                                                                                                                               |
 
+### Releases
+
+To create a new release:
+
+1. **Trigger Release Workflow**: Go to Actions → "Release Version" → "Run workflow"
+2. **Choose Version**:
+   - Leave version empty to automatically release current snapshot (e.g., `0.0.9-SNAPSHOT` → `0.0.9`)
+   - Or specify custom version (e.g., `1.0.0`)
+3. **Automatic Process**: The workflow will:
+   - Publish to Maven Central
+   - Create GitHub release with auto-generated notes
+   - Bump to next development version via pull request
+
+Released artifacts are available on [Maven Central](https://repo1.maven.org/maven2/io/github/guacsec/trustify-da-java-client/).
+
 ### Known Issues
 
 - For pip requirements.txt - It's been observed that for python versions 3.11.x, there might be slowness for invoking the analysis.

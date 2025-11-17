@@ -32,8 +32,8 @@
 > The following are used strictly by CI workflows. Use `mvn install` to install the module locally.
 * `prepare-deployment` - use this profile for packaging of jars to deploy to artifact repository,
   it will create a *flatten pom* and a *sources*, and *javadoc* *jars*
-* `deploy-github` - use this profile to include github registry distribution definition,
-  used for deploying and releasing
+* `gpg-sign` - use this profile to GPG sign artifacts for Maven Central publishing
+* `publish-maven` - use this profile to publish to Maven Central
 
 ### Good to know
 

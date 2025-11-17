@@ -57,6 +57,7 @@
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <spotless-maven-plugin.version>2.44.4</spotless-maven-plugin.version>
+    <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
   </properties>
 
   <repositories>
@@ -102,6 +103,19 @@
     <system>GitHub Workflows</system>
     <url>https://github.com/guacsec/trustify-da-java-client/actions</url>
   </ciManagement>
+
+  <distributionManagement>
+    <repository>
+      <id>central</id>
+      <name>Maven Central</name>
+      <url>https://central.sonatype.com/repository/maven-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>central</id>
+      <name>Maven Central Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <dependencyManagement>
     <dependencies>
@@ -307,7 +321,7 @@
           <artifactId>maven-release-plugin</artifactId>
           <version>${maven-release-plugin.version}</version>
           <configuration>
-            <arguments>-DskipTests=true -Dskip.junit_platform=true -Pprepare-deployment,deploy-github</arguments>
+            <arguments>-DskipTests=true -Dskip.junit_platform=true -Pprepare-deployment</arguments>
             <tagNameFormat>v@{project.version}</tagNameFormat>
             <scmCommentPrefix>Build (Release): [skip ci] </scmCommentPrefix>
 <!--            <signTag>true</signTag>-->
@@ -884,30 +898,6 @@ limitations under the License.]]>
         </plugins>
       </build>
     </profile>
-    <!-- use this profile to include github registry distribution definition -->
-    <!-- requires credentials set for github in ~/.m2/settings.xml -->
-    <profile>
-      <id>deploy-github</id>
-      <distributionManagement>
-        <repository>
-          <id>github</id>
-          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
-        </repository>
-        <snapshotRepository>
-          <id>github</id>
-          <url>https://maven.pkg.github.com/guacsec/trustify-da-java-client</url>
-        </snapshotRepository>
-      </distributionManagement>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>de.sormuras.junit</groupId>
-            <artifactId>junit-platform-maven-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
-
-    </profile>
     <!-- use this profile for packaging of jars to deploy to artifact repository -->
     <profile>
       <id>prepare-deployment</id>
@@ -948,6 +938,52 @@ limitations under the License.]]>
                 </goals>
               </execution>
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- use this profile for GPG signing artifacts for Maven Central -->
+    <profile>
+      <id>gpg-sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- use this profile to publish to Maven Central -->
+    <profile>
+      <id>publish-maven</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${central-publishing-maven-plugin.version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+            </configuration>
           </plugin>
         </plugins>
       </build>
