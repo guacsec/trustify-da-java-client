@@ -61,7 +61,7 @@ jobs:
           PROJECT_VERSION: ${{ needs.deploy.outputs.project_version }}
         continue-on-error: true
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
@@ -89,7 +89,7 @@ jobs:
         env:
           RELEASE_ID: ${{ steps.existing_release.outputs.id }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const releaseId = process.env.RELEASE_ID;
@@ -122,7 +122,7 @@ jobs:
         env:
           PROJECT_VERSION: ${{ needs.deploy.outputs.project_version }}
         with:
-          github-token: ${{ secrets.STAGING_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo = context.repo;
             const tag = process.env.PROJECT_VERSION;
