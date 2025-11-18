@@ -34,7 +34,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -51,7 +50,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -64,18 +62,13 @@ import java.util.stream.Collectors;
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
 
-  private static final String DEV_TRUSTIFY_DA_BACKEND_URL = "DEV_TRUSTIFY_DA_BACKEND_URL";
-
-  private static final String TRUSTIFY_DA_DEV_MODE = "TRUSTIFY_DA_DEV_MODE";
-
   private static final String HTTP_VERSION_TRUSTIFY_DA_CLIENT = "HTTP_VERSION_TRUSTIFY_DA_CLIENT";
 
   private static final String TRUSTIFY_DA_PROXY_URL = "TRUSTIFY_DA_PROXY_URL";
 
   private static final Logger LOG = LoggersFactory.getLogger(ExhortApi.class.getName());
 
-  public static final String DEFAULT_ENDPOINT = "https://rhda.rhcloud.com";
-  public static final String DEFAULT_ENDPOINT_DEV = "https://exhort.stage.devshift.net";
+  private static final String TRUSTIFY_DA_BACKEND_URL = "TRUSTIFY_DA_BACKEND_URL";
   public static final String TRUST_DA_TOKEN_HEADER = "trust-da-token";
   public static final String TRUST_DA_SOURCE_HEADER = "trust-da-source";
   public static final String TRUST_DA_OPERATION_TYPE_HEADER = "trust-da-operation-type";
@@ -114,38 +107,9 @@ public final class ExhortApi implements Api {
   }
 
   ExhortApi(final HttpClient client) {
-    //    // temp system property - as long as prod exhort url not implemented the multi-source v4
-    // endpoint, this
-    // property needs to be true
-    //    System.setProperty("TRUSTIFY_DA_DEV_MODE","true");
     commonHookBeginning(true);
     this.client = client;
     this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    // Take default from config.properties in case client didn't override DEV MODE
-    if (Environment.get(TRUSTIFY_DA_DEV_MODE) == null) {
-      try {
-        InputStream exhortConfig =
-            this.getClass().getClassLoader().getResourceAsStream("config.properties");
-        if (exhortConfig == null) {
-          LOG.info(
-              "config.properties not found on the class path, fallback to default DEV MODE ="
-                  + " false");
-          System.setProperty(TRUSTIFY_DA_DEV_MODE, "false");
-        } else {
-          Properties properties = new Properties();
-          properties.load(exhortConfig);
-          System.setProperty(TRUSTIFY_DA_DEV_MODE, (String) properties.get(TRUSTIFY_DA_DEV_MODE));
-        }
-      } catch (IOException e) {
-        LOG.info(
-            String.format(
-                "Error loading config.properties , fallback to set default property DEV MODE ="
-                    + " false, Error message = %s",
-                e.getMessage()));
-        System.setProperty(TRUSTIFY_DA_DEV_MODE, "false");
-      }
-    }
-
     this.endpoint = getExhortUrl();
   }
 
@@ -192,24 +156,20 @@ public final class ExhortApi implements Api {
     return RequestManager.getInstance().getTraceIdOfRequest();
   }
 
-  public String getExhortUrl() {
-    String endpoint;
-    if (Environment.getBoolean(TRUSTIFY_DA_DEV_MODE, false)) {
-      endpoint = Environment.get(DEV_TRUSTIFY_DA_BACKEND_URL, DEFAULT_ENDPOINT_DEV);
-
-    } else {
-      endpoint = DEFAULT_ENDPOINT;
+  private String getExhortUrl() {
+    String endpoint = Environment.get(TRUSTIFY_DA_BACKEND_URL);
+    if (endpoint == null || endpoint.trim().isEmpty()) {
+      throw new IllegalStateException(
+          "Backend URL not configured. Please set the TRUSTIFY_DA_BACKEND_URL environment"
+              + " variable.");
     }
+    endpoint = endpoint.trim();
+
     if (debugLoggingIsNeeded()) {
       LOG.info(
           String.format(
-              "TRUSTIFY_DA_DEV_MODE=%s,DEV_TRUSTIFY_DA_BACKEND_URL=%s, Chosen Backend URL=%s ,"
-                  + " DEFAULT_ENDPOINT_DEV=%s , DEFAULT_ENDPOINT=%s",
-              Environment.getBoolean(TRUSTIFY_DA_DEV_MODE, false),
-              Environment.get(DEV_TRUSTIFY_DA_BACKEND_URL, DEFAULT_ENDPOINT_DEV),
-              endpoint,
-              DEFAULT_ENDPOINT_DEV,
-              DEFAULT_ENDPOINT));
+              "Backend URL configured - TRUSTIFY_DA_BACKEND_URL=%s",
+              Environment.get(TRUSTIFY_DA_BACKEND_URL)));
     }
     return endpoint;
   }

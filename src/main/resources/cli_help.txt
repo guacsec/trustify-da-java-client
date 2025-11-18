@@ -20,8 +20,11 @@ COMMANDS:
 OPTIONS:
   -h, --help     Show this help message
 
+ENVIRONMENT VARIABLES:
+  TRUSTIFY_DA_BACKEND_URL    Backend URL for the Trustify Dependency Analytics service (required)
+
 EXAMPLES:
-  java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
-  java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
-  java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
-  java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
+  TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
+  TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
+  TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
+  TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
