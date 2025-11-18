@@ -620,20 +620,22 @@ The application will fail to start if this environment variable is not set.
 #### Examples
 
 ```shell
+export TRUSTIFY_DA_BACKEND_URL=https://your-backend.url
+
 # Stack analysis with JSON output (default)
-TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
+java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
 
 # Stack analysis with summary
-TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
+java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
 
 # Stack analysis with HTML output
-TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
+java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
 
 # Component analysis with JSON output (default)
-TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
+java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
 
 # Component analysis with summary
-TRUSTIFY_DA_BACKEND_URL=https://backend.url java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
+java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
 
 # Show help
 java -jar trustify-da-java-client-cli.jar --help

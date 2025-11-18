@@ -40,7 +40,6 @@
 * Backend URL Configuration:
   * The client requires the backend URL to be configured through environment variable: `TRUSTIFY_DA_BACKEND_URL=https://backend.url` (required)
   * The application will fail to start if this environment variable is not set
-  * For development scenarios, you may use: `https://exhort.stage.devshift.net`
 
 ### OpenAPI Specifications
 
