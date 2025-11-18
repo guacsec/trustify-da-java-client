@@ -8,15 +8,10 @@ on:
         description: 'Custom version (optional)'
         required: false
         type: string
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - 'main'
 
-  push:
-    branches:
-      - 'main'
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
