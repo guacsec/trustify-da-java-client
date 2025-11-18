@@ -37,13 +37,9 @@
 
 ### Good to know
 
-* You can override the default backend url by setting the `TRUSTIFY_DA_DEV_MODE` environment variable/system property to true:
-  * In case environment variable/System Property `TRUSTIFY_DA_DEV_MODE=true` - You can Override the default trustify-dependency-analytics backend by setting  
-    `DEV_TRUSTIFY_DA_BACKEND_URL` env variable/system property to the desired trustify-dependency-analytics backend instance address ( useful for tests).
-  * In case `DEV_TRUSTIFY_DA_BACKEND_URL` is not set via environment variable/system property, then the default DEV trustify-dependency-analytics backend is picked.
-  * In case `TRUSTIFY_DA_DEV_MODE=false` or not set at all levels, then default backend url ( trustify-dependency-analytics prod) is picked, regardless of the value of `DEV_TRUSTIFY_DA_BACKEND_URL`.
-  * Environment variables takes precedence over System properties - for example, if System property `TRUSTIFY_DA_DEV_MODE=true`
-    but environment variable `TRUSTIFY_DA_DEV_MODE=false` , then default trustify-dependency-analytics prod will be used anyway.
+* Backend URL Configuration:
+  * The client requires the backend URL to be configured through environment variable: `TRUSTIFY_DA_BACKEND_URL=https://backend.url` (required)
+  * The application will fail to start if this environment variable is not set
 
 ### OpenAPI Specifications
 

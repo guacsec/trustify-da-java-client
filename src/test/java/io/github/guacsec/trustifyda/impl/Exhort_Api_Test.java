@@ -79,9 +79,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@ClearSystemProperty(key = "TRUSTIFY_DA_DEV_MODE")
 @ClearSystemProperty(key = "TRUSTIFY_DA_PROXY_URL")
-@ClearSystemProperty(key = "DEV_TRUSTIFY_DA_BACKEND_URL")
+@SetSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL", value = "https://test.backend.url")
 @ClearSystemProperty(key = "TRUST_DA_TOKEN")
 @ClearSystemProperty(key = "TRUST_DA_SOURCE")
 @SuppressWarnings("unchecked")
@@ -412,41 +411,22 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
-  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "true")
-  @ClearSystemProperty(key = "DEV_TRUSTIFY_DA_BACKEND_URL")
-  @RestoreSystemProperties
-  void check_TRUSTIFY_DA_Url_When_DEV_Mode_true_And_DEV_TRUSTIFY_DA_Url_Set() {
-    String dummyUrl = "http://dummy-url";
-    System.setProperty("DEV_TRUSTIFY_DA_BACKEND_URL", dummyUrl);
-    ExhortApi exhortApi = new ExhortApi();
-    then(exhortApi.getEndpoint()).isEqualTo(dummyUrl);
+  @ClearSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL")
+  void check_TRUSTIFY_DA_Url_Throws_Exception_When_Not_Set() {
+    IllegalStateException exception =
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalStateException.class, () -> new ExhortApi());
+    then(exception.getMessage())
+        .isEqualTo(
+            "Backend URL not configured. Please set the TRUSTIFY_DA_BACKEND_URL environment"
+                + " variable.");
   }
 
   @Test
-  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
-  void check_TRUSTIFY_DA_Url_When_DEV_Mode_false_And_DEV_TRUSTIFY_DA_Url_Set() {
+  @SetSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL", value = "https://custom.test.url")
+  void check_TRUSTIFY_DA_Url_When_Environment_Variable_Set() {
     ExhortApi exhortApi = new ExhortApi();
-    then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
-  }
-
-  @Test
-  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "true")
-  void check_TRUSTIFY_DA_Url_When_DEV_Mode_true_Dev_TRUSTIFY_DA_URL_Selected() {
-    ExhortApi exhortApi = new ExhortApi();
-    then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT_DEV);
-  }
-
-  @Test
-  @SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
-  void check_TRUSTIFY_DA_Url_When_DEV_Mode_not_set_Then_Default_TRUSTIFY_DA_URL_Selected() {
-    ExhortApi exhortApi = new ExhortApi();
-    then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
-  }
-
-  @Test
-  void check_TRUSTIFY_DA_Url_When_Nothing_Set_Then_Default_TRUSTIFY_DA_URL_Selected() {
-    ExhortApi exhortApi = new ExhortApi();
-    then(exhortApi.getEndpoint()).isEqualTo(ExhortApi.DEFAULT_ENDPOINT);
+    then(exhortApi.getEndpoint()).isEqualTo("https://custom.test.url");
   }
 
   @Test

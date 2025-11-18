@@ -155,7 +155,7 @@ public class TrustifyExample {
         // - (json) deserialized Stack Analysis report
         // - (html) html Stack Analysis report
         CompletableFuture<MixedReport> mixedStackReport = exhortApi.stackAnalysisMixed("/path/to/pom.xml");
-        
+
         // get a AnalysisReport future holding a deserialized Component Analysis report
         var manifestContent = Files.readAllBytes(Path.of("/path/to/pom.xml"));
         CompletableFuture<AnalysisReport> componentReport = exhortApi.componentAnalysis("/path/to/pom.xml", manifestContent);
@@ -609,9 +609,19 @@ Options:
 - `--summary` - Output summary in JSON format
 - (default) - Output full report in JSON format
 
+#### Backend Configuration
+
+The client requires the backend URL to be configured through the environment variable:
+
+- **Environment variable**: `TRUSTIFY_DA_BACKEND_URL=https://backend.url` (required)
+
+The application will fail to start if this environment variable is not set.
+
 #### Examples
 
 ```shell
+export TRUSTIFY_DA_BACKEND_URL=https://your-backend.url
+
 # Stack analysis with JSON output (default)
 java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
 

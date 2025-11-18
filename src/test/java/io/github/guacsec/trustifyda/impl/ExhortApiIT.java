@@ -79,8 +79,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Tag("IntegrationTest")
 @ExtendWith(HelperExtension.class)
 @ExtendWith(MockitoExtension.class)
+@SetSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL", value = "https://rhda.rhcloud.com")
 @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trustify-da-java-client-it")
-@SetSystemProperty(key = "TRUSTIFY_DA_DEV_MODE", value = "false")
 @RestoreSystemProperties
 // TODO: Re-enable this integration test when https://issues.redhat.com/browse/TC-3192 is resolved
 // The test is currently disabled due to backend service changes that prevent successful connections
