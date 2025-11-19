@@ -94,7 +94,7 @@ jobs:
       - name: Compute Maven profiles
         id: compute_profiles
         run: |
-          PROFILES="gpg-sign"
+          PROFILES="prepare-deployment,gpg-sign"
           if [ "${{ steps.check_maven.outputs.maven_exists }}" = "false" ]; then
             PROFILES="${PROFILES},publish-maven"
           fi
