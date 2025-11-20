@@ -16,16 +16,27 @@
  */
 package io.github.guacsec.trustifyda.cli;
 
+import io.github.guacsec.trustifyda.image.ImageRef;
 import java.nio.file.Path;
+import java.util.Set;
 
 public class CliArgs {
   public final Command command;
   public final Path filePath;
+  public final Set<ImageRef> imageRefs;
   public final OutputFormat outputFormat;
 
   public CliArgs(Command command, Path filePath, OutputFormat outputFormat) {
     this.command = command;
     this.filePath = filePath;
+    this.imageRefs = null;
+    this.outputFormat = outputFormat;
+  }
+
+  public CliArgs(Command command, Set<ImageRef> imageRefs, OutputFormat outputFormat) {
+    this.command = command;
+    this.filePath = null;
+    this.imageRefs = imageRefs;
     this.outputFormat = outputFormat;
   }
 }

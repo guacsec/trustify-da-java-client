@@ -27,13 +27,17 @@ import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.api.v5.ProviderReport;
 import io.github.guacsec.trustifyda.api.v5.SourceSummary;
+import io.github.guacsec.trustifyda.image.ImageRef;
+import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.impl.ExhortApi;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -82,14 +86,68 @@ public class App {
 
     Command command = parseCommand(args[0]);
 
+    switch (command) {
+      case STACK:
+      case COMPONENT:
+        return parseFileBasedArgs(command, args);
+      case IMAGE:
+        return parseImageBasedArgs(command, args);
+      default:
+        throw new IllegalArgumentException("Unsupported command: " + command);
+    }
+  }
+
+  private static CliArgs parseFileBasedArgs(Command command, String[] args) {
+    if (args.length < 2) {
+      throw new IllegalArgumentException("Missing required file path for " + command + " command");
+    }
+
     Path path = validateFile(args[1]);
 
     OutputFormat outputFormat = OutputFormat.JSON;
     if (args.length == 3) {
       outputFormat = parseOutputFormat(command, args[2]);
+    } else if (args.length > 3) {
+      throw new IllegalArgumentException("Too many arguments for " + command + " command");
     }
 
     return new CliArgs(command, path, outputFormat);
+  }
+
+  private static CliArgs parseImageBasedArgs(Command command, String[] args) {
+    if (args.length < 2) {
+      throw new IllegalArgumentException(
+          "Missing required image references for " + command + " command");
+    }
+
+    OutputFormat outputFormat = OutputFormat.JSON;
+    int imageArgCount = args.length - 1;
+
+    if (args.length >= 3) {
+      String lastArg = args[args.length - 1];
+      if (lastArg.startsWith("--")) {
+        outputFormat = parseOutputFormat(command, lastArg);
+        imageArgCount = args.length - 2;
+      }
+    }
+
+    if (imageArgCount < 1) {
+      throw new IllegalArgumentException(
+          "At least one image reference is required for " + command + " command");
+    }
+
+    Set<ImageRef> imageRefs = new HashSet<>();
+    for (int i = 1; i <= imageArgCount; i++) {
+      try {
+        ImageRef imageRef = ImageUtils.parseImageRef(args[i]);
+        imageRefs.add(imageRef);
+      } catch (Exception e) {
+        throw new IllegalArgumentException(
+            "Invalid image reference '" + args[i] + "': " + e.getMessage(), e);
+      }
+    }
+
+    return new CliArgs(command, imageRefs, outputFormat);
   }
 
   private static Command parseCommand(String commandStr) {
@@ -98,9 +156,11 @@ public class App {
         return Command.STACK;
       case "component":
         return Command.COMPONENT;
+      case "image":
+        return Command.IMAGE;
       default:
         throw new IllegalArgumentException(
-            "Unknown command: " + commandStr + ". Use 'stack' or 'component'");
+            "Unknown command: " + commandStr + ". Use 'stack', 'component', or 'image'");
     }
   }
 
@@ -109,8 +169,9 @@ public class App {
       case "--summary":
         return OutputFormat.SUMMARY;
       case "--html":
-        if (command != Command.STACK) {
-          throw new IllegalArgumentException("HTML format is only supported for stack command");
+        if (command != Command.STACK && command != Command.IMAGE) {
+          throw new IllegalArgumentException(
+              "HTML format is only supported for stack and image commands");
         }
         return OutputFormat.HTML;
       default:
@@ -137,6 +198,8 @@ public class App {
       case COMPONENT:
         return executeComponentAnalysis(
             args.filePath.toAbsolutePath().toString(), args.outputFormat);
+      case IMAGE:
+        return executeImageAnalysis(args.imageRefs, args.outputFormat);
       default:
         throw new AssertionError();
     }
@@ -176,6 +239,44 @@ public class App {
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to serialize to JSON", e);
     }
+  }
+
+  private static CompletableFuture<String> executeImageAnalysis(
+      Set<ImageRef> imageRefs, OutputFormat outputFormat) throws IOException {
+    Api api = new ExhortApi();
+    switch (outputFormat) {
+      case JSON:
+        return api.imageAnalysis(imageRefs).thenApply(App::formatImageAnalysisResult);
+      case HTML:
+        return api.imageAnalysisHtml(imageRefs).thenApply(bytes -> new String(bytes));
+      case SUMMARY:
+        return api.imageAnalysis(imageRefs)
+            .thenApply(App::extractImageSummary)
+            .thenApply(App::toJsonString);
+      default:
+        throw new AssertionError();
+    }
+  }
+
+  private static String formatImageAnalysisResult(Map<ImageRef, AnalysisReport> analysisResults) {
+    try {
+      return MAPPER.writeValueAsString(analysisResults);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Failed to serialize image analysis results", e);
+    }
+  }
+
+  private static Map<String, Map<String, SourceSummary>> extractImageSummary(
+      Map<ImageRef, AnalysisReport> analysisResults) {
+    Map<String, Map<String, SourceSummary>> imageSummaries = new HashMap<>();
+
+    for (Map.Entry<ImageRef, AnalysisReport> entry : analysisResults.entrySet()) {
+      String imageKey = entry.getKey().toString();
+      Map<String, SourceSummary> imageSummary = extractSummary(entry.getValue());
+      imageSummaries.put(imageKey, imageSummary);
+    }
+
+    return imageSummaries;
   }
 
   private static Map<String, SourceSummary> extractSummary(AnalysisReport report) {

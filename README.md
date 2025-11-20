@@ -609,6 +609,22 @@ Options:
 - `--summary` - Output summary in JSON format
 - (default) - Output full report in JSON format
 
+**Image Analysis**
+```shell
+java -jar trustify-da-java-client-cli.jar image <image_ref> [<image_ref>...] [--summary|--html]
+```
+Perform security analysis on the specified container image(s).
+
+Arguments:
+- `<image_ref>` - Container image reference (e.g., `nginx:latest`, `registry.io/image:tag`)
+- Multiple images can be analyzed at once
+- Optionally specify platform with `^^` notation (e.g., `image:tag^^linux/amd64`)
+
+Options:
+- `--summary` - Output summary in JSON format
+- `--html` - Output full report in HTML format
+- (default) - Output full report in JSON format
+
 #### Backend Configuration
 
 The client requires the backend URL to be configured through the environment variable:
@@ -636,6 +652,18 @@ java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
 
 # Component analysis with summary
 java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
+
+# Container image analysis with JSON output (default)
+java -jar trustify-da-java-client-cli.jar image nginx:latest
+
+# Multiple container image analysis
+java -jar trustify-da-java-client-cli.jar image nginx:latest docker.io/library/node:18
+
+# Container image analysis with platform specification
+java -jar trustify-da-java-client-cli.jar image nginx:latest^^linux/amd64 --summary
+
+# Container image analysis with HTML output
+java -jar trustify-da-java-client-cli.jar image quay.io/redhat/ubi8:latest --html
 
 # Show help
 java -jar trustify-da-java-client-cli.jar --help

@@ -1109,4 +1109,42 @@ class ImageUtilsTest extends ExhortTest {
       assertEquals(expectedDigests, digests);
     }
   }
+
+  @Test
+  void test_parseImageRef_withDigests() {
+    // Test simple case - image without platform specification
+    String imageWithDigest =
+        "nginx:1.21@sha256:abc123def456abc123def456abc123def456abc123def456abc123def456abc1";
+    ImageRef result = ImageUtils.parseImageRef(imageWithDigest);
+
+    assertEquals(
+        "nginx:1.21@sha256:abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
+        result.getImage().getFullName());
+    assertNull(result.getPlatform());
+
+    // Test with platform specification using ^^ notation
+    String imageWithPlatform =
+        "alpine:3.14@sha256:def456abc123def456abc123def456abc123def456abc123def456abc123def4^^linux/amd64";
+    result = ImageUtils.parseImageRef(imageWithPlatform);
+
+    assertEquals(
+        "alpine:3.14@sha256:def456abc123def456abc123def456abc123def456abc123def456abc123def4",
+        result.getImage().getFullName());
+    assertEquals("linux/amd64", result.getPlatform().toString());
+
+    // Test with complex registry and platform
+    String complexImage =
+        "quay.io/redhat/ubi8:8.9@sha256:fedcba987654fedcba987654fedcba987654fedcba987654fedcba987654fedcba^^linux/arm64";
+    result = ImageUtils.parseImageRef(complexImage);
+
+    assertEquals(
+        "quay.io/redhat/ubi8:8.9@sha256:fedcba987654fedcba987654fedcba987654fedcba987654fedcba987654fedcba",
+        result.getImage().getFullName());
+
+    // Platform class may normalize arm64 to arm64/v8
+    String platform = result.getPlatform().toString();
+    assertTrue(
+        platform.equals("linux/arm64") || platform.equals("linux/arm64/v8"),
+        "Expected linux/arm64 or linux/arm64/v8, got: " + platform);
+  }
 }
