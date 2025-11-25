@@ -105,6 +105,45 @@ public class ImageUtils {
     }
   }
 
+  /**
+   * Parse an image reference string that may contain architecture specification using ^^ notation.
+   * Examples: - "docker.io/library/node:18" -> ImageRef with no specific platform -
+   * "docker.io/library/node:18^^amd64" -> ImageRef with amd64 platform -
+   * "httpd:2.4.49^^linux/amd64" -> ImageRef with linux/amd64 platform
+   *
+   * @param imageRefString the image reference string
+   * @return ImageRef object
+   * @throws IllegalArgumentException if the format is invalid
+   */
+  public static ImageRef parseImageRef(String imageRefString) {
+    if (imageRefString == null || imageRefString.trim().isEmpty()) {
+      throw new IllegalArgumentException("Image reference cannot be null or empty");
+    }
+
+    String[] parts = imageRefString.split("\\^\\^", 2);
+
+    if (parts.length == 1) {
+      // Simple case: "docker.io/library/node:18"
+      return new ImageRef(parts[0].trim(), null);
+    } else if (parts.length == 2) {
+      // Architecture case: "docker.io/library/node:18^^amd64"
+      String imageRef = parts[0].trim();
+      String platform = parts[1].trim();
+      if (imageRef.isEmpty()) {
+        throw new IllegalArgumentException("Image reference cannot be empty before ^^");
+      }
+      if (platform.isEmpty()) {
+        throw new IllegalArgumentException("Platform specification cannot be empty after ^^");
+      }
+      return new ImageRef(imageRef, platform);
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid image reference format: "
+              + imageRefString
+              + ". Use 'image' or 'image^^platform'");
+    }
+  }
+
   public static JsonNode generateImageSBOM(ImageRef imageRef)
       throws IOException, MalformedPackageURLException {
     var output = execSyft(imageRef);

@@ -1,7 +1,7 @@
 Dependency Analytics Java API CLI
 
 USAGE:
-  java -jar trustify-da-java-client-cli.jar <COMMAND> <FILE_PATH> [OPTIONS]
+  java -jar trustify-da-java-client-cli.jar <COMMAND> <ARGUMENTS> [OPTIONS]
 
 COMMANDS:
   stack <file_path> [--summary|--html]
@@ -17,6 +17,17 @@ COMMANDS:
       --summary    Output summary in JSON format
       (default)    Output full report in JSON format
 
+  image <image_ref> [<image_ref>...] [--summary|--html]
+    Perform security analysis on the specified container image(s)
+    Arguments:
+      <image_ref>  Container image reference (e.g., nginx:latest, registry.io/image:tag)
+                   Multiple images can be analyzed at once
+                   Optionally specify platform with ^^ notation (e.g., image:tag^^linux/amd64)
+    Options:
+      --summary    Output summary in JSON format
+      --html       Output full report in HTML format
+      (default)    Output full report in JSON format
+
 OPTIONS:
   -h, --help     Show this help message
 
@@ -26,7 +37,14 @@ ENVIRONMENT VARIABLES:
 EXAMPLES:
   export TRUSTIFY_DA_BACKEND_URL=https://your-backend.url
 
+  # File-based analysis
   java -jar trustify-da-java-client-cli.jar stack /path/to/pom.xml
   java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
   java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
   java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
+
+  # Container image analysis
+  java -jar trustify-da-java-client-cli.jar image nginx:latest
+  java -jar trustify-da-java-client-cli.jar image nginx:latest docker.io/library/node:18
+  java -jar trustify-da-java-client-cli.jar image nginx:latest^^linux/amd64 --summary
+  java -jar trustify-da-java-client-cli.jar image quay.io/redhat/ubi8:latest --html
