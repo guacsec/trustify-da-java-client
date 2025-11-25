@@ -5,7 +5,7 @@
 
   <groupId>io.github.guacsec</groupId>
   <artifactId>trustify-da-java-client</artifactId>
-  <version>0.0.9-SNAPSHOT</version>
+  <version>0.0.10-SNAPSHOT</version>
   <name>Trustify DA Java Client</name>
   <description>Trustify DA Java Client</description>
   <url>https://github.com/guacsec/trustify-da-java-client#readme</url>
