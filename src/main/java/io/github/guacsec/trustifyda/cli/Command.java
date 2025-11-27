@@ -18,5 +18,6 @@ package io.github.guacsec.trustifyda.cli;
 
 public enum Command {
   STACK,
-  COMPONENT
+  COMPONENT,
+  IMAGE
 }
