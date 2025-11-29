@@ -318,9 +318,9 @@ public final class GoModulesProvider extends Provider {
 
   private Map<String, List<String>> getFinalPackagesVersionsForModule(
       Map<String, List<String>> edges, Path manifestPath) {
-    Operations.runProcessGetOutput(manifestPath.getParent(), "go", "mod", "download");
+    Operations.runProcessGetOutput(manifestPath.getParent(), goExecutable, "mod", "download");
     String finalVersionsForAllModules =
-        Operations.runProcessGetOutput(manifestPath.getParent(), "go", "list", "-m", "all");
+        Operations.runProcessGetOutput(manifestPath.getParent(), goExecutable, "list", "-m", "all");
     Map<String, String> finalModulesVersions =
         Arrays.stream(finalVersionsForAllModules.split(Operations.GENERIC_LINE_SEPARATOR))
             .filter(string -> string.trim().split(" ").length == 2)
@@ -395,8 +395,7 @@ public final class GoModulesProvider extends Provider {
   }
 
   private String buildGoModulesDependencies(Path manifestPath) {
-    String[] goModulesDeps;
-    goModulesDeps = new String[] {goExecutable, "mod", "graph"};
+    String[] goModulesDeps = new String[] {goExecutable, "mod", "graph"};
 
     // execute the clean command
     String goModulesOutput =
