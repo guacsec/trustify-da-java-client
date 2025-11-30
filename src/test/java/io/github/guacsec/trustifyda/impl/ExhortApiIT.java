@@ -61,7 +61,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,12 +78,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Tag("IntegrationTest")
 @ExtendWith(HelperExtension.class)
 @ExtendWith(MockitoExtension.class)
-@SetSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL", value = "https://rhda.rhcloud.com")
+@SetSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL", value = "https://exhort.stage.devshift.net")
 @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trustify-da-java-client-it")
 @RestoreSystemProperties
-// TODO: Re-enable this integration test when https://issues.redhat.com/browse/TC-3192 is resolved
-// The test is currently disabled due to backend service changes that prevent successful connections
-@Disabled("Backend service unavailable - see https://issues.redhat.com/browse/TC-3192")
 class ExhortApiIT extends ExhortTest {
 
   private static Api api;
