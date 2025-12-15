@@ -33,6 +33,8 @@ public interface Sbom {
 
   public void setBelongingCriteriaBinaryAlgorithm(BelongingCondition belongingCondition);
 
+  public void setCoordinateBasedMatching();
+
   public boolean checkIfPackageInsideDependsOnList(PackageURL component, String name);
 
   void removeRootComponent();

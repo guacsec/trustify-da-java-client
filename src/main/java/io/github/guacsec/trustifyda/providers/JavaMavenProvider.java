@@ -75,24 +75,32 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     // create a temp file for storing the dependency tree in
     var tmpFile = Files.createTempFile("TRUSTIFY_DA_dot_graph_", null);
     // the tree command will build the project and create the dependency tree in the temp file
-    var mvnTreeCmd =
-        buildMvnCommandArgs(
-            "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree",
-            "-Dverbose",
-            "-DoutputType=text",
-            String.format("-DoutputFile=%s", tmpFile.toString()),
-            "-f",
-            manifest.toString(),
-            "--batch-mode",
-            "-q");
+    var mvnTreeCmdArgs =
+        new ArrayList<>(
+            List.of(
+                "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree",
+                "-Dscope=compile",
+                "-Dverbose",
+                "-DoutputType=text",
+                String.format("-DoutputFile=%s", tmpFile.toString()),
+                "-f",
+                manifest.toString(),
+                "--batch-mode",
+                "-q"));
     // if we have dependencies marked as ignored, exclude them from the tree command
     var ignored =
         getDependencies(manifest).stream()
             .filter(d -> d.ignored)
-            .map(DependencyAggregator::toPurl)
+            .map(DependencyAggregator::toPurlWithoutVersion)
             .map(PackageURL::getCoordinates)
             .collect(Collectors.toList());
+
+    if (!ignored.isEmpty()) {
+      mvnTreeCmdArgs.add("-Dexcludes=" + String.join(",", ignored));
+    }
+
     // execute the tree command
+    var mvnTreeCmd = buildMvnCommandArgs(mvnTreeCmdArgs.toArray(String[]::new));
     Operations.runProcess(manifest.getParent(), mvnTreeCmd.toArray(String[]::new), mvnEnvs);
     if (debugLoggingIsNeeded()) {
       String stackAnalysisDependencyTree = Files.readString(tmpFile);
@@ -110,6 +118,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
 
   private Sbom buildSbomFromTextFormat(Path textFormatFile) throws IOException {
     var sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
+    sbom.setCoordinateBasedMatching();
     List<String> lines = Files.readAllLines(textFormatFile);
     var root = lines.get(0);
     var rootPurl = parseDep(root);
@@ -403,6 +412,15 @@ public final class JavaMavenProvider extends BaseJavaProvider {
             version,
             this.scope.equals("*") ? null : new TreeMap<>(Map.of("scope", this.scope)),
             null);
+      } catch (MalformedPackageURLException e) {
+        throw new IllegalArgumentException("Unable to parse PackageURL", e);
+      }
+    }
+
+    /** Creates a PackageURL without version for coordinate-based matching. */
+    public PackageURL toPurlWithoutVersion() {
+      try {
+        return new PackageURL(Type.MAVEN.getType(), groupId, artifactId, null, null, null);
       } catch (MalformedPackageURLException e) {
         throw new IllegalArgumentException("Unable to parse PackageURL", e);
       }
