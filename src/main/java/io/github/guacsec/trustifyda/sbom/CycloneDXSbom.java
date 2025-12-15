@@ -95,6 +95,31 @@ public class CycloneDXSbom implements Sbom {
         collection.contains(componentToPurl(component).getCoordinates());
   }
 
+  /**
+   * Creates a coordinate-based belonging condition that matches by groupId:artifactId only,
+   * ignoring version. Used for handling dependencies with unresolved version properties.
+   */
+  private BiPredicate<Collection<?>, Component> getBelongingConditionByCoordinatesOnly() {
+    return (collection, component) -> {
+      PackageURL componentPurl = componentToPurl(component);
+      String componentCoords = componentPurl.getNamespace() + ":" + componentPurl.getName();
+
+      return collection.stream()
+          .filter(String.class::isInstance)
+          .map(String.class::cast)
+          .anyMatch(
+              ignoredPurlCoords -> {
+                try {
+                  PackageURL ignoredPurl = new PackageURL(ignoredPurlCoords);
+                  String ignoredCoords = ignoredPurl.getNamespace() + ":" + ignoredPurl.getName();
+                  return componentCoords.equals(ignoredCoords);
+                } catch (MalformedPackageURLException e) {
+                  return false;
+                }
+              });
+    };
+  }
+
   public Sbom addRoot(PackageURL rootRef) {
     this.root = rootRef;
     Component rootComponent = newRootComponent(rootRef);
@@ -278,6 +303,11 @@ public class CycloneDXSbom implements Sbom {
     } else if (belongingCondition.equals(BelongingCondition.PURL)) {
       belongingCriteriaBinaryAlgorithm = getBelongingConditionByPurl();
     }
+  }
+
+  @Override
+  public void setCoordinateBasedMatching() {
+    belongingCriteriaBinaryAlgorithm = getBelongingConditionByCoordinatesOnly();
   }
 
   @Override
