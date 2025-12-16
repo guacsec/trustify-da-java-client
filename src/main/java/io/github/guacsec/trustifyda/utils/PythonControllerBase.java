@@ -153,7 +153,7 @@ public abstract class PythonControllerBase {
     try {
       linesOfRequirements =
           Files.readAllLines(requirementsPath).stream()
-              .filter((line) -> !line.startsWith("#"))
+              .filter((line) -> !line.trim().startsWith("#") && !line.trim().isEmpty())
               .map(String::trim)
               .collect(Collectors.toList());
     } catch (IOException e) {
