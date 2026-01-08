@@ -23,5 +23,5 @@ starlette==0.17.1
 typing_extensions==4.1.1
 urllib3==1.26.16
 uvicorn==0.17.0
-Werkzeug==2.0.3
+Werkzeug==3.1.5
 zipp==3.6.0
