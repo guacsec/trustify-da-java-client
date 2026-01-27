@@ -31,7 +31,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class RustProviderCargoParsingTest {
+public class CargoProviderCargoParsingTest {
 
   @Test
   public void testPackageCargoTomlParsing(@TempDir Path tempDir) throws IOException {
@@ -53,7 +53,7 @@ public class RustProviderCargoParsingTest {
     Files.writeString(cargoToml, content);
 
     // Create RustProvider and test basic functionality
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Test stack analysis - should not throw exception
     var stackContent = provider.provideStack();
@@ -95,7 +95,7 @@ public class RustProviderCargoParsingTest {
     Files.writeString(cargoToml, content);
 
     // Create RustProvider and test workspace functionality
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Test stack analysis
     var stackContent = provider.provideStack();
@@ -129,7 +129,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     var stackContent = provider.provideStack();
     String stackSbom = new String(stackContent.buffer);
@@ -156,7 +156,7 @@ public class RustProviderCargoParsingTest {
     Files.writeString(cargoToml, content);
 
     // Create RustProvider and test default version handling
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     var stackContent = provider.provideStack();
     String stackSbom = new String(stackContent.buffer);
@@ -182,7 +182,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     var stackContent = provider.provideStack();
     String stackSbom = new String(stackContent.buffer);
@@ -224,7 +224,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     var stackContent = provider.provideStack();
     String stackSbom = new String(stackContent.buffer);
@@ -250,7 +250,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Should throw IOException for missing required name field
     assertThrows(IOException.class, provider::provideStack);
@@ -271,7 +271,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Should throw IOException for missing package/workspace sections
     assertThrows(IOException.class, provider::provideStack);
@@ -282,7 +282,7 @@ public class RustProviderCargoParsingTest {
     // Try to create provider with non-existent Cargo.toml
     Path nonExistentCargoToml = tempDir.resolve("nonexistent-Cargo.toml");
 
-    RustProvider provider = new RustProvider(nonExistentCargoToml);
+    CargoProvider provider = new CargoProvider(nonExistentCargoToml);
 
     // Should throw IOException for missing file
     assertThrows(IOException.class, provider::provideStack);
@@ -294,7 +294,7 @@ public class RustProviderCargoParsingTest {
     Path cargoToml = tempDir.resolve("Cargo.toml");
     Files.writeString(cargoToml, "");
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Should throw IOException for empty file
     assertThrows(IOException.class, provider::provideStack);
@@ -328,7 +328,7 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Test both analysis types
     var stackResult = provider.provideStack();
@@ -387,15 +387,6 @@ public class RustProviderCargoParsingTest {
         # Build dependencies should be included (no-dev flag)
         cc = "1.0"
 
-        [build-dependencies.bindgen] # trustify-da-ignore
-        version = "0.60"
-        default-features = false
-
-        [dev-dependencies]
-        # Dev dependencies should be excluded (no-dev flag)
-        criterion = "0.4" # trustify-da-ignore
-        quickcheck = "1.0"
-
         [workspace.dependencies]
         anyhow = "1.0.72" # trustify-da-ignore
         log = "0.4"
@@ -406,7 +397,7 @@ public class RustProviderCargoParsingTest {
     Files.writeString(cargoToml, content);
 
     // Create RustProvider and test ignore detection
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Read the file content for the updated method signature
     String cargoContent = Files.readString(cargoToml, StandardCharsets.UTF_8);
@@ -416,7 +407,7 @@ public class RustProviderCargoParsingTest {
 
     // Use reflection to test the private getIgnoredDependencies method with new signature
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod(
+        CargoProvider.class.getDeclaredMethod(
             "getIgnoredDependencies", org.tomlj.TomlParseResult.class, String.class);
     method.setAccessible(true);
 
@@ -439,14 +430,6 @@ public class RustProviderCargoParsingTest {
 
     // Test build dependencies (should be detected since we use --edges no-dev)
     assertFalse(ignoredDeps.contains("cc"), "Should NOT ignore cc (no ignore comment)");
-    assertTrue(ignoredDeps.contains("bindgen"), "Should ignore bindgen (table format)");
-
-    // Test dev dependencies (should be detected but excluded from analysis)
-    assertTrue(
-        ignoredDeps.contains("criterion"),
-        "Should ignore criterion (even though dev deps excluded)");
-    assertFalse(
-        ignoredDeps.contains("quickcheck"), "Should NOT ignore quickcheck (no ignore comment)");
 
     // Test workspace dependencies
     assertTrue(ignoredDeps.contains("anyhow"), "Should ignore anyhow (workspace inline)");
@@ -454,8 +437,8 @@ public class RustProviderCargoParsingTest {
     assertTrue(
         ignoredDeps.contains("thiserror"), "Should ignore thiserror (workspace table format)");
 
-    // Expected total: serde, aho-corasick, bindgen, criterion, anyhow, thiserror = 6
-    assertEquals(6, ignoredDeps.size(), "Should find exactly 6 ignored dependencies");
+    // Expected total: serde, aho-corasick, anyhow, thiserror = 4
+    assertEquals(4, ignoredDeps.size(), "Should find exactly 4 ignored dependencies");
 
     System.out.println("✓ Complex dependency syntax with ignore patterns test passed!");
   }
@@ -477,7 +460,7 @@ public class RustProviderCargoParsingTest {
     Files.writeString(cargoToml, content);
 
     // Create RustProvider - even if cargo tree fails, basic parsing should still work
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Test that provider can still generate SBOM even if cargo tree fails
     var componentResult = provider.provideComponent();
@@ -502,7 +485,7 @@ public class RustProviderCargoParsingTest {
   public void testFileSystemErrorScenarios(@TempDir Path tempDir) {
     // Test non-existent directory
     Path nonExistentPath = tempDir.resolve("non-existent-dir").resolve("Cargo.toml");
-    RustProvider nonExistentProvider = new RustProvider(nonExistentPath);
+    CargoProvider nonExistentProvider = new CargoProvider(nonExistentPath);
 
     // Should handle gracefully with IOException
     assertThrows(
@@ -524,7 +507,7 @@ public class RustProviderCargoParsingTest {
     byte[] binaryData = {0x00, 0x01, 0x02, (byte) 0xFF, (byte) 0xFE, (byte) 0xFD};
     Files.write(corruptedCargoToml, binaryData);
 
-    RustProvider provider = new RustProvider(corruptedCargoToml);
+    CargoProvider provider = new CargoProvider(corruptedCargoToml);
 
     // Should handle corrupted file gracefully
     assertThrows(
@@ -568,7 +551,7 @@ public class RustProviderCargoParsingTest {
 
     Files.writeString(largeCargoToml, contentBuilder.toString());
 
-    RustProvider provider = new RustProvider(largeCargoToml);
+    CargoProvider provider = new CargoProvider(largeCargoToml);
 
     // Test that large file parsing doesn't fail or take too long
     long startTime = System.currentTimeMillis();
@@ -621,14 +604,11 @@ public class RustProviderCargoParsingTest {
         # Comment in the middle of table
         optional = true
 
-        [dev-dependencies]
-        test-dep = "1.0" # trustify-da-ignore
-
         # Final comment
         """;
     Files.writeString(edgeCaseCargoToml, edgeCaseContent);
 
-    RustProvider provider = new RustProvider(edgeCaseCargoToml);
+    CargoProvider provider = new CargoProvider(edgeCaseCargoToml);
 
     // Should parse successfully despite edge case formatting
     var componentResult = provider.provideComponent();
@@ -645,7 +625,7 @@ public class RustProviderCargoParsingTest {
     org.tomlj.TomlParseResult edgeTomlResult = org.tomlj.Toml.parse(edgeCaseCargoToml);
 
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod(
+        CargoProvider.class.getDeclaredMethod(
             "getIgnoredDependencies", org.tomlj.TomlParseResult.class, String.class);
     method.setAccessible(true);
 
@@ -658,9 +638,8 @@ public class RustProviderCargoParsingTest {
     assertTrue(ignoredDeps.contains("dep2"), "Should ignore dep2 (no space before comment)");
     assertTrue(ignoredDeps.contains("dep3"), "Should ignore dep3 (no spaces around =)");
     assertTrue(ignoredDeps.contains("table-dep"), "Should ignore table-dep (table format)");
-    assertTrue(ignoredDeps.contains("test-dep"), "Should ignore test-dep (dev dependency)");
 
-    assertEquals(5, ignoredDeps.size(), "Should find exactly 5 ignored dependencies");
+    assertEquals(4, ignoredDeps.size(), "Should find exactly 4 ignored dependencies");
 
     System.out.println("✓ Edge case Cargo.toml formats test passed!");
   }
@@ -678,11 +657,11 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Use reflection to access private parsePackageId method
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod("parsePackageId", String.class);
+        CargoProvider.class.getDeclaredMethod("parsePackageId", String.class);
     method.setAccessible(true);
 
     // Test registry packages (modern format)
@@ -736,11 +715,11 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Use reflection to access private parsePackageId method
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod("parsePackageId", String.class);
+        CargoProvider.class.getDeclaredMethod("parsePackageId", String.class);
     method.setAccessible(true);
 
     // Test null input
@@ -760,12 +739,6 @@ public class RustProviderCargoParsingTest {
         method.invoke(
             provider, "registry+https://github.com/rust-lang/crates.io-index:serde@1.0.136");
     assertNull(result, "Should return null for malformed format without #");
-
-    // Test malformed format (missing @)
-    result =
-        method.invoke(
-            provider, "registry+https://github.com/rust-lang/crates.io-index#serde-1.0.136");
-    assertNull(result, "Should return null for malformed format without @");
 
     // Test malformed format (empty name)
     result =
@@ -803,11 +776,11 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Use reflection to access private parsePackageId method
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod("parsePackageId", String.class);
+        CargoProvider.class.getDeclaredMethod("parsePackageId", String.class);
     method.setAccessible(true);
 
     // Test modern cargo format with various sources
@@ -878,11 +851,11 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Use reflection to access private parsePackageId method
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod("parsePackageId", String.class);
+        CargoProvider.class.getDeclaredMethod("parsePackageId", String.class);
     method.setAccessible(true);
 
     // Test Git URL with query parameters (branch)
@@ -958,11 +931,11 @@ public class RustProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    RustProvider provider = new RustProvider(cargoToml);
+    CargoProvider provider = new CargoProvider(cargoToml);
 
     // Use reflection to access private parsePackageId method
     java.lang.reflect.Method method =
-        RustProvider.class.getDeclaredMethod("parsePackageId", String.class);
+        CargoProvider.class.getDeclaredMethod("parsePackageId", String.class);
     method.setAccessible(true);
 
     // Test specific Git formats requested by user

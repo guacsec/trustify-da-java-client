@@ -17,12 +17,12 @@
 package io.github.guacsec.trustifyda.tools;
 
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.providers.CargoProvider;
 import io.github.guacsec.trustifyda.providers.GoModulesProvider;
 import io.github.guacsec.trustifyda.providers.GradleProvider;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.providers.JavaScriptProviderFactory;
 import io.github.guacsec.trustifyda.providers.PythonPipProvider;
-import io.github.guacsec.trustifyda.providers.RustProvider;
 import java.nio.file.Path;
 
 /** Utility class used for instantiating providers. * */
@@ -36,7 +36,7 @@ public final class Ecosystem {
     GOLANG("golang"),
     PYTHON("pypi"),
     GRADLE("gradle"),
-    RUST("cargo");
+    CARGO("cargo");
 
     final String type;
 
@@ -53,7 +53,7 @@ public final class Ecosystem {
         case GOLANG -> "go";
         case PYTHON -> "python";
         case GRADLE -> "gradle";
-        case RUST -> "cargo";
+        case CARGO -> "cargo";
       };
     }
 
@@ -86,7 +86,7 @@ public final class Ecosystem {
       case "go.mod" -> new GoModulesProvider(manifestPath);
       case "requirements.txt" -> new PythonPipProvider(manifestPath);
       case "build.gradle", "build.gradle.kts" -> new GradleProvider(manifestPath);
-      case "Cargo.toml" -> new RustProvider(manifestPath);
+      case "Cargo.toml" -> new CargoProvider(manifestPath);
       default ->
           throw new IllegalStateException(String.format("Unknown manifest file %s", manifestFile));
     };

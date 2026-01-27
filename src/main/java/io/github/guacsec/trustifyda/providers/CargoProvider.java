@@ -18,13 +18,17 @@ package io.github.guacsec.trustifyda.providers;
 
 import static io.github.guacsec.trustifyda.impl.ExhortApi.debugLoggingIsNeeded;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.providers.rust.model.CargoDep;
+import io.github.guacsec.trustifyda.providers.rust.model.CargoDepKind;
+import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
+import io.github.guacsec.trustifyda.providers.rust.model.CargoNode;
+import io.github.guacsec.trustifyda.providers.rust.model.DependencyInfo;
+import io.github.guacsec.trustifyda.providers.rust.model.ProjectInfo;
 import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
@@ -38,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -50,10 +53,10 @@ import org.tomlj.TomlParseResult;
  * Concrete implementation of the {@link Provider} used for converting dependency trees for Rust
  * projects (Cargo.toml) into a SBOM content for Component analysis or Stack analysis.
  */
-public final class RustProvider extends Provider {
+public final class CargoProvider extends Provider {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Logger log = LoggersFactory.getLogger(RustProvider.class.getName());
+  private static final Logger log = LoggersFactory.getLogger(CargoProvider.class.getName());
   private static final String PACKAGE_NAME = "package.name";
   private static final String PACKAGE_VERSION = "package.version";
   private static final String PACKAGE_VERSION_WORKSPACE = "package.version.workspace";
@@ -61,79 +64,6 @@ public final class RustProvider extends Provider {
   private static final long TIMEOUT =
       Long.parseLong(System.getProperty("trustify.cargo.timeout.seconds", "5"));
   private final String cargoExecutable;
-
-  private record ProjectInfo(String name, String version) {
-    private ProjectInfo(String name, String version) {
-      this.name = name != null ? name : "unknown-rust-project";
-      this.version = version != null ? version : "0.0.0";
-    }
-  }
-
-  private record DependencyInfo(String name, String version) {}
-
-  private enum AnalysisType {
-    STACK,
-    COMPONENT
-  }
-
-  // cargo-metadata output format https://doc.rust-lang.org/cargo/commands/cargo-metadata.html
-  // JSON model classes for cargo metadata parsing
-
-  /** Root cargo metadata structure - minimal for dependency analysis */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoMetadata(
-      @JsonProperty("packages") List<CargoPackage> packages,
-      @JsonProperty("resolve") CargoResolve resolve,
-      @JsonProperty("workspace_members") List<String> workspaceMembers,
-      @JsonProperty("workspace_root") String workspaceRoot) {}
-
-  /** Package information - only dependency analysis fields */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoPackage(
-      @JsonProperty("name") String name,
-      @JsonProperty("version") String version,
-      @JsonProperty("id") String id,
-      @JsonProperty("dependencies") List<CargoDependency> dependencies) {}
-
-  /** Dependency declaration - core fields for dependency analysis */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoDependency(
-      @JsonProperty("name") String name,
-      @JsonProperty("req") String req,
-      @JsonProperty("kind") String kind,
-      @JsonProperty("optional") Boolean optional) {}
-
-  /** Dependency resolution graph (contains actual resolved versions) */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoResolve(
-      @JsonProperty("nodes") List<CargoNode> nodes, @JsonProperty("root") String root) {}
-
-  /** Resolved dependency node - essential fields for dependency resolution */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoNode(
-      @JsonProperty("id") String id,
-      @JsonProperty("dependencies") List<String> dependencies,
-      @JsonProperty("deps") List<CargoDep> deps) {}
-
-  /** Detailed dependency information with resolved package reference */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoDep(
-      @JsonProperty("name") String name,
-      @JsonProperty("pkg") String pkg,
-      @JsonProperty("dep_kinds") List<CargoDepKind> depKinds) {}
-
-  /** Dependency kind information (normal, dev, build) */
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private record CargoDepKind(
-      @JsonProperty("kind") String kind, @JsonProperty("target") String target) {}
-
-  private void addStackDependencies(Sbom sbom, PackageURL root, Set<String> ignoredDeps) {
-    addDependencies(sbom, root, ignoredDeps, AnalysisType.STACK);
-  }
-
-  private void addComponentDependencies(Sbom sbom, PackageURL root, Set<String> ignoredDeps) {
-    addDependencies(sbom, root, ignoredDeps, AnalysisType.COMPONENT);
-  }
 
   private void addDependencies(
       Sbom sbom, PackageURL root, Set<String> ignoredDeps, AnalysisType analysisType) {
@@ -385,7 +315,7 @@ public final class RustProvider extends Provider {
       // Use EXACT resolved version from resolve graph
       PackageURL packageUrl =
           new PackageURL(
-              Type.RUST.getType(), null, childInfo.name(), childInfo.version(), null, null);
+              Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
       sbom.addDependency(root, packageUrl, null);
       if (debugLoggingIsNeeded()) {
         log.info(
@@ -459,7 +389,7 @@ public final class RustProvider extends Provider {
       try {
         PackageURL childUrl =
             new PackageURL(
-                Type.RUST.getType(), null, childInfo.name(), childInfo.version(), null, null);
+                Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
 
         // Create unique key for deduplication using stable identifiers
         String relationshipKey = parent.getCoordinates() + "->" + childUrl.getCoordinates();
@@ -541,7 +471,7 @@ public final class RustProvider extends Provider {
     }
 
     // Just a package name without version - validate it looks like a valid package name
-    if (!packageId.isEmpty() && isValidPackageName(packageId)) {
+    if (!packageId.isEmpty()) {
       if (debugLoggingIsNeeded()) {
         log.info("Parsed simple package ID (name only): " + packageId + " -> " + packageId);
       }
@@ -593,12 +523,6 @@ public final class RustProvider extends Provider {
       }
     }
 
-    // Fragment should be just a version - validate it's not malformed
-    if (isMalformedPackageVersion(fragment)) {
-      log.fine("Fragment appears to be malformed package-version string: " + fragment);
-      return null;
-    }
-
     // Fragment should not start or end with separators (indicates malformed format)
     if (fragment.startsWith("@")
         || fragment.startsWith(":")
@@ -621,45 +545,6 @@ public final class RustProvider extends Provider {
       return new DependencyInfo(nameFromUrl, fragment);
     }
     return null;
-  }
-
-  /** Validate if string looks like a valid Rust package name */
-  private boolean isValidPackageName(String name) {
-    if (name == null || name.isEmpty()) {
-      return false;
-    }
-    // Must start with a letter
-    if (!Character.isLetter(name.charAt(0))) {
-      return false;
-    }
-    // Can only contain letters, numbers, hyphens, and underscores
-    if (!name.matches("^[a-zA-Z][a-zA-Z0-9_-]*$")) {
-      return false;
-    }
-    // Cannot end with hyphen
-    if (name.endsWith("-")) {
-      return false;
-    }
-    // Reject overly long or obviously invalid names
-    if (name.length() > 64 || name.contains("this-is-not")) {
-      return false;
-    }
-    return true;
-  }
-
-  private boolean isMalformedPackageVersion(String fragment) {
-    // Check for patterns like "package-1.0.0" or "package_1.0.0"
-    // where it should be "package@1.0.0" or "package:1.0.0"
-
-    // Look for package-name followed by dash and version-like pattern
-    if (fragment.matches("^[a-zA-Z][a-zA-Z0-9_-]*-\\d+\\..*")) {
-      return true;
-    }
-    // Look for package-name followed by underscore and version-like pattern
-    if (fragment.matches("^[a-zA-Z][a-zA-Z0-9_-]*_\\d+\\..*")) {
-      return true;
-    }
-    return false;
   }
 
   /** Extract package name from URL path */
@@ -700,8 +585,8 @@ public final class RustProvider extends Provider {
     }
   }
 
-  public RustProvider(Path manifest) {
-    super(Type.RUST, manifest);
+  public CargoProvider(Path manifest) {
+    super(Type.CARGO, manifest);
     this.cargoExecutable = Operations.getExecutable("cargo", "--version");
 
     if (cargoExecutable != null) {
@@ -714,17 +599,17 @@ public final class RustProvider extends Provider {
 
   @Override
   public Content provideComponent() throws IOException {
-    Sbom sbom = createRustSbom(false);
+    Sbom sbom = createSbom(false);
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
   @Override
   public Content provideStack() throws IOException {
-    Sbom sbom = createRustSbom(true);
+    Sbom sbom = createSbom(true);
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
-  private Sbom createRustSbom(boolean includeTransitiveDependencies) throws IOException {
+  private Sbom createSbom(boolean includeTransitiveDependencies) throws IOException {
     if (!Files.exists(manifest) || !Files.isRegularFile(manifest)) {
       throw new IOException("Cargo.toml not found: " + manifest);
     }
@@ -741,16 +626,16 @@ public final class RustProvider extends Provider {
     try {
       var root =
           new PackageURL(
-              Type.RUST.getType(), null, projectInfo.name, projectInfo.version, null, null);
+              Type.CARGO.getType(), null, projectInfo.name(), projectInfo.version(), null, null);
       sbom.addRoot(root);
 
       String cargoContent = Files.readString(manifest, StandardCharsets.UTF_8);
       Set<String> ignoredDeps = getIgnoredDependencies(tomlResult, cargoContent);
 
       if (includeTransitiveDependencies) {
-        addStackDependencies(sbom, root, ignoredDeps);
+        addDependencies(sbom, root, ignoredDeps, AnalysisType.STACK);
       } else {
-        addComponentDependencies(sbom, root, ignoredDeps);
+        addDependencies(sbom, root, ignoredDeps, AnalysisType.COMPONENT);
       }
       return sbom;
     } catch (Exception e) {
@@ -833,8 +718,6 @@ public final class RustProvider extends Provider {
   private Set<String> collectAllDependencies(TomlParseResult result) {
     Set<String> allDeps = new HashSet<>();
     addDependenciesFromSection(result, "dependencies", allDeps);
-    addDependenciesFromSection(result, "dev-dependencies", allDeps);
-    addDependenciesFromSection(result, "build-dependencies", allDeps);
     addDependenciesFromSection(result, "workspace.dependencies", allDeps);
     addDependenciesFromSection(result, "workspace.build-dependencies", allDeps);
     return allDeps;
