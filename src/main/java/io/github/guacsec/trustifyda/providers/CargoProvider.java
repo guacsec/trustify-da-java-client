@@ -105,6 +105,27 @@ public final class CargoProvider extends Provider {
     }
   }
 
+  @Override
+  public void validateLockFile(Path lockFileDir) {
+    Path actualLockFileDir = findOutermostCargoTomlDirectory(lockFileDir);
+    if (!Files.isRegularFile(actualLockFileDir.resolve("Cargo.lock"))) {
+      throw new IllegalStateException(
+          "Cargo.lock does not exist or is not supported. Execute 'cargo build' to generate it.");
+    }
+  }
+
+  private Path findOutermostCargoTomlDirectory(Path startDir) {
+    Path current = startDir.getParent();
+    Path outermost = startDir;
+    while (current != null) {
+      if (Files.exists(current.resolve("Cargo.toml"))) {
+        outermost = current;
+      }
+      current = current.getParent();
+    }
+    return outermost;
+  }
+
   private CargoMetadata executeCargoMetadata() throws IOException, InterruptedException {
     Path workingDir = manifest.getParent();
 
