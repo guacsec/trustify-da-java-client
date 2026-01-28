@@ -18,6 +18,7 @@ package io.github.guacsec.trustifyda.providers;
 
 import static io.github.guacsec.trustifyda.impl.ExhortApi.debugLoggingIsNeeded;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
@@ -56,7 +57,8 @@ import org.tomlj.TomlParseResult;
  */
 public final class CargoProvider extends Provider {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final Logger log = LoggersFactory.getLogger(CargoProvider.class.getName());
   private static final String PACKAGE_NAME = "package.name";
   private static final String PACKAGE_VERSION = "package.version";

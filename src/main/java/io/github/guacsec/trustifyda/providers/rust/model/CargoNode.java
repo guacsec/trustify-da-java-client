@@ -16,12 +16,10 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /** Resolved dependency node - essential fields for dependency resolution */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoNode(
     @JsonProperty("id") String id,
     @JsonProperty("dependencies") List<String> dependencies,

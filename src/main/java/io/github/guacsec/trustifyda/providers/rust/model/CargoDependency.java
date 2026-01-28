@@ -16,11 +16,9 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** Dependency declaration - core fields for dependency analysis */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoDependency(
     @JsonProperty("name") String name,
     @JsonProperty("req") String req,

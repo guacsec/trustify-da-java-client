@@ -16,10 +16,8 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** Dependency kind information (normal, dev, build) */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoDepKind(
     @JsonProperty("kind") String kind, @JsonProperty("target") String target) {}

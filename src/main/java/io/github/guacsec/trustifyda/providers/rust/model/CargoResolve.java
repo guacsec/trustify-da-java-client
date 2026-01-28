@@ -16,11 +16,9 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /** Dependency resolution graph (contains actual resolved versions) */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoResolve(
     @JsonProperty("nodes") List<CargoNode> nodes, @JsonProperty("root") String root) {}

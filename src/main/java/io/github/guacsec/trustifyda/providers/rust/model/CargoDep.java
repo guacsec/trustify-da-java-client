@@ -16,12 +16,10 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /** Detailed dependency information with resolved package reference */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoDep(
     @JsonProperty("name") String name,
     @JsonProperty("pkg") String pkg,

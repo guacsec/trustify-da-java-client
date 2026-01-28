@@ -16,12 +16,10 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /** Root cargo metadata structure - minimal for dependency analysis */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public record CargoMetadata(
     @JsonProperty("packages") List<CargoPackage> packages,
     @JsonProperty("resolve") CargoResolve resolve,
