@@ -160,9 +160,9 @@ public class CargoProviderCargoParsingTest {
     var stackContent = provider.provideStack();
     String stackSbom = new String(stackContent.buffer);
 
-    // Should use default version "0.0.0"
+    // Should use default version "1.0.0"
     assertTrue(stackSbom.contains("no-version-project"));
-    assertTrue(stackSbom.contains("0.0.0"));
+    assertTrue(stackSbom.contains("1.0.0"));
   }
 
   @Test
@@ -188,7 +188,7 @@ public class CargoProviderCargoParsingTest {
 
     // Should use directory name and default version
     assertTrue(stackSbom.contains(tempDir.getFileName().toString()));
-    assertTrue(stackSbom.contains("0.0.0"));
+    assertTrue(stackSbom.contains("1.0.0"));
   }
 
   @Test
@@ -351,7 +351,7 @@ public class CargoProviderCargoParsingTest {
 
     // Should NOT contain default version (which would indicate workspace parsing)
     assertFalse(
-        componentContent.contains("0.0.0"),
+        componentContent.contains("1.0.0"),
         "Should not contain default version from workspace parsing");
   }
 
@@ -660,5 +660,64 @@ public class CargoProviderCargoParsingTest {
     // NEW (fixed): if all dep_kinds are dev/build -> skip (correct!)
 
     assertTrue(true, "Logic documentation test - see console output for details");
+  }
+
+  @Test
+  public void testVirtualRootUsesWorkspaceNameAndVersion(@TempDir Path tempDir) throws IOException {
+    // Create a workspace Cargo.toml with specific name (directory name) and version
+    Path cargoToml = tempDir.resolve("Cargo.toml");
+    String content =
+        """
+        [workspace]
+        members = ["member1", "member2"]
+
+        [workspace.package]
+        version = "2.5.0"
+        edition = "2021"
+        """;
+    Files.writeString(cargoToml, content);
+
+    CargoProvider provider = new CargoProvider(cargoToml);
+
+    // Test that virtual root doesn't use hardcoded name anymore
+    var stackContent = provider.provideStack();
+    String stackSbom = new String(stackContent.buffer);
+
+    // Verify workspace name comes from directory name
+    String expectedWorkspaceName = tempDir.getFileName().toString();
+    assertTrue(
+        stackSbom.contains(expectedWorkspaceName),
+        "SBOM should contain workspace directory name: " + expectedWorkspaceName);
+
+    // Verify workspace version comes from workspace.package.version
+    assertTrue(stackSbom.contains("2.5.0"), "SBOM should contain workspace version: 2.5.0");
+  }
+
+  @Test
+  public void testVirtualRootWithoutVersionUsesDefault(@TempDir Path tempDir) throws IOException {
+    // Create a workspace Cargo.toml without version
+    Path cargoToml = tempDir.resolve("Cargo.toml");
+    String content =
+        """
+        [workspace]
+        members = ["api", "core"]
+
+        [workspace.package]
+        edition = "2021"
+        """;
+    Files.writeString(cargoToml, content);
+
+    CargoProvider provider = new CargoProvider(cargoToml);
+
+    var stackContent = provider.provideStack();
+    String stackSbom = new String(stackContent.buffer);
+
+    // Should use directory name and default version
+    String expectedWorkspaceName = tempDir.getFileName().toString();
+    assertTrue(
+        stackSbom.contains(expectedWorkspaceName),
+        "SBOM should contain workspace directory name: " + expectedWorkspaceName);
+
+    assertTrue(stackSbom.contains("1.0.0"), "SBOM should contain default version: 1.0.0");
   }
 }

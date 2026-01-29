@@ -60,6 +60,7 @@ public final class CargoProvider extends Provider {
   private static final ObjectMapper MAPPER =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final Logger log = LoggersFactory.getLogger(CargoProvider.class.getName());
+  private static final String VIRTUAL_VERSION = "1.0.0";
   private static final String PACKAGE_NAME = "package.name";
   private static final String PACKAGE_VERSION = "package.version";
   private static final String PACKAGE_VERSION_WORKSPACE = "package.version.workspace";
@@ -69,14 +70,18 @@ public final class CargoProvider extends Provider {
   private final String cargoExecutable;
 
   private void addDependencies(
-      Sbom sbom, PackageURL root, Set<String> ignoredDeps, AnalysisType analysisType) {
+      Sbom sbom,
+      PackageURL root,
+      Set<String> ignoredDeps,
+      AnalysisType analysisType,
+      ProjectInfo projectInfo) {
     try {
       CargoMetadata metadata = executeCargoMetadata();
       if (metadata != null && metadata.resolve() != null && metadata.resolve().nodes() != null) {
         // Build maps and find root once, reuse for better performance
         Map<String, CargoPackage> packageMap = buildPackageMap(metadata);
         Map<String, CargoNode> nodeMap = buildNodeMap(metadata);
-        CargoNode rootNode = findRootNodeForAnalysis(metadata, nodeMap);
+        CargoNode rootNode = findRootNodeForAnalysis(metadata, nodeMap, projectInfo);
 
         if (rootNode == null) {
           return;
@@ -228,7 +233,7 @@ public final class CargoProvider extends Provider {
   }
 
   private CargoNode findRootNodeForAnalysis(
-      CargoMetadata metadata, Map<String, CargoNode> nodeMap) {
+      CargoMetadata metadata, Map<String, CargoNode> nodeMap, ProjectInfo projectInfo) {
     /* The package in the current working directory (if --manifest-path is not given).
     This is null if there is a virtual workspace. Otherwise, it is
     the Package ID of the package.
@@ -236,13 +241,13 @@ public final class CargoProvider extends Provider {
     String rootId = metadata.resolve().root();
     // Handle workspace-only projects (no root package)
     if (rootId == null) {
-      return createRootNodeFromVirtualWorkspace(metadata, nodeMap);
+      return createRootNodeFromVirtualWorkspace(metadata, nodeMap, projectInfo);
     }
     return nodeMap.get(rootId);
   }
 
   private CargoNode createRootNodeFromVirtualWorkspace(
-      CargoMetadata metadata, Map<String, CargoNode> nodeMap) {
+      CargoMetadata metadata, Map<String, CargoNode> nodeMap, ProjectInfo projectInfo) {
     if (metadata.workspaceMembers() == null || metadata.workspaceMembers().isEmpty()) {
       log.warning("No workspace members found for workspace-only project");
       return null;
@@ -275,8 +280,8 @@ public final class CargoProvider extends Provider {
     }
 
     // Create a virtual root node with combined dependencies
-    // Use the workspace name/version for the virtual root
-    String virtualRootId = "virtual-workspace-root";
+    // Use the actual workspace name/version from ProjectInfo
+    String virtualRootId = String.format("%s#%s", projectInfo.name(), projectInfo.version());
     return new CargoNode(virtualRootId, null, new ArrayList<>(depMap.values()));
   }
 
@@ -483,9 +488,9 @@ public final class CargoProvider extends Provider {
       Set<String> ignoredDeps = getIgnoredDependencies(tomlResult, cargoContent);
 
       if (includeTransitiveDependencies) {
-        addDependencies(sbom, root, ignoredDeps, AnalysisType.STACK);
+        addDependencies(sbom, root, ignoredDeps, AnalysisType.STACK, projectInfo);
       } else {
-        addDependencies(sbom, root, ignoredDeps, AnalysisType.COMPONENT);
+        addDependencies(sbom, root, ignoredDeps, AnalysisType.COMPONENT, projectInfo);
       }
       return sbom;
     } catch (Exception e) {
@@ -513,9 +518,10 @@ public final class CargoProvider extends Provider {
             "Parsed project info: name="
                 + packageName
                 + ", version="
-                + (packageVersion != null ? packageVersion : "0.0.0"));
+                + (packageVersion != null ? packageVersion : VIRTUAL_VERSION));
       }
-      return new ProjectInfo(packageName, packageVersion != null ? packageVersion : "0.0.0");
+      return new ProjectInfo(
+          packageName, packageVersion != null ? packageVersion : VIRTUAL_VERSION);
     }
     // Check for workspace section as fallback (when there's no [package] section)
     boolean hasWorkspace = result.contains("workspace");
@@ -527,9 +533,10 @@ public final class CargoProvider extends Provider {
             "Using workspace fallback: name="
                 + dirName
                 + ", version="
-                + (workspaceVersion != null ? workspaceVersion : "0.0.0"));
+                + (workspaceVersion != null ? workspaceVersion : VIRTUAL_VERSION));
       }
-      return new ProjectInfo(dirName, workspaceVersion != null ? workspaceVersion : "0.0.0");
+      return new ProjectInfo(
+          dirName, workspaceVersion != null ? workspaceVersion : VIRTUAL_VERSION);
     }
     throw new IOException("Invalid Cargo.toml: no [package] or [workspace] section found");
   }
