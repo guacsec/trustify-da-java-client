@@ -41,10 +41,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -70,47 +68,168 @@ public final class CargoProvider extends Provider {
       Long.parseLong(System.getProperty("trustify.cargo.timeout.seconds", "5"));
   private final String cargoExecutable;
 
+  private CargoProjectLayout getProjectLayout(CargoMetadata metadata) {
+    boolean hasRootCrate = metadata.resolve() != null && metadata.resolve().root() != null;
+    boolean hasWorkspace =
+        metadata.workspaceMembers() != null && !metadata.workspaceMembers().isEmpty();
+
+    if (hasRootCrate && !hasWorkspace) {
+      return CargoProjectLayout.SINGLE_CRATE;
+    }
+    if (hasRootCrate) {
+      return CargoProjectLayout.WORKSPACE_WITH_ROOT_CRATE;
+    }
+    if (hasWorkspace) {
+      return CargoProjectLayout.WORKSPACE_VIRTUAL;
+    }
+    throw new IllegalStateException(
+        "Invalid Cargo project layout: no root crate and no workspace members");
+  }
+
   private void addDependencies(
       Sbom sbom,
       PackageURL root,
       Set<String> ignoredDeps,
-      AnalysisType analysisType,
-      ProjectInfo projectInfo) {
+      TomlParseResult tomlResult,
+      AnalysisType analysisType) {
     try {
       CargoMetadata metadata = executeCargoMetadata();
-      if (metadata != null && metadata.resolve() != null && metadata.resolve().nodes() != null) {
-        // Build maps and find root once, reuse for better performance
-        Map<String, CargoPackage> packageMap = buildPackageMap(metadata);
-        Map<String, CargoNode> nodeMap = buildNodeMap(metadata);
-        CargoNode rootNode = findRootNodeForAnalysis(metadata, nodeMap, projectInfo);
-
-        if (rootNode == null) {
-          return;
-        }
-
-        switch (analysisType) {
-          case STACK -> {
-            // Set to track added dependencies for deduplication
-            Set<String> addedDependencies = new HashSet<>();
-            Set<String> visitedNodes = new HashSet<>();
-            // Recursively process dependencies starting from root
-            processDependencyNode(
-                rootNode,
-                root,
-                nodeMap,
-                packageMap,
-                ignoredDeps,
-                sbom,
-                addedDependencies,
-                visitedNodes);
-          }
-          case COMPONENT ->
-              processDirectDependencies(rootNode, ignoredDeps, sbom, root, packageMap);
-        }
+      if (metadata == null || metadata.resolve() == null || metadata.resolve().nodes() == null) {
+        return;
       }
+
+      Map<String, CargoPackage> packageMap = buildPackageMap(metadata);
+      Map<String, CargoNode> nodeMap = buildNodeMap(metadata);
+
+      CargoProjectLayout layout = getProjectLayout(metadata);
+      if (debugLoggingIsNeeded()) {
+        log.info(
+            "Project layout: "
+                + layout
+                + " (hasRoot: "
+                + (metadata.resolve().root() != null)
+                + ", workspaceMembers: "
+                + (metadata.workspaceMembers() != null ? metadata.workspaceMembers().size() : 0)
+                + ")");
+      }
+
+      switch (layout) {
+        case SINGLE_CRATE ->
+            handleSingleCrate(sbom, root, metadata, nodeMap, packageMap, ignoredDeps, analysisType);
+        case WORKSPACE_VIRTUAL ->
+            handleVirtualWorkspace(
+                sbom, root, metadata, nodeMap, packageMap, ignoredDeps, tomlResult, analysisType);
+        case WORKSPACE_WITH_ROOT_CRATE ->
+            // Process root crate dependencies - this will naturally include any workspace
+            // members that are actual dependencies via the cargo dependency graph.
+            // Note: Workspace members are only included if they appear in the root crate's
+            // dependency graph from cargo metadata. We don't automatically add all members
+            // as dependencies since most workspace members (examples, tools, benchmarks)
+            // depend ON the root crate, not the other way around.
+            handleSingleCrate(sbom, root, metadata, nodeMap, packageMap, ignoredDeps, analysisType);
+      }
+
     } catch (Exception e) {
       log.severe("Unexpected error during " + analysisType + " analysis: " + e.getMessage());
     }
+  }
+
+  private void handleSingleCrate(
+      Sbom sbom,
+      PackageURL root,
+      CargoMetadata metadata,
+      Map<String, CargoNode> nodeMap,
+      Map<String, CargoPackage> packageMap,
+      Set<String> ignoredDeps,
+      AnalysisType analysisType) {
+
+    CargoNode rootNode = nodeMap.get(metadata.resolve().root());
+    switch (analysisType) {
+      case STACK -> {
+        Set<String> addedDependencies = new HashSet<>();
+        Set<String> visitedNodes = new HashSet<>();
+        processDependencyNode(
+            rootNode,
+            root,
+            nodeMap,
+            packageMap,
+            ignoredDeps,
+            sbom,
+            addedDependencies,
+            visitedNodes);
+      }
+      case COMPONENT -> processDirectDependencies(rootNode, ignoredDeps, sbom, root, packageMap);
+    }
+  }
+
+  private void handleVirtualWorkspace(
+      Sbom sbom,
+      PackageURL root,
+      CargoMetadata metadata,
+      Map<String, CargoNode> nodeMap,
+      Map<String, CargoPackage> packageMap,
+      Set<String> ignoredDeps,
+      TomlParseResult tomlResult,
+      AnalysisType analysisType) {
+
+    switch (analysisType) {
+      // For COMPONENT analysis: only include workspace dependencies from [workspace.dependencies]
+      case COMPONENT ->
+          processWorkspaceDependencies(sbom, root, packageMap, ignoredDeps, tomlResult);
+      case STACK -> {
+        // For STACK analysis: include workspace members and their dependencies
+        if (debugLoggingIsNeeded()) {
+          log.info(
+              "Processing virtual workspace with "
+                  + metadata.workspaceMembers().size()
+                  + " members: "
+                  + metadata.workspaceMembers());
+        }
+        for (String memberId : metadata.workspaceMembers()) {
+          processWorkspaceMember(
+              sbom, root, memberId, nodeMap, packageMap, ignoredDeps, analysisType);
+        }
+      }
+    }
+  }
+
+  private void processWorkspaceDependencies(
+      Sbom sbom,
+      PackageURL root,
+      Map<String, CargoPackage> packageMap,
+      Set<String> ignoredDeps,
+      TomlParseResult tomlResult) {
+
+    var workspaceDepsTable = tomlResult.getTable("workspace.dependencies");
+    if (debugLoggingIsNeeded()) {
+      log.info("Processing " + workspaceDepsTable.keySet().size() + " workspace dependencies");
+    }
+    // Note: We only need dependency names from TOML, regardless of format:
+    // - Simple: serde = "1.0"
+    // - Table: serde = { version = "1.0", features = ["derive"] }
+    // - Section: [workspace.dependencies.serde] version = "1.0"
+    // The actual resolved versions come from cargo metadata packageMap, not TOML.
+    for (String depName : workspaceDepsTable.keySet()) {
+      if (ignoredDeps.contains(depName)) {
+        continue;
+      }
+      CargoPackage depPackage = findPackageByName(packageMap, depName);
+      try {
+        PackageURL depUrl =
+            new PackageURL(
+                Type.CARGO.getType(), null, depPackage.name(), depPackage.version(), null, null);
+        sbom.addDependency(root, depUrl, null);
+      } catch (Exception e) {
+        log.warning("Failed to create PackageURL for workspace dependency: " + depName);
+      }
+    }
+  }
+
+  private CargoPackage findPackageByName(Map<String, CargoPackage> packageMap, String name) {
+    return packageMap.values().stream()
+        .filter(pkg -> pkg.name().equals(name))
+        .findFirst()
+        .orElse(null);
   }
 
   @Override
@@ -119,6 +238,69 @@ public final class CargoProvider extends Provider {
     if (!Files.isRegularFile(actualLockFileDir.resolve("Cargo.lock"))) {
       throw new IllegalStateException(
           "Cargo.lock does not exist or is not supported. Execute 'cargo build' to generate it.");
+    }
+  }
+
+  /**
+   * Processes an individual workspace member as an independent SBOM component. For COMPONENT
+   * analysis: Only adds member as direct dependency of workspace. For STACK analysis: Also adds
+   * member's transitive dependencies.
+   */
+  private void processWorkspaceMember(
+      Sbom sbom,
+      PackageURL workspaceRoot,
+      String memberId,
+      Map<String, CargoNode> nodeMap,
+      Map<String, CargoPackage> packageMap,
+      Set<String> ignoredDeps,
+      AnalysisType analysisType) {
+
+    CargoPackage memberPkg = packageMap.get(memberId);
+    if (memberPkg == null) {
+      log.warning("Workspace member package not found: " + memberId);
+      return;
+    }
+
+    try {
+      PackageURL memberUrl =
+          new PackageURL(
+              Type.CARGO.getType(), null, memberPkg.name(), memberPkg.version(), null, null);
+      sbom.addDependency(workspaceRoot, memberUrl, null);
+
+      if (debugLoggingIsNeeded()) {
+        log.fine(
+            "Processing member: "
+                + memberPkg.name()
+                + "@"
+                + memberPkg.version()
+                + " (id: "
+                + memberId
+                + ") for "
+                + analysisType
+                + " analysis");
+      }
+
+      // Only process member's dependencies for STACK analysis (transitive)
+      // For COMPONENT analysis: stop here - don't process member dependencies
+      if (analysisType == AnalysisType.STACK) {
+        CargoNode memberNode = nodeMap.get(memberId);
+        if (memberNode != null) {
+          Set<String> addedDependencies = new HashSet<>();
+          Set<String> visitedNodes = new HashSet<>();
+          processDependencyNode(
+              memberNode,
+              memberUrl,
+              nodeMap,
+              packageMap,
+              ignoredDeps,
+              sbom,
+              addedDependencies,
+              visitedNodes);
+        }
+      }
+    } catch (Exception e) {
+      log.warning(
+          "Failed to create PackageURL for member " + memberPkg.name() + ": " + e.getMessage());
     }
   }
 
@@ -210,87 +392,22 @@ public final class CargoProvider extends Provider {
     return nodeMap;
   }
 
-  private CargoNode findRootNodeForAnalysis(
-      CargoMetadata metadata, Map<String, CargoNode> nodeMap, ProjectInfo projectInfo) {
-    /* The package in the current working directory (if --manifest-path is not given).
-    This is null if there is a virtual workspace. Otherwise, it is
-    the Package ID of the package.
-    */
-    String rootId = metadata.resolve().root();
-    // Handle workspace-only projects (no root package)
-    if (rootId == null) {
-      return createRootNodeFromVirtualWorkspace(metadata, nodeMap, projectInfo);
-    }
-    return nodeMap.get(rootId);
-  }
-
-  private CargoNode createRootNodeFromVirtualWorkspace(
-      CargoMetadata metadata, Map<String, CargoNode> nodeMap, ProjectInfo projectInfo) {
-    if (metadata.workspaceMembers() == null || metadata.workspaceMembers().isEmpty()) {
-      log.warning("No workspace members found for workspace-only project");
-      return null;
-    }
-
-    Map<String, CargoDep> depMap = new LinkedHashMap<>();
-
-    if (debugLoggingIsNeeded()) {
-      log.info(
-          "Collecting dependencies from "
-              + metadata.workspaceMembers().size()
-              + " workspace members");
-    }
-
-    for (String memberId : metadata.workspaceMembers()) {
-      CargoNode memberNode = nodeMap.get(memberId);
-      if (memberNode != null && memberNode.deps() != null) {
-        log.fine("Adding dependencies from workspace member: " + memberId);
-        for (CargoDep dep : memberNode.deps()) {
-          depMap.putIfAbsent(dep.pkg(), dep);
-        }
-      }
-    }
-
-    if (debugLoggingIsNeeded()) {
-      log.info(
-          "Created virtual root with "
-              + depMap.size()
-              + " unique dependencies from workspace members");
-    }
-
-    // Create a virtual root node with combined dependencies
-    // Use the actual workspace name/version from ProjectInfo
-    String virtualRootId = String.format("%s#%s", projectInfo.name(), projectInfo.version());
-    return new CargoNode(virtualRootId, null, new ArrayList<>(depMap.values()));
-  }
-
-  /** Process all direct dependencies from root node using resolved dep_kinds */
   private void processDirectDependencies(
-      CargoNode rootNode,
+      CargoNode sourceNode,
       Set<String> ignoredDeps,
       Sbom sbom,
-      PackageURL root,
+      PackageURL sourceUrl,
       Map<String, CargoPackage> packageMap) {
-
-    if (rootNode.deps() == null) {
-      log.warning("Root node has no deps for component analysis");
-      return;
-    }
 
     if (debugLoggingIsNeeded()) {
       log.info(
           "Processing "
-              + rootNode.deps().size()
+              + sourceNode.deps().size()
               + " direct dependencies for component analysis (using resolved dep_kinds)");
     }
 
-    for (CargoDep dep : rootNode.deps()) {
-      log.fine("Processing dependency: " + dep.name() + " -> " + dep.pkg());
+    for (CargoDep dep : sourceNode.deps()) {
       DependencyInfo childInfo = getPackageInfo(dep.pkg(), packageMap);
-      if (childInfo == null) {
-        log.warning("Package not found in metadata: " + dep.pkg());
-        continue;
-      }
-      log.fine("Found dependency: " + childInfo.name() + " v" + childInfo.version());
       if (shouldSkipDependency(dep, ignoredDeps)) {
         continue;
       }
@@ -299,7 +416,7 @@ public final class CargoProvider extends Provider {
         PackageURL packageUrl =
             new PackageURL(
                 Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
-        sbom.addDependency(root, packageUrl, null);
+        sbom.addDependency(sourceUrl, packageUrl, null);
         if (debugLoggingIsNeeded()) {
           log.info(
               "✅ Added direct dependency: "
@@ -351,11 +468,6 @@ public final class CargoProvider extends Provider {
 
     for (CargoDep dep : node.deps()) {
       DependencyInfo childInfo = getPackageInfo(dep.pkg(), packageMap);
-      if (childInfo == null) {
-        log.fine("Package not found in metadata for stack analysis: " + dep.pkg());
-        continue;
-      }
-
       if (shouldSkipDependency(dep, ignoredDeps)) {
         continue;
       }
@@ -365,7 +477,6 @@ public final class CargoProvider extends Provider {
             new PackageURL(
                 Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
 
-        // Create unique key for deduplication using stable identifiers
         String relationshipKey = parent.getCoordinates() + "->" + childUrl.getCoordinates();
 
         if (!addedDependencies.contains(relationshipKey)) {
@@ -376,7 +487,6 @@ public final class CargoProvider extends Provider {
             log.info("Added dependency: " + childInfo.name() + " v" + childInfo.version());
           }
 
-          // Recursively process child dependencies
           CargoNode childNode = nodeMap.get(dep.pkg());
           if (childNode != null) {
             processDependencyNode(
@@ -411,17 +521,12 @@ public final class CargoProvider extends Provider {
 
   private DependencyInfo getPackageInfo(String packageId, Map<String, CargoPackage> packageMap) {
     CargoPackage pkg = packageMap.get(packageId);
-    if (pkg == null) {
-      log.warning("Package not found in metadata: " + packageId);
-      return null;
-    }
     return new DependencyInfo(pkg.name(), pkg.version());
   }
 
   public CargoProvider(Path manifest) {
     super(Type.CARGO, manifest);
     this.cargoExecutable = Operations.getExecutable("cargo", "--version");
-
     if (cargoExecutable != null) {
       log.info("Found cargo executable: " + cargoExecutable);
     } else {
@@ -432,17 +537,17 @@ public final class CargoProvider extends Provider {
 
   @Override
   public Content provideComponent() throws IOException {
-    Sbom sbom = createSbom(false);
+    Sbom sbom = createSbom(AnalysisType.COMPONENT);
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
   @Override
   public Content provideStack() throws IOException {
-    Sbom sbom = createSbom(true);
+    Sbom sbom = createSbom(AnalysisType.STACK);
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
-  private Sbom createSbom(boolean includeTransitiveDependencies) throws IOException {
+  private Sbom createSbom(AnalysisType analysisType) throws IOException {
     if (!Files.exists(manifest) || !Files.isRegularFile(manifest)) {
       throw new IOException("Cargo.toml not found: " + manifest);
     }
@@ -464,12 +569,7 @@ public final class CargoProvider extends Provider {
 
       String cargoContent = Files.readString(manifest, StandardCharsets.UTF_8);
       Set<String> ignoredDeps = getIgnoredDependencies(tomlResult, cargoContent);
-
-      if (includeTransitiveDependencies) {
-        addDependencies(sbom, root, ignoredDeps, AnalysisType.STACK, projectInfo);
-      } else {
-        addDependencies(sbom, root, ignoredDeps, AnalysisType.COMPONENT, projectInfo);
-      }
+      addDependencies(sbom, root, ignoredDeps, tomlResult, analysisType);
       return sbom;
     } catch (Exception e) {
       throw new RuntimeException("Failed to create Rust SBOM", e);
@@ -505,7 +605,7 @@ public final class CargoProvider extends Provider {
     boolean hasWorkspace = result.contains("workspace");
     if (hasWorkspace) {
       String workspaceVersion = result.getString(WORKSPACE_PACKAGE_VERSION);
-      String dirName = getDirectoryName();
+      String dirName = manifest.toAbsolutePath().getParent().getFileName().toString();
       if (debugLoggingIsNeeded()) {
         log.info(
             "Using workspace fallback: name="
@@ -519,42 +619,23 @@ public final class CargoProvider extends Provider {
     throw new IOException("Invalid Cargo.toml: no [package] or [workspace] section found");
   }
 
-  private String getDirectoryName() {
-    Path parent = manifest.getParent();
-    if (parent != null && parent.getFileName() != null) {
-      return parent.getFileName().toString();
-    }
-    return "rust-workspace";
-  }
-
   private Set<String> getIgnoredDependencies(TomlParseResult result, String content) {
-    Set<String> ignoredDeps = new HashSet<>();
-    if (content == null || content.isEmpty()) {
-      log.fine("Empty content provided for ignore dependencies detection");
-      return ignoredDeps;
+    Set<String> normalDependencies = collectNormalDependencies(result);
+    if (debugLoggingIsNeeded()) {
+      log.info("Found " + normalDependencies.size() + " normal dependencies in Cargo.toml");
     }
-
-    try {
-      Set<String> allDependencies = collectAllDependencies(result);
-      if (debugLoggingIsNeeded()) {
-        log.info("Found " + allDependencies.size() + " total dependencies in Cargo.toml");
-      }
-      ignoredDeps = findIgnoredDependencies(content, allDependencies);
-      if (debugLoggingIsNeeded()) {
-        log.fine("Found " + ignoredDeps.size() + " ignored dependencies: " + ignoredDeps);
-      }
-    } catch (Exception e) {
-      log.severe(
-          "Unexpected error during ignore detection for " + manifest + " - " + e.getMessage());
+    // TomlParseResult doesn't retain comment, need to check ignore keyword from Cargo.toml content.
+    Set<String> ignoredDeps = findIgnoredDependencies(content, normalDependencies);
+    if (debugLoggingIsNeeded()) {
+      log.info("Found " + ignoredDeps.size() + " ignored dependencies: " + ignoredDeps);
     }
     return ignoredDeps;
   }
 
-  private Set<String> collectAllDependencies(TomlParseResult result) {
+  private Set<String> collectNormalDependencies(TomlParseResult result) {
     Set<String> allDeps = new HashSet<>();
     addDependenciesFromSection(result, "dependencies", allDeps);
     addDependenciesFromSection(result, "workspace.dependencies", allDeps);
-    addDependenciesFromSection(result, "workspace.build-dependencies", allDeps);
     return allDeps;
   }
 
@@ -568,17 +649,15 @@ public final class CargoProvider extends Provider {
     }
   }
 
-  private Set<String> findIgnoredDependencies(String content, Set<String> allDependencies) {
+  private Set<String> findIgnoredDependencies(String content, Set<String> normalDependencies) {
     Set<String> ignoredDeps = new HashSet<>();
     String[] lines = content.split("\\r?\\n");
-
     for (String line : lines) {
       String trimmed = line.trim();
       if (trimmed.isEmpty() || !IgnorePatternDetector.containsIgnorePattern(line)) {
         continue;
       }
-      // Check if this line contains any of our dependencies
-      for (String depName : allDependencies) {
+      for (String depName : normalDependencies) {
         if (lineContainsDependency(trimmed, depName)) {
           ignoredDeps.add(depName);
         }

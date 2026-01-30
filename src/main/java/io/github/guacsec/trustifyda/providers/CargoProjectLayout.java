@@ -14,6 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.guacsec.trustifyda.providers.rust.model;
+package io.github.guacsec.trustifyda.providers;
 
-public record ProjectInfo(String name, String version) {}
+public enum CargoProjectLayout {
+  /** Project contains only [package] section - single crate */
+  SINGLE_CRATE,
+
+  /** Project contains only [workspace] section - virtual workspace with multiple members */
+  WORKSPACE_VIRTUAL,
+
+  /**
+   * Project contains both [package] and [workspace] sections - root crate with workspace members
+   */
+  WORKSPACE_WITH_ROOT_CRATE
+}

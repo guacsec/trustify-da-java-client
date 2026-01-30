@@ -16,5 +16,4 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-/** Dependency information for a parsed Rust dependency. */
 public record DependencyInfo(String name, String version) {}
