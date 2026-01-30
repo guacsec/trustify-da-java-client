@@ -37,6 +37,7 @@ import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -143,59 +144,36 @@ public final class CargoProvider extends Provider {
       log.info("Timeout: " + TIMEOUT + " seconds");
     }
 
-    ProcessBuilder pb = new ProcessBuilder(cargoExecutable, "metadata", "--format-version", "1");
-    pb.directory(workingDir.toFile());
-    Process process = pb.start();
+    Process process =
+        new ProcessBuilder(cargoExecutable, "metadata", "--format-version", "1")
+            .directory(workingDir.toFile())
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start();
 
-    final StringBuilder outputBuilder = new StringBuilder();
-    final Exception[] readException = {null};
-
-    Thread readerThread =
-        new Thread(
-            () -> {
-              try (var reader =
-                  new java.io.BufferedReader(
-                      new java.io.InputStreamReader(
-                          process.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                  outputBuilder.append(line).append('\n');
-                }
-              } catch (IOException e) {
-                readException[0] = e;
-              }
-            });
-    readerThread.setDaemon(true);
-    readerThread.start();
+    String output;
+    try (InputStream is = process.getInputStream()) {
+      output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     boolean finished = process.waitFor(TIMEOUT, TimeUnit.SECONDS);
 
     if (!finished) {
       process.destroyForcibly();
-      try {
-        process.waitFor(5, TimeUnit.SECONDS);
-      } catch (InterruptedException ignored) {
-      }
-      readerThread.interrupt();
       throw new InterruptedException("cargo metadata timed out after " + TIMEOUT + " seconds");
     }
 
     int exitCode = process.exitValue();
-
-    try {
-      readerThread.join(5000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+    if (exitCode != 0) {
+      if (debugLoggingIsNeeded()) {
+        log.warning("cargo metadata failed with exit code: " + exitCode);
+      }
+      return null;
     }
 
-    if (readException[0] != null) {
-      throw new IOException(
-          "Failed to read cargo metadata output: " + readException[0].getMessage(),
-          readException[0]);
-    }
-
-    String output = outputBuilder.toString();
-    if (exitCode != 0 || output.trim().isEmpty()) {
+    if (output.isBlank()) {
+      if (debugLoggingIsNeeded()) {
+        log.warning("cargo metadata returned empty output");
+      }
       return null;
     }
 
