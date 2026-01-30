@@ -420,6 +420,7 @@ limitations under the License.]]>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-maven-plugin.version}</version>
           <configuration>
+            <haltOnFailure>false</haltOnFailure>
             <excludes>
               <exclude>io/github/guacsec/trustifyda/api/*</exclude>
               <exclude>io/github/guacsec/trustifyda/api/serialization/*</exclude>

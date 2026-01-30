@@ -17,6 +17,7 @@
 package io.github.guacsec.trustifyda.tools;
 
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.providers.CargoProvider;
 import io.github.guacsec.trustifyda.providers.GoModulesProvider;
 import io.github.guacsec.trustifyda.providers.GradleProvider;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
@@ -34,7 +35,8 @@ public final class Ecosystem {
     YARN("yarn"),
     GOLANG("golang"),
     PYTHON("pypi"),
-    GRADLE("gradle");
+    GRADLE("gradle"),
+    CARGO("cargo");
 
     final String type;
 
@@ -43,24 +45,16 @@ public final class Ecosystem {
     }
 
     public String getExecutableShortName() {
-      switch (this) {
-        case MAVEN:
-          return "mvn";
-        case NPM:
-          return "npm";
-        case PNPM:
-          return "pnpm";
-        case YARN:
-          return "yarn";
-        case GOLANG:
-          return "go";
-        case PYTHON:
-          return "python";
-        case GRADLE:
-          return "gradle";
-        default:
-          throw new IllegalStateException("Unexpected value: " + this);
-      }
+      return switch (this) {
+        case MAVEN -> "mvn";
+        case NPM -> "npm";
+        case PNPM -> "pnpm";
+        case YARN -> "yarn";
+        case GOLANG -> "go";
+        case PYTHON -> "python";
+        case GRADLE -> "gradle";
+        case CARGO -> "cargo";
+      };
     }
 
     Type(String type) {
@@ -86,20 +80,15 @@ public final class Ecosystem {
 
   private static Provider resolveProvider(final Path manifestPath) {
     var manifestFile = manifestPath.getFileName().toString();
-    switch (manifestFile) {
-      case "pom.xml":
-        return new JavaMavenProvider(manifestPath);
-      case "package.json":
-        return JavaScriptProviderFactory.create(manifestPath);
-      case "go.mod":
-        return new GoModulesProvider(manifestPath);
-      case "requirements.txt":
-        return new PythonPipProvider(manifestPath);
-      case "build.gradle":
-      case "build.gradle.kts":
-        return new GradleProvider(manifestPath);
-      default:
-        throw new IllegalStateException(String.format("Unknown manifest file %s", manifestFile));
-    }
+    return switch (manifestFile) {
+      case "pom.xml" -> new JavaMavenProvider(manifestPath);
+      case "package.json" -> JavaScriptProviderFactory.create(manifestPath);
+      case "go.mod" -> new GoModulesProvider(manifestPath);
+      case "requirements.txt" -> new PythonPipProvider(manifestPath);
+      case "build.gradle", "build.gradle.kts" -> new GradleProvider(manifestPath);
+      case "Cargo.toml" -> new CargoProvider(manifestPath);
+      default ->
+          throw new IllegalStateException(String.format("Unknown manifest file %s", manifestFile));
+    };
   }
 }
