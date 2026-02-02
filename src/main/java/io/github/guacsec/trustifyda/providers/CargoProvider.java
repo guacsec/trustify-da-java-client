@@ -329,7 +329,6 @@ public final class CargoProvider extends Provider {
     Process process =
         new ProcessBuilder(cargoExecutable, "metadata", "--format-version", "1")
             .directory(workingDir.toFile())
-            .redirectError(ProcessBuilder.Redirect.DISCARD)
             .start();
 
     String output;
@@ -339,16 +338,21 @@ public final class CargoProvider extends Provider {
 
     boolean finished = process.waitFor(TIMEOUT, TimeUnit.SECONDS);
 
-    if (!finished) {
-      process.destroyForcibly();
-      throw new InterruptedException("cargo metadata timed out after " + TIMEOUT + " seconds");
-    }
-
     int exitCode = process.exitValue();
+
     if (exitCode != 0) {
-      if (debugLoggingIsNeeded()) {
-        log.warning("cargo metadata failed with exit code: " + exitCode);
+      String errorOutput = "";
+      try (InputStream errorStream = process.getErrorStream()) {
+        errorOutput = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        log.warning("Failed to read error stream: " + e.getMessage());
       }
+
+      String errorMessage = "cargo metadata failed with exit code: " + exitCode;
+      if (!errorOutput.isEmpty()) {
+        errorMessage += ". Error: " + errorOutput.trim();
+      }
+      log.warning(errorMessage);
       return null;
     }
 
@@ -357,6 +361,11 @@ public final class CargoProvider extends Provider {
         log.warning("cargo metadata returned empty output");
       }
       return null;
+    }
+
+    if (!finished) {
+      process.destroyForcibly();
+      throw new InterruptedException("cargo metadata timed out after " + TIMEOUT + " seconds");
     }
 
     try {
