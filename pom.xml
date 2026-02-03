@@ -20,7 +20,7 @@
     <!-- Dependencies -->
     <trustify-da-api-model.version>2.0.1</trustify-da-api-model.version>
     <jackson.version>2.20.0</jackson.version>
-    <jackson-annotations.version>2.20</jackson-annotations.version>
+    <jackson-annotations.version>2.21</jackson-annotations.version>
     <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
     <jakarta.mail.version>2.0.5</jakarta.mail.version>
     <cyclonedx.version>11.0.1</cyclonedx.version>
