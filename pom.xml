@@ -27,7 +27,7 @@
     <tomlj.version>1.1.1</tomlj.version>
     <!-- Testing Dependencies -->
     <assertj.version>3.27.7</assertj.version>
-    <junit-jupiter.version>5.10.5</junit-jupiter.version>
+    <junit-jupiter.version>6.0.2</junit-jupiter.version>
     <junit-pioneer.version>2.3.0</junit-pioneer.version>
     <mockito.version>5.17.0</mockito.version>
     <!-- Plugins -->
@@ -851,7 +851,7 @@ limitations under the License.]]>
               <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.9.1</version>
+                <version>6.0.2</version>
               </dependency>
             </dependencies>
             <configuration>
