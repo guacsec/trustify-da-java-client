@@ -6,7 +6,25 @@ updates:
       interval: "daily"
     exclude-paths:
       - "src/test/**"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    exclude-paths:
+      - "src/test/**"
   - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    exclude-paths:
+      - "src/test/**"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    exclude-paths:
+      - "src/test/**"
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "daily"
