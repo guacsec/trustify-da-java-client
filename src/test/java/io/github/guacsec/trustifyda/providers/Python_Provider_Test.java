@@ -85,6 +85,8 @@ class Python_Provider_Test extends ExhortTest {
   }
 
   @EnabledIfEnvironmentVariable(named = "RUN_PYTHON_BIN", matches = "true")
+  @SetSystemProperty(key = PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, value = "true")
+  @RestoreSystemProperties
   @ParameterizedTest
   @MethodSource("testFolders")
   void test_the_provideComponent(String testFolder) throws IOException {
