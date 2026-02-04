@@ -425,7 +425,7 @@ limitations under the License.]]>
               <exclude>io/github/guacsec/trustifyda/api/*</exclude>
               <exclude>io/github/guacsec/trustifyda/api/serialization/*</exclude>
               <exclude>io/github/guacsec/trustifyda/exception/*</exclude>
-<!-- This one excluding ExhortApi implementation calss from coverage report as it's not tested by surefire plugin, but with junit-platform-maven-plugin              -->
+<!-- This one excluding ExhortApi implementation class from coverage report as it's not tested by surefire plugin, but with junit-platform-maven-plugin              -->
               <exclude>io/github/guacsec/trustifyda/impl/*</exclude>
               <exclude>io/github/guacsec/trustifyda/logging/*</exclude>
               <exclude>io/github/guacsec/trustifyda/image/ImageUtils.class</exclude>
@@ -778,7 +778,7 @@ limitations under the License.]]>
               <reflowLongStrings>true</reflowLongStrings> <!-- optional -->
             </googleJavaFormat>
             <licenseHeader>
-              <file>${project.basedir}/license-header</file> -->
+              <file>${project.basedir}/license-header</file>
             </licenseHeader>
             <removeUnusedImports />
             <formatAnnotations />
@@ -851,7 +851,7 @@ limitations under the License.]]>
               <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.9.1</version>
+                <version>${junit-jupiter.version}</version>
               </dependency>
             </dependencies>
             <configuration>
