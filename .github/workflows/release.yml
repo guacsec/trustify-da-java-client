@@ -119,7 +119,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ github.event.inputs.version || steps.get_version.outputs.version }}
           tag_name: v${{ github.event.inputs.version || steps.get_version.outputs.version }}
