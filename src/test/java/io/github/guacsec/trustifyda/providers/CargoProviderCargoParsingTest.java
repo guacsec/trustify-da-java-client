@@ -538,7 +538,7 @@ public class CargoProviderCargoParsingTest {
     }
 
     contentBuilder.append(
-        """
+"""
 
 [workspace.dependencies]
 """);
