@@ -136,7 +136,7 @@ jobs:
 
       - name: Create Pull Request with next version
         id: cpr
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "build(release): update to next development version"
           branch: chore/bump-version
