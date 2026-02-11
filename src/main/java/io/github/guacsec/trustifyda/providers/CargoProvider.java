@@ -45,7 +45,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
@@ -341,23 +346,64 @@ public final class CargoProvider extends Provider {
             .directory(workingDir.toFile())
             .start();
 
+    // Use bounded executor to read streams concurrently to avoid two potential deadlocks:
+    // 1. buffer deadlock (process blocks on write when output buffers fill up while Java waits for
+    // process completion)
+    // 2. stalled process deadlock (readAllBytes() hangs forever when cargo process stalls
+    // completely with no timeout protection)
+    // Bounded executor allows proper cancellation and cleanup vs CompletableFuture common pool
+    ExecutorService streamExecutor = Executors.newFixedThreadPool(2);
     String output;
-    try (InputStream is = process.getInputStream()) {
-      output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    String errorOutput;
+
+    try {
+      Future<String> outputFuture =
+          streamExecutor.submit(
+              () -> {
+                try (InputStream is = process.getInputStream()) {
+                  return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                  log.warning("Failed to read stdout from cargo metadata: " + e.getMessage());
+                  return "";
+                }
+              });
+
+      Future<String> errorFuture =
+          streamExecutor.submit(
+              () -> {
+                try (InputStream is = process.getErrorStream()) {
+                  return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                  log.warning("Failed to read stderr from cargo metadata: " + e.getMessage());
+                  return "";
+                }
+              });
+
+      boolean finished = process.waitFor(TIMEOUT, TimeUnit.SECONDS);
+
+      if (!finished) {
+        process.destroyForcibly();
+        outputFuture.cancel(true);
+        errorFuture.cancel(true);
+        throw new InterruptedException("cargo metadata timed out after " + TIMEOUT + " seconds");
+      }
+
+      try {
+        // Short timeout since process already finished
+        output = outputFuture.get(1, TimeUnit.SECONDS);
+        errorOutput = errorFuture.get(1, TimeUnit.SECONDS);
+      } catch (ExecutionException | TimeoutException e) {
+        log.warning("Failed to read process output: " + e.getMessage());
+        return null;
+      }
+    } finally {
+      streamExecutor.shutdownNow();
     }
 
-    boolean finished = process.waitFor(TIMEOUT, TimeUnit.SECONDS);
-
+    // Safe to call exitValue() - we confirmed the process finished
     int exitCode = process.exitValue();
 
     if (exitCode != 0) {
-      String errorOutput = "";
-      try (InputStream errorStream = process.getErrorStream()) {
-        errorOutput = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        log.warning("Failed to read error stream: " + e.getMessage());
-      }
-
       String errorMessage = "cargo metadata failed with exit code: " + exitCode;
       if (!errorOutput.isEmpty()) {
         errorMessage += ". Error: " + errorOutput.trim();
@@ -371,11 +417,6 @@ public final class CargoProvider extends Provider {
         log.warning("cargo metadata returned empty output");
       }
       return null;
-    }
-
-    if (!finished) {
-      process.destroyForcibly();
-      throw new InterruptedException("cargo metadata timed out after " + TIMEOUT + " seconds");
     }
 
     try {
@@ -552,12 +593,14 @@ public final class CargoProvider extends Provider {
   public CargoProvider(Path manifest) {
     super(Type.CARGO, manifest);
     this.cargoExecutable = Operations.getExecutable("cargo", "--version");
-    if (cargoExecutable != null) {
-      log.info("Found cargo executable: " + cargoExecutable);
-    } else {
-      log.warning("Cargo executable not found - dependency analysis will not work");
+    if (debugLoggingIsNeeded()) {
+      if (cargoExecutable != null) {
+        log.info("Found cargo executable: " + cargoExecutable);
+      } else {
+        log.warning("Cargo executable not found - dependency analysis will not work");
+      }
+      log.info("Initialized RustProvider for manifest: " + manifest);
     }
-    log.info("Initialized RustProvider for manifest: " + manifest);
   }
 
   @Override

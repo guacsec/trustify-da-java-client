@@ -172,6 +172,7 @@ public class TrustifyExample {
 <li><a href="https://go.dev//">Golang</a> - <a href="https://go.dev/blog/using-go-modules//">Go Modules</a></li>
 <li><a href="https://go.dev//">Python</a> - <a href="https://pypi.org/project/pip//">pip Installer</a></li>
 <li><a href="https://gradle.org//">Gradle</a> - <a href="https://gradle.org/install//">Gradle Installation</a></li>
+<li><a href="https://www.rust-lang.org/">Rust</a> - <a href="https://doc.rust-lang.org/cargo/">Cargo</a></li>
 
 </ul>
 
@@ -315,6 +316,19 @@ test {
 ```
 </li>
 
+<li>
+<em>Rust Cargo</em> users can add a comment with #trustify-da-ignore next to the package to be ignored in <em>Cargo.toml</em>:
+
+```toml
+[dependencies]
+serde = "1.0.136" # trustify-da-ignore
+tokio = { version = "1.0", features = ["full"] }
+
+[workspace.dependencies]
+regex = "1.5.4" # trustify-da-ignore
+```
+</li>
+
 </ul>
 
 #### Ignore Strategies - experimental
@@ -337,6 +351,7 @@ System.setProperty("TRUSTIFY_DA_PNPM_PATH", "/path/to/custom/pnpm");
 System.setProperty("TRUSTIFY_DA_YARN_PATH", "/path/to/custom/yarn");
 System.setProperty("TRUSTIFY_DA_GO_PATH", "/path/to/custom/go");
 System.setProperty("TRUSTIFY_DA_GRADLE_PATH", "/path/to/custom/gradle");
+System.setProperty("TRUSTIFY_DA_CARGO_PATH", "/path/to/custom/cargo");
 //python - python3, pip3 take precedence if python version > 3 installed
 System.setProperty("TRUSTIFY_DA_PYTHON3_PATH", "/path/to/python3");
 System.setProperty("TRUSTIFY_DA_PIP3_PATH", "/path/to/pip3");
@@ -451,6 +466,11 @@ following keys for setting custom paths for the said executables.
 <td><a href="https://pypi.org/project/pip/">Python pip Package Installer</a></td>
 <td><em>pip</em></td>
 <td>TRUSTIFY_DA_PIP_PATH</td>
+</tr>
+<tr>
+<td><a href="https://doc.rust-lang.org/cargo/">Cargo Package Manager</a></td>
+<td><em>cargo</em></td>
+<td>TRUSTIFY_DA_CARGO_PATH</td>
 </tr>
 
 </table>
@@ -652,6 +672,9 @@ java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
 
 # Component analysis with summary
 java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
+
+# Rust Cargo analysis
+java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml --summary
 
 # Container image analysis with JSON output (default)
 java -jar trustify-da-java-client-cli.jar image nginx:latest

@@ -42,6 +42,7 @@ EXAMPLES:
   java -jar trustify-da-java-client-cli.jar stack /path/to/package.json --summary
   java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
   java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
+  java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml
 
   # Container image analysis
   java -jar trustify-da-java-client-cli.jar image nginx:latest
