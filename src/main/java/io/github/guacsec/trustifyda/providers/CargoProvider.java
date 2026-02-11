@@ -73,6 +73,16 @@ public final class CargoProvider extends Provider {
     boolean hasWorkspace =
         metadata.workspaceMembers() != null && !metadata.workspaceMembers().isEmpty();
 
+    // Check if this is actually a single crate - cargo metadata includes the root crate
+    // as a workspace member even for single crate projects
+    if (hasRootCrate && hasWorkspace && metadata.workspaceMembers().size() == 1) {
+      String rootId = metadata.resolve().root();
+      String singleMember = metadata.workspaceMembers().get(0);
+      if (rootId.equals(singleMember)) {
+        return CargoProjectLayout.SINGLE_CRATE;
+      }
+    }
+
     if (hasRootCrate && !hasWorkspace) {
       return CargoProjectLayout.SINGLE_CRATE;
     }
