@@ -441,7 +441,13 @@ public final class CargoProvider extends Provider {
   }
 
   private boolean shouldSkipDependency(CargoDep dep, Set<String> ignoredDeps) {
-    if (ignoredDeps.contains(dep.name())) {
+    // dep.name() returns the crate name (may have underscores)
+    String crateName = dep.name();
+    if (ignoredDeps.contains(crateName)) {
+      return true;
+    }
+    String packageNameFormat = crateName.replace('_', '-');
+    if (!crateName.equals(packageNameFormat) && ignoredDeps.contains(packageNameFormat)) {
       return true;
     }
 
