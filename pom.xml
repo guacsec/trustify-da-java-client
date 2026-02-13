@@ -5,7 +5,7 @@
 
   <groupId>io.github.guacsec</groupId>
   <artifactId>trustify-da-java-client</artifactId>
-  <version>0.0.13-SNAPSHOT</version>
+  <version>0.0.14-SNAPSHOT</version>
   <name>Trustify DA Java Client</name>
   <description>Trustify DA Java Client</description>
   <url>https://github.com/guacsec/trustify-da-java-client#readme</url>
@@ -725,7 +725,7 @@ limitations under the License.]]>
                 </transformer>
 
                 <!-- Service files transformer for Jackson and other services -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 
                 <!-- Append NOTICE files -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
@@ -764,8 +764,8 @@ limitations under the License.]]>
           <formats>
             <format>
               <includes><include>src/*</include></includes>
-              <trimTrailingWhitespace/>
-              <endWithNewline/>
+              <trimTrailingWhitespace />
+              <endWithNewline />
               <indent>
                 <tabs>true</tabs>
                 <spacesPerTab>4</spacesPerTab>
