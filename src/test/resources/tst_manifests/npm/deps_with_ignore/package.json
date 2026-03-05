@@ -24,7 +24,7 @@
     "mongoose": "^5.9.18",
     "nodemon": "^2.0.4",
     "axios": "^0.19.0",
-    "jsdom": "^19.0.0"
+    "jsdom": "^28.1.0"
   },
   "trustify-da-ignore": [
 	"jsonwebtoken"
