@@ -208,7 +208,7 @@ public final class CargoProvider extends Provider {
     }
   }
 
-  private void processWorkspaceDependencies(
+  void processWorkspaceDependencies(
       Sbom sbom,
       PackageURL root,
       Map<String, CargoPackage> packageMap,
