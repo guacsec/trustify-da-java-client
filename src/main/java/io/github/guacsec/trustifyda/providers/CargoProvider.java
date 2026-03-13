@@ -216,6 +216,12 @@ public final class CargoProvider extends Provider {
       TomlParseResult tomlResult) {
 
     var workspaceDepsTable = tomlResult.getTable("workspace.dependencies");
+    if (workspaceDepsTable == null) {
+      if (debugLoggingIsNeeded()) {
+        log.info("No [workspace.dependencies] section found, skipping workspace dependencies");
+      }
+      return;
+    }
     if (debugLoggingIsNeeded()) {
       log.info("Processing " + workspaceDepsTable.keySet().size() + " workspace dependencies");
     }

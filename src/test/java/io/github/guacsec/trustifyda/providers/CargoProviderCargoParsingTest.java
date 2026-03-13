@@ -19,16 +19,27 @@ package io.github.guacsec.trustifyda.providers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.github.packageurl.PackageURL;
+import io.github.guacsec.trustifyda.sbom.Sbom;
+import io.github.guacsec.trustifyda.sbom.SbomFactory;
+import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
 
 public class CargoProviderCargoParsingTest {
 
@@ -719,5 +730,58 @@ public class CargoProviderCargoParsingTest {
         "SBOM should contain workspace directory name: " + expectedWorkspaceName);
 
     assertTrue(stackSbom.contains("1.0.0"), "SBOM should contain default version: 1.0.0");
+  }
+
+  @Test
+  public void testVirtualWorkspaceWithoutWorkspaceDepsDoesNotThrowNPE(@TempDir Path tempDir)
+      throws Exception {
+    // Create a Cargo.toml with [workspace] members but NO [workspace.dependencies]
+    Path cargoToml = tempDir.resolve("Cargo.toml");
+    String content =
+        """
+        [workspace]
+        members = ["crate-a", "crate-b"]
+
+        [workspace.package]
+        version = "1.0.0"
+        edition = "2021"
+        """;
+    Files.writeString(cargoToml, content);
+
+    TomlParseResult tomlResult = Toml.parse(cargoToml);
+    // Verify precondition: workspace.dependencies table is null
+    assertNull(
+        tomlResult.getTable("workspace.dependencies"),
+        "Precondition: workspace.dependencies table should be null");
+
+    CargoProvider provider = new CargoProvider(cargoToml);
+    Sbom sbom = SbomFactory.newInstance();
+    PackageURL root =
+        new PackageURL(Type.CARGO.getType(), null, "test-workspace", "1.0.0", null, null);
+    sbom.addRoot(root);
+
+    // Call the private processWorkspaceDependencies via reflection
+    var method =
+        CargoProvider.class.getDeclaredMethod(
+            "processWorkspaceDependencies",
+            Sbom.class,
+            PackageURL.class,
+            Map.class,
+            Set.class,
+            TomlParseResult.class);
+    method.setAccessible(true);
+
+    // This should NOT throw NPE when [workspace.dependencies] is absent
+    try {
+      method.invoke(provider, sbom, root, new HashMap<>(), new HashSet<>(), tomlResult);
+    } catch (InvocationTargetException e) {
+      if (e.getCause() instanceof NullPointerException) {
+        throw new AssertionError(
+            "processWorkspaceDependencies threw NPE when [workspace.dependencies] is absent."
+                + " The method should handle a missing workspace.dependencies table gracefully.",
+            e.getCause());
+      }
+      throw e;
+    }
   }
 }
