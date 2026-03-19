@@ -24,18 +24,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.guacsec.trustifyda.Api;
+import io.github.guacsec.trustifyda.Provider;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.api.v5.ProviderReport;
 import io.github.guacsec.trustifyda.api.v5.SourceSummary;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.impl.ExhortApi;
+import io.github.guacsec.trustifyda.license.ProjectLicense;
+import io.github.guacsec.trustifyda.license.ProjectLicense.ProjectLicenseInfo;
+import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -86,15 +91,10 @@ public class App {
 
     Command command = parseCommand(args[0]);
 
-    switch (command) {
-      case STACK:
-      case COMPONENT:
-        return parseFileBasedArgs(command, args);
-      case IMAGE:
-        return parseImageBasedArgs(command, args);
-      default:
-        throw new IllegalArgumentException("Unsupported command: " + command);
-    }
+    return switch (command) {
+      case STACK, COMPONENT, LICENSE -> parseFileBasedArgs(command, args);
+      case IMAGE -> parseImageBasedArgs(command, args);
+    };
   }
 
   private static CliArgs parseFileBasedArgs(Command command, String[] args) {
@@ -106,6 +106,9 @@ public class App {
 
     OutputFormat outputFormat = OutputFormat.JSON;
     if (args.length == 3) {
+      if (command == Command.LICENSE) {
+        throw new IllegalArgumentException("license command does not accept options");
+      }
       outputFormat = parseOutputFormat(command, args[2]);
     } else if (args.length > 3) {
       throw new IllegalArgumentException("Too many arguments for " + command + " command");
@@ -151,33 +154,33 @@ public class App {
   }
 
   private static Command parseCommand(String commandStr) {
-    switch (commandStr) {
-      case "stack":
-        return Command.STACK;
-      case "component":
-        return Command.COMPONENT;
-      case "image":
-        return Command.IMAGE;
-      default:
-        throw new IllegalArgumentException(
-            "Unknown command: " + commandStr + ". Use 'stack', 'component', or 'image'");
-    }
+    return switch (commandStr) {
+      case "stack" -> Command.STACK;
+      case "component" -> Command.COMPONENT;
+      case "image" -> Command.IMAGE;
+      case "license" -> Command.LICENSE;
+      default ->
+          throw new IllegalArgumentException(
+              "Unknown command: "
+                  + commandStr
+                  + ". Use 'stack', 'component', 'image', or 'license'");
+    };
   }
 
   private static OutputFormat parseOutputFormat(Command command, String formatArg) {
-    switch (formatArg) {
-      case "--summary":
-        return OutputFormat.SUMMARY;
-      case "--html":
+    return switch (formatArg) {
+      case "--summary" -> OutputFormat.SUMMARY;
+      case "--html" -> {
         if (command != Command.STACK && command != Command.IMAGE) {
           throw new IllegalArgumentException(
               "HTML format is only supported for stack and image commands");
         }
-        return OutputFormat.HTML;
-      default:
-        throw new IllegalArgumentException(
-            "Unknown option for " + command + " command: " + formatArg);
-    }
+        yield OutputFormat.HTML;
+      }
+      default ->
+          throw new IllegalArgumentException(
+              "Unknown option for " + command + " command: " + formatArg);
+    };
   }
 
   private static Path validateFile(String filePath) {
@@ -192,45 +195,79 @@ public class App {
   }
 
   private static CompletableFuture<String> executeCommand(CliArgs args) throws IOException {
-    switch (args.command) {
-      case STACK:
-        return executeStackAnalysis(args.filePath.toAbsolutePath().toString(), args.outputFormat);
-      case COMPONENT:
-        return executeComponentAnalysis(
-            args.filePath.toAbsolutePath().toString(), args.outputFormat);
-      case IMAGE:
-        return executeImageAnalysis(args.imageRefs, args.outputFormat);
-      default:
-        throw new AssertionError();
-    }
+    return switch (args.command) {
+      case STACK ->
+          executeStackAnalysis(args.filePath.toAbsolutePath().toString(), args.outputFormat);
+      case COMPONENT ->
+          executeComponentAnalysis(args.filePath.toAbsolutePath().toString(), args.outputFormat);
+      case IMAGE -> executeImageAnalysis(args.imageRefs, args.outputFormat);
+      case LICENSE -> executeLicenseCheck(args.filePath.toAbsolutePath());
+    };
   }
 
   private static CompletableFuture<String> executeStackAnalysis(
       String filePath, OutputFormat outputFormat) throws IOException {
     Api api = new ExhortApi();
-    switch (outputFormat) {
-      case JSON:
-        return api.stackAnalysis(filePath).thenApply(App::toJsonString);
-      case HTML:
-        return api.stackAnalysisHtml(filePath).thenApply(bytes -> new String(bytes));
-      case SUMMARY:
-        return api.stackAnalysis(filePath)
-            .thenApply(App::extractSummary)
-            .thenApply(App::toJsonString);
-      default:
-        throw new AssertionError();
-    }
+    return switch (outputFormat) {
+      case JSON -> api.stackAnalysis(filePath).thenApply(App::toJsonString);
+      case HTML -> api.stackAnalysisHtml(filePath).thenApply(bytes -> new String(bytes));
+      case SUMMARY ->
+          api.stackAnalysis(filePath).thenApply(App::extractSummary).thenApply(App::toJsonString);
+    };
   }
 
   private static CompletableFuture<String> executeComponentAnalysis(
       String filePath, OutputFormat outputFormat) throws IOException {
-    Api api = new ExhortApi();
-    CompletableFuture<AnalysisReport> analysis = api.componentAnalysis(filePath);
+    ExhortApi api = new ExhortApi();
     if (outputFormat.equals(OutputFormat.SUMMARY)) {
-      var summary = analysis.thenApply(App::extractSummary);
-      return summary.thenApply(App::toJsonString);
+      return api.componentAnalysis(filePath)
+          .thenApply(App::extractSummary)
+          .thenApply(App::toJsonString);
     }
-    return analysis.thenApply(App::toJsonString);
+    return api.componentAnalysisWithLicense(filePath).thenApply(App::toJsonString);
+  }
+
+  private static CompletableFuture<String> executeLicenseCheck(Path manifestPath) {
+    ExhortApi api = new ExhortApi();
+    Provider provider = Ecosystem.getProvider(manifestPath);
+    ProjectLicenseInfo localResult = ProjectLicense.getProjectLicense(provider, manifestPath);
+
+    CompletableFuture<Map<String, Object>> manifestDetailsFuture =
+        buildLicenseInfo(api, localResult.fromManifest());
+    CompletableFuture<Map<String, Object>> fileDetailsFuture =
+        buildLicenseInfo(api, localResult.fromFile());
+
+    return manifestDetailsFuture.thenCombine(
+        fileDetailsFuture,
+        (manifestInfo, fileInfo) -> {
+          Map<String, Object> output = new LinkedHashMap<>();
+          output.put("manifestLicense", manifestInfo);
+          output.put("fileLicense", fileInfo);
+          output.put("mismatch", localResult.mismatch());
+          return toJsonString(output);
+        });
+  }
+
+  private static CompletableFuture<Map<String, Object>> buildLicenseInfo(
+      ExhortApi api, String spdxId) {
+    if (spdxId == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    Map<String, Object> licenseInfo = new HashMap<>();
+    licenseInfo.put("spdxId", spdxId);
+    return api.getLicenseDetails(spdxId)
+        .thenApply(
+            details -> {
+              if (details != null) {
+                licenseInfo.put("details", details);
+              }
+              return licenseInfo;
+            })
+        .exceptionally(
+            ex -> {
+              licenseInfo.put("error", ex.getMessage());
+              return licenseInfo;
+            });
   }
 
   private static String toJsonString(Object obj) {
@@ -244,18 +281,14 @@ public class App {
   private static CompletableFuture<String> executeImageAnalysis(
       Set<ImageRef> imageRefs, OutputFormat outputFormat) throws IOException {
     Api api = new ExhortApi();
-    switch (outputFormat) {
-      case JSON:
-        return api.imageAnalysis(imageRefs).thenApply(App::formatImageAnalysisResult);
-      case HTML:
-        return api.imageAnalysisHtml(imageRefs).thenApply(bytes -> new String(bytes));
-      case SUMMARY:
-        return api.imageAnalysis(imageRefs)
-            .thenApply(App::extractImageSummary)
-            .thenApply(App::toJsonString);
-      default:
-        throw new AssertionError();
-    }
+    return switch (outputFormat) {
+      case JSON -> api.imageAnalysis(imageRefs).thenApply(App::formatImageAnalysisResult);
+      case HTML -> api.imageAnalysisHtml(imageRefs).thenApply(bytes -> new String(bytes));
+      case SUMMARY ->
+          api.imageAnalysis(imageRefs)
+              .thenApply(App::extractImageSummary)
+              .thenApply(App::toJsonString);
+    };
   }
 
   private static String formatImageAnalysisResult(Map<ImageRef, AnalysisReport> analysisResults) {

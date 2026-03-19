@@ -17,6 +17,7 @@
 package io.github.guacsec.trustifyda;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -70,6 +71,18 @@ public abstract class Provider {
    * @throws IOException when failed to load the manifest content
    */
   public abstract Content provideComponent() throws IOException;
+
+  /**
+   * Read the project license from the manifest file. Providers that support manifest-level license
+   * declarations (e.g., pom.xml {@code <licenses>}, package.json {@code license}, Cargo.toml {@code
+   * license}) should override this method.
+   *
+   * @return SPDX identifier or license name from the manifest, or null if not available
+   */
+  public String readLicenseFromManifest() {
+    // Default: no manifest license field. Falls back to LICENSE file detection.
+    return LicenseUtils.readLicenseFile(manifest);
+  }
 
   /**
    * If a package manager requires having a lock file it must exist in the provided path

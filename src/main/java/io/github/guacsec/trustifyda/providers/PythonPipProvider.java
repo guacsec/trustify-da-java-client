@@ -67,7 +67,9 @@ public final class PythonPipProvider extends Provider {
         pythonController.getDependencies(manifest.toString(), true);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION));
+    sbom.addRoot(
+        toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
+        readLicenseFromManifest());
     for (Map<String, Object> component : dependencies) {
       addAllDependencies(sbom.getRoot(), component, sbom);
     }
@@ -99,7 +101,9 @@ public final class PythonPipProvider extends Provider {
         pythonController.getDependencies(manifest.toString(), false);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance();
-    sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION));
+    sbom.addRoot(
+        toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
+        readLicenseFromManifest());
     dependencies.forEach(
         (component) ->
             sbom.addDependency(

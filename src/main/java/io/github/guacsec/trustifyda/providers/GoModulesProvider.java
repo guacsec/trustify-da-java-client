@@ -288,7 +288,7 @@ public final class GoModulesProvider extends Provider {
 
     PackageURL root = toPurl(rootPackage, "@");
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(root);
+    sbom.addRoot(root, readLicenseFromManifest());
     edges.forEach(
         (key, value) -> {
           PackageURL source = toPurl(key, "@");
@@ -417,7 +417,7 @@ public final class GoModulesProvider extends Provider {
     List<String> deps = collectAllDirectDependencies(Arrays.asList(allModulesFlat), parentVertex);
 
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(root);
+    sbom.addRoot(root, readLicenseFromManifest());
     deps.stream()
         .filter(dep -> !isGoToolchainEntry(dep))
         .forEach(

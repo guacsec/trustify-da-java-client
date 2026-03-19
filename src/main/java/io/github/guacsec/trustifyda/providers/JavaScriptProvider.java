@@ -24,6 +24,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.providers.javascript.model.Manifest;
 import io.github.guacsec.trustifyda.sbom.Sbom;
@@ -66,6 +67,11 @@ public abstract class JavaScriptProvider extends Provider {
     } catch (IOException e) {
       throw new RuntimeException("Unable to process package.json file", e);
     }
+  }
+
+  @Override
+  public String readLicenseFromManifest() {
+    return LicenseUtils.getLicense(manifest.license, manifest.path);
   }
 
   protected final String packageManager() {
@@ -151,7 +157,7 @@ public abstract class JavaScriptProvider extends Provider {
   private Sbom getDependencySbom() throws IOException {
     var depTree = buildDependencyTree(true);
     var sbom = SbomFactory.newInstance();
-    sbom.addRoot(manifest.root);
+    sbom.addRoot(manifest.root, readLicenseFromManifest());
     addDependenciesToSbom(sbom, depTree);
     sbom.filterIgnoredDeps(manifest.ignored);
     return sbom;
@@ -175,7 +181,7 @@ public abstract class JavaScriptProvider extends Provider {
   private Sbom getDirectDependencySbom() throws IOException {
     var depTree = buildDependencyTree(false);
     var sbom = SbomFactory.newInstance();
-    sbom.addRoot(manifest.root);
+    sbom.addRoot(manifest.root, readLicenseFromManifest());
     // include only production dependencies for component analysis
     getRootDependencies(depTree).entrySet().stream()
         .filter(e -> manifest.dependencies.contains(e.getKey()))

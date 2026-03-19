@@ -281,7 +281,7 @@ public final class GradleProvider extends BaseJavaProvider {
     String root = getRoot(textFormatFile, propertiesMap);
 
     PackageURL rootPurl = parseDep(root);
-    sbom.addRoot(rootPurl);
+    sbom.addRoot(rootPurl, readLicenseFromManifest());
 
     List<String> runtimeConfig = extractLines(textFormatFile, RUNTIME_CLASSPATH);
     List<String> compileConfig = extractLines(textFormatFile, COMPILE_CLASSPATH);

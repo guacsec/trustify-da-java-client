@@ -32,6 +32,7 @@ public class Manifest {
 
   public final String name;
   public final String version;
+  public final String license;
   public final PackageURL root;
   public final Set<String> dependencies;
   public final Set<String> ignored;
@@ -46,6 +47,7 @@ public class Manifest {
     this.dependencies = loadDependencies(content);
     this.name = content.get("name").asText();
     this.version = content.get("version").asText();
+    this.license = loadLicense(content);
     this.root = JavaScriptProvider.toPurl(name, version);
     this.ignored = loadIgnored(content);
   }
@@ -65,6 +67,39 @@ public class Manifest {
       content.get("dependencies").fieldNames().forEachRemaining(names::add);
     }
     return Collections.unmodifiableSet(names);
+  }
+
+  private String loadLicense(JsonNode content) {
+    if (content == null) {
+      return null;
+    }
+    // modern npm format
+    JsonNode licenseNode = content.get("license");
+    if (licenseNode != null) {
+      if (licenseNode.isTextual()) {
+        String value = licenseNode.asText().trim();
+        return value.isEmpty() ? null : value;
+      }
+      if (licenseNode.isObject()) {
+        JsonNode type = licenseNode.get("type");
+        if (type != null && type.isTextual()) {
+          return type.asText().trim();
+        }
+      }
+    }
+
+    // legacy format
+    JsonNode licensesNode = content.get("licenses");
+    if (licensesNode != null && licensesNode.isArray() && !licensesNode.isEmpty()) {
+      JsonNode first = licensesNode.get(0);
+      if (first.hasNonNull("type")) {
+        return first.get("type").asText().trim();
+      }
+      if (first.hasNonNull("name")) {
+        return first.get("name").asText().trim();
+      }
+    }
+    return null;
   }
 
   private Set<String> loadIgnored(JsonNode content) {

@@ -110,6 +110,16 @@ public interface Api {
 
   CompletableFuture<AnalysisReport> componentAnalysis(String manifest) throws IOException;
 
+  /**
+   * Use for creating a component analysis with license compatibility checking.
+   *
+   * @param manifest the path of the manifest, example {@code /path/to/pom.xml}
+   * @return a ComponentAnalysisResult containing the analysis report and license summary
+   * @throws IOException when failed to load the manifest content
+   */
+  CompletableFuture<ComponentAnalysisResult> componentAnalysisWithLicense(String manifest)
+      throws IOException;
+
   CompletableFuture<Map<ImageRef, AnalysisReport>> imageAnalysis(Set<ImageRef> imageRefs)
       throws IOException;
 

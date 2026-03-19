@@ -134,10 +134,11 @@ Code example
 
 ```java
 import io.github.guacsec.trustifyda.Api.MixedReport;
+import io.github.guacsec.trustifyda.ComponentAnalysisResult;
 import io.github.guacsec.trustifyda.impl.ExhortApi;
-import io.github.guacsec.trustifyda.AnalysisReport;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 public class TrustifyExample {
@@ -159,6 +160,12 @@ public class TrustifyExample {
         // get a AnalysisReport future holding a deserialized Component Analysis report
         var manifestContent = Files.readAllBytes(Path.of("/path/to/pom.xml"));
         CompletableFuture<AnalysisReport> componentReport = exhortApi.componentAnalysis("/path/to/pom.xml", manifestContent);
+
+        // get a ComponentAnalysisResult with license compatibility checking
+        CompletableFuture<ComponentAnalysisResult> componentWithLicense = exhortApi.componentAnalysisWithLicense("/path/to/pom.xml");
+        var result = componentWithLicense.get();
+        var report = result.report();              // standard AnalysisReport
+        var licenseSummary = result.licenseSummary(); // license compatibility summary (may be null)
     }
 }
 ```
@@ -330,6 +337,16 @@ regex = "1.5.4" # trustify-da-ignore
 </li>
 
 </ul>
+
+#### License Resolution and Compliance
+
+The Java client includes built-in license analysis that detects your project's license, checks dependency license compatibility, and includes license information in generated SBOMs.
+
+- License checking runs automatically during **component analysis**
+- Supports reading licenses from `pom.xml`, `package.json`, `Cargo.toml`, and LICENSE files
+- Set `TRUSTIFY_DA_LICENSE_CHECK=false` to disable
+
+For full documentation, see [License Resolution and Compliance](docs/license-resolution-and-compliance.md).
 
 #### Ignore Strategies - experimental
 
@@ -623,11 +640,17 @@ Options:
 ```shell
 java -jar trustify-da-java-client-cli.jar component <file_path> [--summary]
 ```
-Perform component analysis on the specified manifest file.
+Perform component analysis on the specified manifest file. License compatibility checking is included by default.
 
 Options:
 - `--summary` - Output summary in JSON format
-- (default) - Output full report in JSON format
+- (default) - Output full report in JSON format (includes license summary)
+
+**License Information**
+```shell
+java -jar trustify-da-java-client-cli.jar license <file_path>
+```
+Display project license information from manifest and LICENSE file in JSON format.
 
 **Image Analysis**
 ```shell
@@ -675,6 +698,9 @@ java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
 
 # Rust Cargo analysis
 java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml --summary
+
+# License information
+java -jar trustify-da-java-client-cli.jar license /path/to/pom.xml
 
 # Container image analysis with JSON output (default)
 java -jar trustify-da-java-client-cli.jar image nginx:latest

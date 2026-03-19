@@ -35,6 +35,7 @@ module io.github.guacsec.trustifyda {
   exports io.github.guacsec.trustifyda.providers.rust.model;
   exports io.github.guacsec.trustifyda.logging;
   exports io.github.guacsec.trustifyda.image;
+  exports io.github.guacsec.trustifyda.license;
 
   opens io.github.guacsec.trustifyda.image to
       com.fasterxml.jackson.databind;
