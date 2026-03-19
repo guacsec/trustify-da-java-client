@@ -224,7 +224,16 @@ public class App {
           .thenApply(App::extractSummary)
           .thenApply(App::toJsonString);
     }
-    return api.componentAnalysisWithLicense(filePath).thenApply(App::toJsonString);
+    return api.componentAnalysisWithLicense(filePath)
+        .thenApply(
+            result -> {
+              @SuppressWarnings("unchecked")
+              Map<String, Object> flat = MAPPER.convertValue(result.report(), Map.class);
+              if (result.licenseSummary() != null) {
+                flat.put("licenseSummary", result.licenseSummary());
+              }
+              return toJsonString(flat);
+            });
   }
 
   private static CompletableFuture<String> executeLicenseCheck(Path manifestPath) {

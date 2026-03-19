@@ -616,13 +616,14 @@ class AppTest extends ExhortTest {
 
     // Test with absolute path to pom.xml
     String absolutePomPath = System.getProperty("user.dir") + "/pom.xml";
+    ComponentAnalysisResult mockResult = new ComponentAnalysisResult(mockReport, null);
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class);
         MockedConstruction<ExhortApi> mockedExhortApi =
             mockConstruction(
                 ExhortApi.class,
                 (mock, context) -> {
-                  when(mock.componentAnalysis(any(String.class)))
-                      .thenReturn(CompletableFuture.completedFuture(mockReport));
+                  when(mock.componentAnalysisWithLicense(any(String.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResult));
                 })) {
 
       App.main(new String[] {"component", absolutePomPath});
@@ -696,13 +697,14 @@ class AppTest extends ExhortTest {
     }
 
     // Test default JSON format for component command (no format flag)
+    ComponentAnalysisResult mockResult2 = new ComponentAnalysisResult(mockReport, null);
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class);
         MockedConstruction<ExhortApi> mockedExhortApi =
             mockConstruction(
                 ExhortApi.class,
                 (mock, context) -> {
-                  when(mock.componentAnalysis(any(String.class)))
-                      .thenReturn(CompletableFuture.completedFuture(mockReport));
+                  when(mock.componentAnalysisWithLicense(any(String.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResult2));
                 })) {
 
       App.main(new String[] {"component", "pom.xml"});
