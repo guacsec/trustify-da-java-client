@@ -73,16 +73,14 @@ public abstract class Provider {
   public abstract Content provideComponent() throws IOException;
 
   /**
-   * Read the project license from the manifest file. Providers that support manifest-level license
-   * declarations (e.g., pom.xml {@code <licenses>}, package.json {@code license}, Cargo.toml {@code
-   * license}) should override this method.
+   * Read the project license from the manifest file. Each provider must decide how to extract the
+   * license from its manifest (e.g., pom.xml {@code <licenses>}, package.json {@code license},
+   * Cargo.toml {@code license}). Providers without a manifest-level license field should fall back
+   * to {@link LicenseUtils#readLicenseFile(Path)}.
    *
    * @return SPDX identifier or license name from the manifest, or null if not available
    */
-  public String readLicenseFromManifest() {
-    // Default: no manifest license field. Falls back to LICENSE file detection.
-    return LicenseUtils.readLicenseFile(manifest);
-  }
+  public abstract String readLicenseFromManifest();
 
   /**
    * If a package manager requires having a lock file it must exist in the provided path

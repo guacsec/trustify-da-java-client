@@ -22,6 +22,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
@@ -68,6 +69,11 @@ public final class GoModulesProvider extends Provider {
     super(Type.GOLANG, manifest);
     this.goExecutable = Operations.getExecutable("go", "version");
     this.mainModuleVersion = getDefaultMainModuleVersion();
+  }
+
+  @Override
+  public String readLicenseFromManifest() {
+    return LicenseUtils.readLicenseFile(manifest);
   }
 
   @Override

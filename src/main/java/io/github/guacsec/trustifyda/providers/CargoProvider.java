@@ -612,14 +612,15 @@ public final class CargoProvider extends Provider {
 
   @Override
   public String readLicenseFromManifest() {
-    return readLicenseFromToml(null);
+    String manifestLicense = readLicenseFromToml(null);
+    return LicenseUtils.getLicense(manifestLicense, manifest);
   }
 
   private String readLicenseFromToml(TomlParseResult existingResult) {
     try {
       TomlParseResult tomlResult = existingResult != null ? existingResult : Toml.parse(manifest);
       if (tomlResult.hasErrors()) {
-        return LicenseUtils.getLicense(null, manifest);
+        return null;
       }
       String license = tomlResult.getString("package.license");
       return LicenseUtils.getLicense(license, manifest);

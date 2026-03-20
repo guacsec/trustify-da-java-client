@@ -84,28 +84,37 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     XMLInputFactory factory = XMLInputFactory.newInstance();
     try (InputStream is = Files.newInputStream(pomPath)) {
       XMLStreamReader reader = factory.createXMLStreamReader(is);
-      boolean insideLicenses = false;
-      boolean insideLicense = false;
-      while (reader.hasNext()) {
-        int event = reader.next();
-        if (event == XMLStreamConstants.START_ELEMENT) {
-          String name = reader.getLocalName();
-          if ("licenses".equals(name)) {
-            insideLicenses = true;
-          } else if (insideLicenses && "license".equals(name)) {
-            insideLicense = true;
-          } else if (insideLicense && "name".equals(name)) {
-            String license = reader.getElementText();
-            if (license != null && !license.isBlank()) {
-              return license.trim();
+      try {
+        boolean insideLicenses = false;
+        boolean insideLicense = false;
+        while (reader.hasNext()) {
+          int event = reader.next();
+          if (event == XMLStreamConstants.START_ELEMENT) {
+            String name = reader.getLocalName();
+            if ("licenses".equals(name)) {
+              insideLicenses = true;
+            } else if (insideLicenses && "license".equals(name)) {
+              insideLicense = true;
+            } else if (insideLicense && "name".equals(name)) {
+              String license = reader.getElementText();
+              if (license != null && !license.isBlank()) {
+                return license.trim();
+              }
+            }
+          } else if (event == XMLStreamConstants.END_ELEMENT) {
+            String name = reader.getLocalName();
+            if ("license".equals(name)) {
+              insideLicense = false;
+            } else if ("licenses".equals(name)) {
+              break;
             }
           }
-        } else if (event == XMLStreamConstants.END_ELEMENT) {
-          String name = reader.getLocalName();
-          if ("license".equals(name)) {
-            insideLicense = false;
-          } else if ("licenses".equals(name)) {
-            break;
+        }
+      } finally {
+        if (!Objects.isNull(reader)) {
+          try {
+            reader.close();
+          } catch (XMLStreamException e) {
           }
         }
       }
