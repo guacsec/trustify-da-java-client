@@ -602,7 +602,7 @@ public final class ExhortApi implements Api {
    * @return a CompletableFuture with license details as a JsonNode, or null if not found
    */
   public CompletableFuture<JsonNode> getLicenseDetails(String spdxId) {
-    String encodedId = URLEncoder.encode(spdxId, StandardCharsets.UTF_8);
+    String encodedId = URLEncoder.encode(spdxId, StandardCharsets.UTF_8).replace("+", "%20");
     URI uri = URI.create(String.format(S_API_V5_LICENSES, this.endpoint, encodedId));
     HttpRequest request = buildGetRequest(uri, "License Details");
 
