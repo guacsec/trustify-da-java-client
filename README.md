@@ -177,7 +177,7 @@ public class TrustifyExample {
 <li><a href="https://www.java.com/">Java</a> - <a href="https://maven.apache.org/">Maven</a></li>
 <li><a href="https://www.javascript.com//">JavaScript</a> - <a href="https://www.npmjs.com//">Npm</a></li>
 <li><a href="https://go.dev//">Golang</a> - <a href="https://go.dev/blog/using-go-modules//">Go Modules</a></li>
-<li><a href="https://go.dev//">Python</a> - <a href="https://pypi.org/project/pip//">pip Installer</a></li>
+<li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a> (<code>requirements.txt</code>, <code>pyproject.toml</code>)</li>
 <li><a href="https://gradle.org//">Gradle</a> - <a href="https://gradle.org/install//">Gradle Installation</a></li>
 <li><a href="https://www.rust-lang.org/">Rust</a> - <a href="https://doc.rust-lang.org/cargo/">Cargo</a></li>
 
@@ -264,7 +264,7 @@ require (
 </li>
 
 <li>
-<em>Python pip</em> users can add in requirement text a comment with #trustify-da-ignore(or # trustify-da-ignore) to the right of the same artifact to be ignored, for example:
+<em>Python pip</em> users can add in <code>requirements.txt</code> a comment with #trustify-da-ignore(or # trustify-da-ignore) to the right of the same artifact to be ignored, for example:
 
 ```properties
 anyio==3.6.2
@@ -294,6 +294,20 @@ urllib3==1.26.16
 uvicorn==0.17.0
 Werkzeug==2.0.3
 zipp==3.6.0
+```
+</li>
+
+<li>
+<em>Python pyproject.toml</em> users can add a comment with #trustify-da-ignore next to a dependency in <code>pyproject.toml</code>:
+
+```toml
+[project]
+name = "my-project"
+dependencies = [
+    "requests>=2.28.1",
+    "flask>=2.0",  # trustify-da-ignore
+    "click>=8.0",
+]
 ```
 </li>
 
@@ -538,7 +552,7 @@ System.setProperty("TRUSTIFY_DA_MVN_LOCAL_REPO", "/home/user/custom-maven-repo")
 ##### Background
 
 In Python pip and in golang go modules package managers ( especially in Python pip) , There is a big chance that for a certain manifest and a given package inside it, the client machine environment has different version installed/resolved
-for that package, which can lead to perform the analysis on the installed packages' versions , instead on the declared versions ( in manifests - that is requirements.txt/go.mod ), and this
+for that package, which can lead to perform the analysis on the installed packages' versions , instead on the declared versions ( in manifests - that is requirements.txt/pyproject.toml/go.mod ), and this
 can cause a confusion for the user in the client consuming the API and leads to inconsistent output ( in THE manifest there is version X For a given Package `A` , and in the analysis report there is another version for the same package `A` - Y).
 
 ##### Usage
@@ -579,16 +593,18 @@ TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED=false
 
 ####  Python Support
 
+Python support works with both `requirements.txt` and `pyproject.toml` manifest files. The `pyproject.toml` provider scans production dependencies from PEP 621 `[project.dependencies]` and Poetry `[tool.poetry.dependencies]` sections. Optional dependencies (`[project.optional-dependencies]`) and Poetry group dependencies (`[tool.poetry.group.*.dependencies]`) are intentionally excluded to focus on runtime dependencies.
+
 By default, Python support assumes that the package is installed using the pip/pip3 binary on the system PATH, or of the customized
 Binaries passed to environment variables. If the package is not installed , then an error will be thrown.
 
-There is an experimental feature of installing the requirement.txt on a virtual env(only python3 or later is supported for this feature) - in this case,
+There is an experimental feature of installing the dependencies on a virtual env(only python3 or later is supported for this feature) - in this case,
 it's important to pass in a path to python3 binary as `TRUSTIFY_DA_PYTHON3_PATH` or instead make sure that python3 is on the system path.
-in such case, You can use that feature by setting environment variable `TRUSTIFY_DA_PYTHON_VIRTUAL_ENV` to true 
+in such case, You can use that feature by setting environment variable `TRUSTIFY_DA_PYTHON_VIRTUAL_ENV` to true
 
 ##### "Best Efforts Installation"
 Since Python pip packages are very sensitive/picky regarding python version changes( every small range of versions is only tailored for a certain python version), I'm introducing this feature, that
-tries to install all packages in requirements.txt onto created virtual environment while **disregarding** versions declared for packages in requirements.txt
+tries to install all packages in the manifest onto created virtual environment while **disregarding** versions declared for packages
 This increasing the chances and the probability a lot that the automatic installation will succeed.
 
 ##### Usage
@@ -692,6 +708,9 @@ java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
 
 # Component analysis with JSON output (default)
 java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
+
+# Component analysis for pyproject.toml
+java -jar trustify-da-java-client-cli.jar component /path/to/pyproject.toml
 
 # Component analysis with summary
 java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary

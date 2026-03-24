@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "test-project"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+anyio = "^3.6.2"
+flask = "^2.0.3"
+requests = "^2.25.1"
+
+[tool.poetry.group.dev.dependencies]
+click = "^8.0.4"
