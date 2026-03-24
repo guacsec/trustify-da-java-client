@@ -222,16 +222,22 @@ public final class GradleProvider extends BaseJavaProvider {
   }
 
   private Path getDependencies(Path manifestPath) throws IOException {
-    // create a temp file for storing the dependency tree in
     var tempFile = Files.createTempFile("TRUSTIFY_DA_graph_", null);
-    // the command will create the dependency tree in the temp file
     String gradleCommand = gradleExecutable + " dependencies";
-
     String[] cmdList = gradleCommand.split("\\s+");
-    String gradleOutput =
-        Operations.runProcessGetOutput(Path.of(manifestPath.getParent().toString()), cmdList);
-    Files.writeString(tempFile, gradleOutput);
 
+    var result =
+        Operations.runProcessGetFullOutput(
+            Path.of(manifestPath.getParent().toString()), cmdList, null);
+
+    if (result.getExitCode() != 0) {
+      throw new RuntimeException(
+          String.format(
+              "gradle dependencies command failed with exit code %d for manifest '%s': %s",
+              result.getExitCode(), manifestPath, result.getError()));
+    }
+
+    Files.writeString(tempFile, result.getOutput());
     return tempFile;
   }
 
@@ -239,11 +245,19 @@ public final class GradleProvider extends BaseJavaProvider {
     Path propsTempFile = Files.createTempFile("propsfile", ".txt");
     String propCmd = gradleExecutable + " properties";
     String[] propCmdList = propCmd.split("\\s+");
-    String properties =
-        Operations.runProcessGetOutput(Path.of(manifestPath.getParent().toString()), propCmdList);
-    // Create a temporary file
-    Files.writeString(propsTempFile, properties);
 
+    var result =
+        Operations.runProcessGetFullOutput(
+            Path.of(manifestPath.getParent().toString()), propCmdList, null);
+
+    if (result.getExitCode() != 0) {
+      throw new RuntimeException(
+          String.format(
+              "gradle properties command failed with exit code %d for manifest '%s': %s",
+              result.getExitCode(), manifestPath, result.getError()));
+    }
+
+    Files.writeString(propsTempFile, result.getOutput());
     return propsTempFile;
   }
 
@@ -503,9 +517,12 @@ public final class GradleProvider extends BaseJavaProvider {
 
   private String getRoot(Path textFormatFile, Map<String, String> propertiesMap)
       throws IOException {
-    String group = propertiesMap.get("group");
-    String version = propertiesMap.get("version");
+    String group = propertiesMap.getOrDefault("group", "unknown");
+    String version = propertiesMap.getOrDefault("version", "0.0.0");
     String rootName = extractRootProjectValue(textFormatFile);
+    if (rootName == null || rootName.isEmpty()) {
+      rootName = "unknown";
+    }
     return group + ':' + rootName + ':' + "jar" + ':' + version;
   }
 

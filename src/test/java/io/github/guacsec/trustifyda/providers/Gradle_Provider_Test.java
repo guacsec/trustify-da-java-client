@@ -17,8 +17,10 @@
 package io.github.guacsec.trustifyda.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
 
 import io.github.guacsec.trustifyda.Api;
@@ -27,7 +29,9 @@ import io.github.guacsec.trustifyda.tools.Operations;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatcher;
@@ -127,9 +131,10 @@ abstract class Gradle_Provider_Test extends ExhortTest {
       gradleProperties = new String(is.readAllBytes());
     }
 
-    ArgumentMatcher<String> gradle = string -> string.equals("gradle");
-    ArgumentMatcher<String> dependencies = string -> string.equals("dependencies");
-    ArgumentMatcher<String> properties = string -> string.equals("properties");
+    ArgumentMatcher<String[]> containsDependencies =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("dependencies");
+    ArgumentMatcher<String[]> containsProperties =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("properties");
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
       mockedOperations.when(() -> Operations.getCustomPathOrElse("gradle")).thenReturn("gradle");
       mockedOperations
@@ -138,15 +143,15 @@ abstract class Gradle_Provider_Test extends ExhortTest {
       mockedOperations
           .when(
               () ->
-                  Operations.runProcessGetOutput(
-                      any(Path.class), argThat(gradle), argThat(dependencies)))
-          .thenReturn(depTree);
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsDependencies), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput(depTree, "", 0));
       mockedOperations
           .when(
               () ->
-                  Operations.runProcessGetOutput(
-                      any(Path.class), argThat(gradle), argThat(properties)))
-          .thenReturn(gradleProperties);
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsProperties), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput(gradleProperties, "", 0));
 
       // when providing stack content for our pom
       var content = new GradleProvider(tmpGradleFile).provideStack();
@@ -231,9 +236,10 @@ abstract class Gradle_Provider_Test extends ExhortTest {
     }
 
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
-      ArgumentMatcher<String> gradle = string -> string.equals("gradle");
-      ArgumentMatcher<String> dependencies = string -> string.equals("dependencies");
-      ArgumentMatcher<String> properties = string -> string.equals("properties");
+      ArgumentMatcher<String[]> containsDependencies =
+          cmd -> cmd != null && Arrays.asList(cmd).contains("dependencies");
+      ArgumentMatcher<String[]> containsProperties =
+          cmd -> cmd != null && Arrays.asList(cmd).contains("properties");
       mockedOperations.when(() -> Operations.getCustomPathOrElse("gradle")).thenReturn("gradle");
       mockedOperations
           .when(() -> Operations.getExecutable("gradle", "--version"))
@@ -241,15 +247,15 @@ abstract class Gradle_Provider_Test extends ExhortTest {
       mockedOperations
           .when(
               () ->
-                  Operations.runProcessGetOutput(
-                      any(Path.class), argThat(gradle), argThat(dependencies)))
-          .thenReturn(depTree);
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsDependencies), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput(depTree, "", 0));
       mockedOperations
           .when(
               () ->
-                  Operations.runProcessGetOutput(
-                      any(Path.class), argThat(gradle), argThat(properties)))
-          .thenReturn(gradleProperties);
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsProperties), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput(gradleProperties, "", 0));
 
       // when providing component content for our pom
       var content = new GradleProvider(tmpGradleFile).provideComponent();
@@ -258,6 +264,126 @@ abstract class Gradle_Provider_Test extends ExhortTest {
       // verify expected SBOM is returned
       assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
       assertThat(dropIgnored(new String(content.buffer))).isEqualTo(dropIgnored(expectedSbom));
+    }
+  }
+
+  @Test
+  void test_provideStack_throws_on_gradle_failure() throws IOException {
+    var tmpGradleDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
+    var tmpGradleFile = Files.createFile(tmpGradleDir.resolve(getManifestName()));
+    try (var is =
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream(
+                String.join(
+                    "/", "tst_manifests", getProviderFolder(), "empty", getManifestName()))) {
+      Files.write(tmpGradleFile, is.readAllBytes());
+    }
+    var settingsFile = Files.createFile(tmpGradleDir.resolve(getSettingsName()));
+    try (var is =
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream(
+                String.join(
+                    "/", "tst_manifests", getProviderFolder(), "empty", getSettingsName()))) {
+      Files.write(settingsFile, is.readAllBytes());
+    }
+
+    String gradleErrorOutput =
+        "FAILURE: Build failed with an exception.\n"
+            + "* What went wrong:\n"
+            + "A problem occurred evaluating root project.\n"
+            + "> No such property: io for class: java.lang.String\n"
+            + "BUILD FAILED in 761ms\n";
+
+    ArgumentMatcher<String[]> containsDependencies =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("dependencies");
+    ArgumentMatcher<String[]> containsProperties =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("properties");
+    try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
+      mockedOperations.when(() -> Operations.getCustomPathOrElse("gradle")).thenReturn("gradle");
+      mockedOperations
+          .when(() -> Operations.getExecutable("gradle", "--version"))
+          .thenReturn("gradle");
+      mockedOperations
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsDependencies), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
+      mockedOperations
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsProperties), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
+
+      assertThatThrownBy(() -> new GradleProvider(tmpGradleFile).provideStack())
+          .isInstanceOf(RuntimeException.class)
+          .hasMessageContaining("gradle dependencies command failed with exit code 1")
+          .hasMessageContaining("No such property: io for class: java.lang.String");
+
+      Files.deleteIfExists(tmpGradleFile);
+    }
+  }
+
+  @Test
+  void test_provideComponent_throws_on_gradle_failure() throws IOException {
+    var tmpGradleDir = Files.createTempDirectory("TRUSTIFY_DA_test_");
+    var tmpGradleFile = Files.createFile(tmpGradleDir.resolve(getManifestName()));
+    try (var is =
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream(
+                String.join(
+                    "/", "tst_manifests", getProviderFolder(), "empty", getManifestName()))) {
+      Files.write(tmpGradleFile, is.readAllBytes());
+    }
+    var settingsFile = Files.createFile(tmpGradleDir.resolve(getSettingsName()));
+    try (var is =
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream(
+                String.join(
+                    "/", "tst_manifests", getProviderFolder(), "empty", getSettingsName()))) {
+      Files.write(settingsFile, is.readAllBytes());
+    }
+
+    String gradleErrorOutput =
+        "FAILURE: Build failed with an exception.\n"
+            + "* What went wrong:\n"
+            + "A problem occurred evaluating root project.\n"
+            + "> No such property: io for class: java.lang.String\n"
+            + "BUILD FAILED in 761ms\n";
+
+    ArgumentMatcher<String[]> containsDependencies =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("dependencies");
+    ArgumentMatcher<String[]> containsProperties =
+        cmd -> cmd != null && Arrays.asList(cmd).contains("properties");
+    try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
+      mockedOperations.when(() -> Operations.getCustomPathOrElse("gradle")).thenReturn("gradle");
+      mockedOperations
+          .when(() -> Operations.getExecutable("gradle", "--version"))
+          .thenReturn("gradle");
+      mockedOperations
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsDependencies), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
+      mockedOperations
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      any(Path.class), argThat(containsProperties), isNull()))
+          .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
+
+      assertThatThrownBy(() -> new GradleProvider(tmpGradleFile).provideComponent())
+          .isInstanceOf(RuntimeException.class)
+          .hasMessageContaining("gradle dependencies command failed with exit code 1")
+          .hasMessageContaining("No such property: io for class: java.lang.String");
+
+      Files.deleteIfExists(tmpGradleFile);
     }
   }
 
