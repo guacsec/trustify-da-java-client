@@ -58,6 +58,9 @@ public final class GradleProvider extends BaseJavaProvider {
 
   private static final Logger log = LoggersFactory.getLogger(GradleProvider.class.getName());
 
+  private static final long TIMEOUT =
+      Long.parseLong(System.getProperty("trustify.gradle.timeout.seconds", "120"));
+
   private final String gradleExecutable = Operations.getExecutable("gradle", "--version");
 
   public GradleProvider(Path manifest) {
@@ -67,20 +70,24 @@ public final class GradleProvider extends BaseJavaProvider {
   @Override
   public Content provideStack() throws IOException {
     Path tempFile = getDependencies(manifest);
-    if (debugLoggingIsNeeded()) {
-      String stackAnalysisDependencyTree = Files.readString(tempFile);
-      log.info(
-          String.format(
-              "Package Manager Gradle Stack Analysis Dependency Tree Output: %s %s",
-              System.lineSeparator(), stackAnalysisDependencyTree));
+    try {
+      if (debugLoggingIsNeeded()) {
+        String stackAnalysisDependencyTree = Files.readString(tempFile);
+        log.info(
+            String.format(
+                "Package Manager Gradle Stack Analysis Dependency Tree Output: %s %s",
+                System.lineSeparator(), stackAnalysisDependencyTree));
+      }
+      Map<String, String> propertiesMap = extractProperties(manifest);
+
+      var sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.STACK);
+      var ignored = getIgnoredDeps(manifest);
+
+      return new Content(
+          sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
+    } finally {
+      Files.deleteIfExists(tempFile);
     }
-    Map<String, String> propertiesMap = extractProperties(manifest);
-
-    var sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.STACK);
-    var ignored = getIgnoredDeps(manifest);
-
-    return new Content(
-        sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
   private List<String> getIgnoredDeps(Path manifestPath) throws IOException {
@@ -222,13 +229,12 @@ public final class GradleProvider extends BaseJavaProvider {
   }
 
   private Path getDependencies(Path manifestPath) throws IOException {
-    var tempFile = Files.createTempFile("TRUSTIFY_DA_graph_", null);
     String gradleCommand = gradleExecutable + " dependencies";
     String[] cmdList = gradleCommand.split("\\s+");
 
     var result =
         Operations.runProcessGetFullOutput(
-            Path.of(manifestPath.getParent().toString()), cmdList, null);
+            Path.of(manifestPath.getParent().toString()), cmdList, null, TIMEOUT);
 
     if (result.getExitCode() != 0) {
       throw new RuntimeException(
@@ -237,18 +243,18 @@ public final class GradleProvider extends BaseJavaProvider {
               result.getExitCode(), manifestPath, result.getError()));
     }
 
+    var tempFile = Files.createTempFile("TRUSTIFY_DA_graph_", null);
     Files.writeString(tempFile, result.getOutput());
     return tempFile;
   }
 
   private Path getProperties(Path manifestPath) throws IOException {
-    Path propsTempFile = Files.createTempFile("propsfile", ".txt");
     String propCmd = gradleExecutable + " properties";
     String[] propCmdList = propCmd.split("\\s+");
 
     var result =
         Operations.runProcessGetFullOutput(
-            Path.of(manifestPath.getParent().toString()), propCmdList, null);
+            Path.of(manifestPath.getParent().toString()), propCmdList, null, TIMEOUT);
 
     if (result.getExitCode() != 0) {
       throw new RuntimeException(
@@ -257,6 +263,7 @@ public final class GradleProvider extends BaseJavaProvider {
               result.getExitCode(), manifestPath, result.getError()));
     }
 
+    Path propsTempFile = Files.createTempFile("propsfile", ".txt");
     Files.writeString(propsTempFile, result.getOutput());
     return propsTempFile;
   }
@@ -542,24 +549,28 @@ public final class GradleProvider extends BaseJavaProvider {
 
   private Map<String, String> extractProperties(Path manifestPath) throws IOException {
     Path propsTempFile = getProperties(manifestPath);
-    String content = Files.readString(propsTempFile);
-    // Define the regular expression pattern for key-value pairs
-    Pattern pattern = Pattern.compile("([^:]+):\\s+(.+)");
-    Matcher matcher = pattern.matcher(content);
-    // Create a Map to store key-value pairs
-    Map<String, String> keyValueMap = new HashMap<>();
+    try {
+      String content = Files.readString(propsTempFile);
+      // Define the regular expression pattern for key-value pairs
+      Pattern pattern = Pattern.compile("([^:]+):\\s+(.+)");
+      Matcher matcher = pattern.matcher(content);
+      // Create a Map to store key-value pairs
+      Map<String, String> keyValueMap = new HashMap<>();
 
-    // Iterate through matches and add them to the map
-    while (matcher.find()) {
-      String key = matcher.group(1).trim();
-      String value = matcher.group(2).trim();
-      keyValueMap.put(key, value);
-    }
-    // Check if any key-value pairs were found
-    if (!keyValueMap.isEmpty()) {
-      return keyValueMap;
-    } else {
-      return Collections.emptyMap();
+      // Iterate through matches and add them to the map
+      while (matcher.find()) {
+        String key = matcher.group(1).trim();
+        String value = matcher.group(2).trim();
+        keyValueMap.put(key, value);
+      }
+      // Check if any key-value pairs were found
+      if (!keyValueMap.isEmpty()) {
+        return keyValueMap;
+      } else {
+        return Collections.emptyMap();
+      }
+    } finally {
+      Files.deleteIfExists(propsTempFile);
     }
   }
 
@@ -588,14 +599,17 @@ public final class GradleProvider extends BaseJavaProvider {
 
   @Override
   public Content provideComponent() throws IOException {
-
     Path tempFile = getDependencies(manifest);
-    Map<String, String> propertiesMap = extractProperties(manifest);
+    try {
+      Map<String, String> propertiesMap = extractProperties(manifest);
 
-    Sbom sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.COMPONENT);
-    var ignored = getIgnoredDeps(manifest);
+      Sbom sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.COMPONENT);
+      var ignored = getIgnoredDeps(manifest);
 
-    return new Content(
-        sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
+      return new Content(
+          sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
   }
 }

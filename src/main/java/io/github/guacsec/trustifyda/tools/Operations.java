@@ -194,8 +194,15 @@ public final class Operations {
     }
   }
 
+  private static final long DEFAULT_PROCESS_TIMEOUT_SECONDS = 120L;
+
   public static ProcessExecOutput runProcessGetFullOutput(
       Path dir, final String[] cmdList, String[] envList) {
+    return runProcessGetFullOutput(dir, cmdList, envList, DEFAULT_PROCESS_TIMEOUT_SECONDS);
+  }
+
+  public static ProcessExecOutput runProcessGetFullOutput(
+      Path dir, final String[] cmdList, String[] envList, long timeoutSeconds) {
     try {
       Process process;
       if (dir == null) {
@@ -217,11 +224,12 @@ public final class Operations {
       CompletableFuture<String> stderrFuture =
           CompletableFuture.supplyAsync(() -> drainStream(process.getErrorStream()));
 
-      boolean finished = process.waitFor(30L, TimeUnit.SECONDS);
+      boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
       if (!finished) {
         process.destroyForcibly();
         throw new RuntimeException(
-            String.format("Command '%s' timed out after 30 seconds", join(" ", cmdList)));
+            String.format(
+                "Command '%s' timed out after %d seconds", join(" ", cmdList), timeoutSeconds));
       }
 
       return new ProcessExecOutput(stdoutFuture.get(), stderrFuture.get(), process.exitValue());

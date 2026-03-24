@@ -19,6 +19,7 @@ package io.github.guacsec.trustifyda.providers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
@@ -144,13 +145,13 @@ abstract class Gradle_Provider_Test extends ExhortTest {
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsDependencies), isNull()))
+                      any(Path.class), argThat(containsDependencies), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput(depTree, "", 0));
       mockedOperations
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsProperties), isNull()))
+                      any(Path.class), argThat(containsProperties), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput(gradleProperties, "", 0));
 
       // when providing stack content for our pom
@@ -248,13 +249,13 @@ abstract class Gradle_Provider_Test extends ExhortTest {
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsDependencies), isNull()))
+                      any(Path.class), argThat(containsDependencies), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput(depTree, "", 0));
       mockedOperations
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsProperties), isNull()))
+                      any(Path.class), argThat(containsProperties), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput(gradleProperties, "", 0));
 
       // when providing component content for our pom
@@ -309,13 +310,13 @@ abstract class Gradle_Provider_Test extends ExhortTest {
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsDependencies), isNull()))
+                      any(Path.class), argThat(containsDependencies), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
       mockedOperations
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsProperties), isNull()))
+                      any(Path.class), argThat(containsProperties), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
 
       assertThatThrownBy(() -> new GradleProvider(tmpGradleFile).provideStack())
@@ -369,13 +370,13 @@ abstract class Gradle_Provider_Test extends ExhortTest {
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsDependencies), isNull()))
+                      any(Path.class), argThat(containsDependencies), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
       mockedOperations
           .when(
               () ->
                   Operations.runProcessGetFullOutput(
-                      any(Path.class), argThat(containsProperties), isNull()))
+                      any(Path.class), argThat(containsProperties), isNull(), anyLong()))
           .thenReturn(new Operations.ProcessExecOutput("", gradleErrorOutput, 1));
 
       assertThatThrownBy(() -> new GradleProvider(tmpGradleFile).provideComponent())
