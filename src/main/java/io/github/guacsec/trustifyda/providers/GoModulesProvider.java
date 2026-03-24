@@ -22,6 +22,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
@@ -68,6 +69,11 @@ public final class GoModulesProvider extends Provider {
     super(Type.GOLANG, manifest);
     this.goExecutable = Operations.getExecutable("go", "version");
     this.mainModuleVersion = getDefaultMainModuleVersion();
+  }
+
+  @Override
+  public String readLicenseFromManifest() {
+    return LicenseUtils.readLicenseFile(manifest);
   }
 
   @Override
@@ -288,7 +294,7 @@ public final class GoModulesProvider extends Provider {
 
     PackageURL root = toPurl(rootPackage, "@");
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(root);
+    sbom.addRoot(root, readLicenseFromManifest());
     edges.forEach(
         (key, value) -> {
           PackageURL source = toPurl(key, "@");
@@ -417,7 +423,7 @@ public final class GoModulesProvider extends Provider {
     List<String> deps = collectAllDirectDependencies(Arrays.asList(allModulesFlat), parentVertex);
 
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(root);
+    sbom.addRoot(root, readLicenseFromManifest());
     deps.stream()
         .filter(dep -> !isGoToolchainEntry(dep))
         .forEach(

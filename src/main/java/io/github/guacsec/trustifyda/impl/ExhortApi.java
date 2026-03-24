@@ -23,10 +23,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
+import io.github.guacsec.trustifyda.ComponentAnalysisResult;
 import io.github.guacsec.trustifyda.Provider;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
+import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.utils.Environment;
@@ -37,11 +39,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -75,6 +79,9 @@ public final class ExhortApi implements Api {
   public static final String TRUSTIFY_DA_REQUEST_ID_HEADER_NAME = "ex-request-id";
   public static final String S_API_V_5_ANALYSIS = "%s/api/v5/analysis";
   public static final String S_API_V_5_BATCH_ANALYSIS = "%s/api/v5/batch-analysis";
+  public static final String S_API_V5_LICENSES = "%s/api/v5/licenses/%s";
+  public static final String S_API_V5_LICENSES_IDENTIFY = "%s/api/v5/licenses/identify";
+  private static final String TRUSTIFY_DA_LICENSE_CHECK = "TRUSTIFY_DA_LICENSE_CHECK";
 
   private final String endpoint;
 
@@ -272,7 +279,6 @@ public final class ExhortApi implements Api {
         .sendAsync(
             this.buildStackRequest(manifestFile, MediaType.APPLICATION_JSON),
             HttpResponse.BodyHandlers.ofString())
-        //      .thenApply(HttpResponse::body)
         .thenApply(
             response ->
                 getAnalysisReportFromResponse(response, "StackAnalysis", "json", exClientTraceId))
@@ -283,7 +289,6 @@ public final class ExhortApi implements Api {
                       "failed to invoke stackAnalysis for getting the json report, received"
                           + " message= %s ",
                       exception.getMessage()));
-              //        LOG.log(System.Logger.Level.ERROR, "Exception Entity", exception);
               return new AnalysisReport();
             });
   }
@@ -557,6 +562,137 @@ public final class ExhortApi implements Api {
     return responseGenerator.apply(response);
   }
 
+  private static boolean isLicenseCheckEnabled() {
+    return Environment.getBoolean(TRUSTIFY_DA_LICENSE_CHECK, true);
+  }
+
+  @Override
+  public CompletableFuture<ComponentAnalysisResult> componentAnalysisWithLicense(
+      String manifestFile) throws IOException {
+    String exClientTraceId = commonHookBeginning(false);
+    var manifestPath = Path.of(manifestFile);
+    var provider = Ecosystem.getProvider(manifestPath);
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
+    var content = provider.provideComponent();
+    String sbomJson = new String(content.buffer);
+    commonHookAfterProviderCreatedSbomAndBeforeExhort();
+    return getAnalysisReportForComponent(uri, content, exClientTraceId)
+        .thenCompose(
+            report -> {
+              if (!isLicenseCheckEnabled()) {
+                return CompletableFuture.completedFuture(new ComponentAnalysisResult(report, null));
+              }
+              return LicenseCheck.runLicenseCheck(this, provider, manifestPath, sbomJson, report)
+                  .thenApply(summary -> new ComponentAnalysisResult(report, summary))
+                  .exceptionally(
+                      ex -> {
+                        LOG.warning(
+                            String.format(
+                                "License check failed, continuing without it: %s",
+                                ex.getMessage()));
+                        return new ComponentAnalysisResult(report, null);
+                      });
+            });
+  }
+
+  /**
+   * Fetch license details by SPDX identifier from the backend GET /api/v5/licenses/{spdx}.
+   *
+   * @param spdxId SPDX identifier (e.g., "Apache-2.0", "MIT")
+   * @return a CompletableFuture with license details as a JsonNode, or null if not found
+   */
+  public CompletableFuture<JsonNode> getLicenseDetails(String spdxId) {
+    String encodedId = URLEncoder.encode(spdxId, StandardCharsets.UTF_8).replace("+", "%20");
+    URI uri = URI.create(String.format(S_API_V5_LICENSES, this.endpoint, encodedId));
+    HttpRequest request = buildGetRequest(uri, "License Details");
+
+    return this.client
+        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        .thenApply(
+            response -> {
+              if (response.statusCode() == 200) {
+                try {
+                  return this.mapper.readTree(response.body());
+                } catch (IOException e) {
+                  LOG.warning(
+                      String.format(
+                          "Failed to parse license details for '%s': %s", spdxId, e.getMessage()));
+                  return null;
+                }
+              }
+              LOG.warning(
+                  String.format(
+                      "Failed to fetch license details for '%s': HTTP %d",
+                      spdxId, response.statusCode()));
+              return null;
+            })
+        .exceptionally(
+            ex -> {
+              LOG.warning(
+                  String.format(
+                      "Failed to fetch license details for '%s': %s", spdxId, ex.getMessage()));
+              return null;
+            });
+  }
+
+  /**
+   * Call backend POST /api/v5/licenses/identify to identify license from file content.
+   *
+   * @param licenseFilePath path to LICENSE file
+   * @return a CompletableFuture with SPDX identifier or null
+   */
+  public CompletableFuture<String> identifyLicense(Path licenseFilePath) {
+    byte[] fileContent;
+    try {
+      fileContent = Files.readAllBytes(licenseFilePath);
+    } catch (IOException e) {
+      LOG.warning(String.format("Failed to read license file: %s", e.getMessage()));
+      return CompletableFuture.completedFuture(null);
+    }
+    URI uri = URI.create(String.format(S_API_V5_LICENSES_IDENTIFY, this.endpoint));
+    HttpRequest request =
+        buildPostRequest(
+            uri,
+            "application/octet-stream",
+            HttpRequest.BodyPublishers.ofByteArray(fileContent),
+            "License Identify");
+
+    return this.client
+        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        .thenApply(
+            response -> {
+              if (response.statusCode() == 200) {
+                try {
+                  JsonNode data = this.mapper.readTree(response.body());
+                  JsonNode licenseNode = data.get("license");
+                  if (licenseNode != null && licenseNode.has("id")) {
+                    String id = licenseNode.get("id").asText();
+                    return id.isBlank() ? null : id;
+                  }
+                  if (data.has("spdx_id")) {
+                    String spdxId = data.get("spdx_id").asText();
+                    return spdxId.isBlank() ? null : spdxId;
+                  }
+                  if (data.has("identifier")) {
+                    String identifier = data.get("identifier").asText();
+                    return identifier.isBlank() ? null : identifier;
+                  }
+                } catch (IOException e) {
+                  LOG.warning(
+                      String.format(
+                          "Failed to parse license identify response: %s", e.getMessage()));
+                }
+              }
+              return null;
+            })
+        .exceptionally(
+            ex -> {
+              LOG.warning(
+                  String.format("Failed to identify license from file: %s", ex.getMessage()));
+              return null;
+            });
+  }
+
   /**
    * Build an HTTP request for sending to the Backend API.
    *
@@ -578,21 +714,50 @@ public final class ExhortApi implements Api {
             .setHeader("Content-Type", content.type)
             .POST(HttpRequest.BodyPublishers.ofString(new String(content.buffer)));
 
-    // set trust-da-token
-    // Environment variable/property name = TRUST_DA_TOKEN
+    applyCommonHeaders(request, analysisType);
+
+    return request.build();
+  }
+
+  private HttpRequest buildGetRequest(final URI uri, final String operationType) {
+    var request =
+        HttpRequest.newBuilder(uri)
+            .version(Version.HTTP_1_1)
+            .setHeader("Accept", MediaType.APPLICATION_JSON.toString())
+            .GET();
+
+    applyCommonHeaders(request, operationType);
+
+    return request.build();
+  }
+
+  private HttpRequest buildPostRequest(
+      final URI uri,
+      final String contentType,
+      final HttpRequest.BodyPublisher bodyPublisher,
+      final String operationType) {
+    var request =
+        HttpRequest.newBuilder(uri)
+            .version(Version.HTTP_1_1)
+            .setHeader("Accept", MediaType.APPLICATION_JSON.toString())
+            .setHeader("Content-Type", contentType)
+            .POST(bodyPublisher);
+
+    applyCommonHeaders(request, operationType);
+
+    return request.build();
+  }
+
+  private void applyCommonHeaders(HttpRequest.Builder request, String operationType) {
     String trustDaToken = calculateHeaderValue(TRUST_DA_TOKEN_HEADER);
     if (trustDaToken != null) {
       request.setHeader(TRUST_DA_TOKEN_HEADER, trustDaToken);
     }
-    // set trust-da-source ( extension/plugin id/name)
-    // Environment variable/property name = TRUST_DA_SOURCE
     String trustDaSource = calculateHeaderValue(TRUST_DA_SOURCE_HEADER);
     if (trustDaSource != null) {
       request.setHeader(TRUST_DA_SOURCE_HEADER, trustDaSource);
     }
-    request.setHeader(TRUST_DA_OPERATION_TYPE_HEADER, analysisType);
-
-    return request.build();
+    request.setHeader(TRUST_DA_OPERATION_TYPE_HEADER, operationType);
   }
 
   private String calculateHeaderValue(String headerName) {

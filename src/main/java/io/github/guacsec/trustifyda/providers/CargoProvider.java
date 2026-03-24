@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoDep;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoDepKind;
@@ -610,6 +611,26 @@ public final class CargoProvider extends Provider {
   }
 
   @Override
+  public String readLicenseFromManifest() {
+    String manifestLicense = readLicenseFromToml(null);
+    return LicenseUtils.getLicense(manifestLicense, manifest);
+  }
+
+  private String readLicenseFromToml(TomlParseResult existingResult) {
+    try {
+      TomlParseResult tomlResult = existingResult != null ? existingResult : Toml.parse(manifest);
+      if (tomlResult.hasErrors()) {
+        return null;
+      }
+      String license = tomlResult.getString("package.license");
+      return LicenseUtils.getLicense(license, manifest);
+    } catch (IOException e) {
+      log.warning("Failed to read license from Cargo.toml: " + e.getMessage());
+      return LicenseUtils.getLicense(null, manifest);
+    }
+  }
+
+  @Override
   public Content provideComponent() throws IOException {
     Sbom sbom = createSbom(AnalysisType.COMPONENT);
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
@@ -639,7 +660,7 @@ public final class CargoProvider extends Provider {
       var root =
           new PackageURL(
               Type.CARGO.getType(), null, projectInfo.name(), projectInfo.version(), null, null);
-      sbom.addRoot(root);
+      sbom.addRoot(root, readLicenseFromToml(tomlResult));
 
       String cargoContent = Files.readString(manifest, StandardCharsets.UTF_8);
       Set<String> ignoredDeps = getIgnoredDependencies(tomlResult, cargoContent);

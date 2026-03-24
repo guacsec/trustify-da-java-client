@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
+import io.github.guacsec.trustifyda.ComponentAnalysisResult;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.api.v5.ProviderReport;
@@ -326,7 +327,7 @@ class AppTest extends ExhortTest {
     CliArgs args = new CliArgs(Command.COMPONENT, TEST_FILE, OutputFormat.JSON);
 
     // Create a failed future to simulate ExecutionException
-    CompletableFuture<AnalysisReport> failedFuture = new CompletableFuture<>();
+    CompletableFuture<ComponentAnalysisResult> failedFuture = new CompletableFuture<>();
     failedFuture.completeExceptionally(new RuntimeException("Analysis failed"));
 
     // Mock ExhortApi constructor
@@ -334,7 +335,7 @@ class AppTest extends ExhortTest {
         mockConstruction(
             ExhortApi.class,
             (mock, context) -> {
-              when(mock.componentAnalysis(any(String.class))).thenReturn(failedFuture);
+              when(mock.componentAnalysisWithLicense(any(String.class))).thenReturn(failedFuture);
             })) {
 
       // Use reflection to access the private executeCommand method
@@ -402,10 +403,12 @@ class AppTest extends ExhortTest {
     assertThat(Command.STACK).isNotNull();
     assertThat(Command.COMPONENT).isNotNull();
     assertThat(Command.IMAGE).isNotNull();
-    assertThat(Command.values()).hasSize(3);
+    assertThat(Command.LICENSE).isNotNull();
+    assertThat(Command.values()).hasSize(4);
     assertThat(Command.valueOf("STACK")).isEqualTo(Command.STACK);
     assertThat(Command.valueOf("COMPONENT")).isEqualTo(Command.COMPONENT);
     assertThat(Command.valueOf("IMAGE")).isEqualTo(Command.IMAGE);
+    assertThat(Command.valueOf("LICENSE")).isEqualTo(Command.LICENSE);
   }
 
   @Test
@@ -613,13 +616,14 @@ class AppTest extends ExhortTest {
 
     // Test with absolute path to pom.xml
     String absolutePomPath = System.getProperty("user.dir") + "/pom.xml";
+    ComponentAnalysisResult mockResult = new ComponentAnalysisResult(mockReport, null);
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class);
         MockedConstruction<ExhortApi> mockedExhortApi =
             mockConstruction(
                 ExhortApi.class,
                 (mock, context) -> {
-                  when(mock.componentAnalysis(any(String.class)))
-                      .thenReturn(CompletableFuture.completedFuture(mockReport));
+                  when(mock.componentAnalysisWithLicense(any(String.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResult));
                 })) {
 
       App.main(new String[] {"component", absolutePomPath});
@@ -693,13 +697,14 @@ class AppTest extends ExhortTest {
     }
 
     // Test default JSON format for component command (no format flag)
+    ComponentAnalysisResult mockResult2 = new ComponentAnalysisResult(mockReport, null);
     try (MockedStatic<AppUtils> mockedAppUtils = mockStatic(AppUtils.class);
         MockedConstruction<ExhortApi> mockedExhortApi =
             mockConstruction(
                 ExhortApi.class,
                 (mock, context) -> {
-                  when(mock.componentAnalysis(any(String.class)))
-                      .thenReturn(CompletableFuture.completedFuture(mockReport));
+                  when(mock.componentAnalysisWithLicense(any(String.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResult2));
                 })) {
 
       App.main(new String[] {"component", "pom.xml"});

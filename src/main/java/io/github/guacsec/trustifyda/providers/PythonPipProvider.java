@@ -23,6 +23,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
@@ -61,13 +62,20 @@ public final class PythonPipProvider extends Provider {
   }
 
   @Override
+  public String readLicenseFromManifest() {
+    return LicenseUtils.readLicenseFile(manifest);
+  }
+
+  @Override
   public Content provideStack() throws IOException {
     PythonControllerBase pythonController = getPythonController();
     List<Map<String, Object>> dependencies =
         pythonController.getDependencies(manifest.toString(), true);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
-    sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION));
+    sbom.addRoot(
+        toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
+        readLicenseFromManifest());
     for (Map<String, Object> component : dependencies) {
       addAllDependencies(sbom.getRoot(), component, sbom);
     }
@@ -99,7 +107,9 @@ public final class PythonPipProvider extends Provider {
         pythonController.getDependencies(manifest.toString(), false);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance();
-    sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION));
+    sbom.addRoot(
+        toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
+        readLicenseFromManifest());
     dependencies.forEach(
         (component) ->
             sbom.addDependency(

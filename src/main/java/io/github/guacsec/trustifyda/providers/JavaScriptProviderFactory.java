@@ -16,7 +16,6 @@
  */
 package io.github.guacsec.trustifyda.providers;
 
-import io.github.guacsec.trustifyda.Provider;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -24,13 +23,13 @@ import java.util.function.Function;
 
 public final class JavaScriptProviderFactory {
 
-  private static final Map<String, Function<Path, Provider>> JS_PROVIDERS =
+  private static final Map<String, Function<Path, JavaScriptProvider>> JS_PROVIDERS =
       Map.of(
           JavaScriptNpmProvider.LOCK_FILE, JavaScriptNpmProvider::new,
           JavaScriptYarnProvider.LOCK_FILE, JavaScriptYarnProvider::new,
           JavaScriptPnpmProvider.LOCK_FILE, JavaScriptPnpmProvider::new);
 
-  public static Provider create(final Path manifestPath) {
+  public static JavaScriptProvider create(final Path manifestPath) {
     var manifestDir = manifestPath.getParent();
     for (var entry : JS_PROVIDERS.entrySet()) {
       var lockFilePath = manifestDir.resolve(entry.getKey());

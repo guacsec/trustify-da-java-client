@@ -41,7 +41,9 @@ import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Dependency;
+import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.util.LicenseResolver;
 
 public class CycloneDXSbom implements Sbom {
 
@@ -121,8 +123,18 @@ public class CycloneDXSbom implements Sbom {
   }
 
   public Sbom addRoot(PackageURL rootRef) {
+    return addRoot(rootRef, null);
+  }
+
+  public Sbom addRoot(PackageURL rootRef, String license) {
     this.root = rootRef;
     Component rootComponent = newRootComponent(rootRef);
+    if (license != null && !license.isBlank()) {
+      LicenseChoice licenseChoice = LicenseResolver.resolve(license);
+      if (licenseChoice != null) {
+        rootComponent.setLicenses(licenseChoice);
+      }
+    }
     bom.getMetadata().setComponent(rootComponent);
     bom.getComponents().add(rootComponent);
     bom.getDependencies().add(newDependency(rootRef));

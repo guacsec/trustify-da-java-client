@@ -23,6 +23,8 @@ public interface Sbom {
 
   public Sbom addRoot(PackageURL root);
 
+  public Sbom addRoot(PackageURL root, String license);
+
   public PackageURL getRoot();
 
   public <T> Sbom filterIgnoredDeps(Collection<T> ignoredDeps);

@@ -13,9 +13,13 @@ COMMANDS:
 
   component <file_path> [--summary]
     Perform component analysis on the specified manifest file
+    License compatibility checking is included by default in JSON output
     Options:
-      --summary    Output summary in JSON format
-      (default)    Output full report in JSON format
+      --summary    Output summary in JSON format (without license check)
+      (default)    Output full report in JSON format (includes license summary)
+
+  license <file_path>
+    Display project license information from manifest and LICENSE file in JSON format
 
   image <image_ref> [<image_ref>...] [--summary|--html]
     Perform security analysis on the specified container image(s)
@@ -32,7 +36,8 @@ OPTIONS:
   -h, --help     Show this help message
 
 ENVIRONMENT VARIABLES:
-  TRUSTIFY_DA_BACKEND_URL    Backend URL for the Trustify Dependency Analytics service (required)
+  TRUSTIFY_DA_BACKEND_URL      Backend URL for the Trustify Dependency Analytics service (required)
+  TRUSTIFY_DA_LICENSE_CHECK    Enable/disable license check in component analysis (default: true)
 
 EXAMPLES:
   export TRUSTIFY_DA_BACKEND_URL=https://your-backend.url
@@ -43,6 +48,9 @@ EXAMPLES:
   java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
   java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
   java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml
+
+  # License information
+  java -jar trustify-da-java-client-cli.jar license /path/to/pom.xml
 
   # Container image analysis
   java -jar trustify-da-java-client-cli.jar image nginx:latest
