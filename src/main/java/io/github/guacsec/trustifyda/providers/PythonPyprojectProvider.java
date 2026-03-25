@@ -18,6 +18,7 @@ package io.github.guacsec.trustifyda.providers;
 
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.license.LicenseUtils;
+import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -33,6 +35,9 @@ import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
 public final class PythonPyprojectProvider extends PythonProvider {
+
+  private static final Logger log =
+      LoggersFactory.getLogger(PythonPyprojectProvider.class.getName());
 
   private Set<String> collectedIgnoredDeps;
   private TomlParseResult cachedToml;
@@ -58,11 +63,12 @@ public final class PythonPyprojectProvider extends PythonProvider {
 
   private TomlParseResult getToml() throws IOException {
     if (cachedToml == null) {
-      cachedToml = Toml.parse(manifest);
-      if (cachedToml.hasErrors()) {
+      TomlParseResult parsed = Toml.parse(manifest);
+      if (parsed.hasErrors()) {
         throw new IOException(
-            "Invalid pyproject.toml format: " + cachedToml.errors().get(0).getMessage());
+            "Invalid pyproject.toml format: " + parsed.errors().get(0).getMessage());
       }
+      cachedToml = parsed;
     }
     return cachedToml;
   }
@@ -80,7 +86,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
         return poetryName;
       }
     } catch (IOException e) {
-      // fall through to default
+      log.fine("Failed to parse pyproject.toml for root component name: " + e.getMessage());
     }
     return super.getRootComponentName();
   }
@@ -98,7 +104,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
         return poetryVersion;
       }
     } catch (IOException e) {
-      // fall through to default
+      log.fine("Failed to parse pyproject.toml for root component version: " + e.getMessage());
     }
     return super.getRootComponentVersion();
   }
@@ -121,7 +127,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
         return poetryLicense;
       }
     } catch (IOException e) {
-      // fall through to LICENSE file
+      log.fine("Failed to parse pyproject.toml for license: " + e.getMessage());
     }
     return LicenseUtils.readLicenseFile(manifest);
   }
