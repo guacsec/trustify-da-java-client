@@ -69,6 +69,14 @@ public abstract class PythonProvider extends Provider {
     return LicenseUtils.readLicenseFile(manifest);
   }
 
+  protected String getRootComponentName() {
+    return DEFAULT_PIP_ROOT_COMPONENT_NAME;
+  }
+
+  protected String getRootComponentVersion() {
+    return DEFAULT_PIP_ROOT_COMPONENT_VERSION;
+  }
+
   /**
    * Returns the path to a requirements-format file that the {@link PythonControllerBase} can
    * consume. For requirements.txt this is the manifest itself; for pyproject.toml a temporary file
@@ -92,8 +100,7 @@ public abstract class PythonProvider extends Provider {
       printDependenciesTree(dependencies);
       Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
       sbom.addRoot(
-          toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
-          readLicenseFromManifest());
+          toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
       for (Map<String, Object> component : dependencies) {
         addAllDependencies(sbom.getRoot(), component, sbom);
       }
@@ -120,8 +127,7 @@ public abstract class PythonProvider extends Provider {
       printDependenciesTree(dependencies);
       Sbom sbom = SbomFactory.newInstance();
       sbom.addRoot(
-          toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION),
-          readLicenseFromManifest());
+          toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
       dependencies.forEach(
           (component) ->
               sbom.addDependency(

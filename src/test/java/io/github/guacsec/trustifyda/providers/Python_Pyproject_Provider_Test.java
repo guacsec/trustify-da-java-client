@@ -164,6 +164,75 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
   }
 
   @Test
+  void test_getRootComponentName_reads_pep621_name() {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentName()).isEqualTo("test-project");
+  }
+
+  @Test
+  void test_getRootComponentName_reads_poetry_name() {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentName()).isEqualTo("test-project");
+  }
+
+  @Test
+  void test_getRootComponentName_falls_back_to_default() {
+    Path pyprojectPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_metadata/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentName()).isEqualTo("default-pip-root");
+  }
+
+  @Test
+  void test_getRootComponentVersion_reads_pep621_version() {
+    Path pyprojectPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_pep621_license/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentVersion()).isEqualTo("2.0.0");
+  }
+
+  @Test
+  void test_getRootComponentVersion_reads_poetry_version() {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentVersion()).isEqualTo("0.1.0");
+  }
+
+  @Test
+  void test_getRootComponentVersion_falls_back_to_default() {
+    Path pyprojectPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_metadata/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.getRootComponentVersion()).isEqualTo("0.0.0");
+  }
+
+  @Test
+  void test_readLicenseFromManifest_reads_pep621_license() {
+    Path pyprojectPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_pep621_license/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.readLicenseFromManifest()).isEqualTo("MIT");
+  }
+
+  @Test
+  void test_readLicenseFromManifest_reads_poetry_license() {
+    Path pyprojectPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry_license/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThat(provider.readLicenseFromManifest()).isEqualTo("Apache-2.0");
+  }
+
+  @Test
   void test_provideComponent_generates_correct_media_type() throws IOException {
     Path pyprojectPath =
         Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");

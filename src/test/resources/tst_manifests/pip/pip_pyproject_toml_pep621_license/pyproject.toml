@@ -1,0 +1,7 @@
+[project]
+name = "licensed-project"
+version = "2.0.0"
+license = "MIT"
+dependencies = [
+    "anyio==3.6.2",
+]

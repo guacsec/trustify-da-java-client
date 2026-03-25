@@ -17,6 +17,7 @@
 package io.github.guacsec.trustifyda.providers;
 
 import com.github.packageurl.PackageURL;
+import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ import org.tomlj.TomlTable;
 public final class PythonPyprojectProvider extends PythonProvider {
 
   private Set<String> collectedIgnoredDeps;
+  private TomlParseResult cachedToml;
 
   public PythonPyprojectProvider(Path manifest) {
     super(manifest);
@@ -54,6 +56,76 @@ public final class PythonPyprojectProvider extends PythonProvider {
     Files.deleteIfExists(requirementsPath.getParent());
   }
 
+  private TomlParseResult getToml() throws IOException {
+    if (cachedToml == null) {
+      cachedToml = Toml.parse(manifest);
+      if (cachedToml.hasErrors()) {
+        throw new IOException(
+            "Invalid pyproject.toml format: " + cachedToml.errors().get(0).getMessage());
+      }
+    }
+    return cachedToml;
+  }
+
+  @Override
+  protected String getRootComponentName() {
+    try {
+      TomlParseResult toml = getToml();
+      String name = toml.getString("project.name");
+      if (name != null && !name.isBlank()) {
+        return name;
+      }
+      String poetryName = toml.getString("tool.poetry.name");
+      if (poetryName != null && !poetryName.isBlank()) {
+        return poetryName;
+      }
+    } catch (IOException e) {
+      // fall through to default
+    }
+    return super.getRootComponentName();
+  }
+
+  @Override
+  protected String getRootComponentVersion() {
+    try {
+      TomlParseResult toml = getToml();
+      String version = toml.getString("project.version");
+      if (version != null && !version.isBlank()) {
+        return version;
+      }
+      String poetryVersion = toml.getString("tool.poetry.version");
+      if (poetryVersion != null && !poetryVersion.isBlank()) {
+        return poetryVersion;
+      }
+    } catch (IOException e) {
+      // fall through to default
+    }
+    return super.getRootComponentVersion();
+  }
+
+  @Override
+  public String readLicenseFromManifest() {
+    try {
+      TomlParseResult toml = getToml();
+      String license = toml.getString("project.license");
+      if (license != null && !license.isBlank()) {
+        return license;
+      }
+      // PEP 639: license may be in project.license.text
+      String licenseText = toml.getString("project.license.text");
+      if (licenseText != null && !licenseText.isBlank()) {
+        return licenseText;
+      }
+      String poetryLicense = toml.getString("tool.poetry.license");
+      if (poetryLicense != null && !poetryLicense.isBlank()) {
+        return poetryLicense;
+      }
+    } catch (IOException e) {
+      // fall through to LICENSE file
+    }
+    return LicenseUtils.readLicenseFile(manifest);
+  }
+
   @Override
   protected Set<PackageURL> getIgnoredDependencies(String manifestContent) {
     if (collectedIgnoredDeps == null) {
@@ -69,10 +141,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
   }
 
   List<String> parseDependencyStrings() throws IOException {
-    TomlParseResult toml = Toml.parse(manifest);
-    if (toml.hasErrors()) {
-      throw new IOException("Invalid pyproject.toml format: " + toml.errors().get(0).getMessage());
-    }
+    TomlParseResult toml = getToml();
 
     List<String> rawLines = Files.readAllLines(manifest);
     collectedIgnoredDeps = new HashSet<>();
