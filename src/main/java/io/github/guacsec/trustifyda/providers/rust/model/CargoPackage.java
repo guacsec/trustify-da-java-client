@@ -24,4 +24,5 @@ public record CargoPackage(
     @JsonProperty("name") String name,
     @JsonProperty("version") String version,
     @JsonProperty("id") String id,
+    @JsonProperty("manifest_path") String manifestPath,
     @JsonProperty("dependencies") List<CargoDependency> dependencies) {}

@@ -202,10 +202,57 @@ public final class CargoProvider extends Provider {
                   + metadata.workspaceMembers());
         }
         for (String memberId : metadata.workspaceMembers()) {
+          Set<String> memberIgnoredDeps = getMemberIgnoredDeps(memberId, packageMap, ignoredDeps);
           processWorkspaceMember(
-              sbom, root, memberId, nodeMap, packageMap, ignoredDeps, analysisType);
+              sbom, root, memberId, nodeMap, packageMap, memberIgnoredDeps, analysisType);
         }
       }
+    }
+  }
+
+  /**
+   * Builds the full set of ignored dependencies for a workspace member by reading the member's own
+   * Cargo.toml for ignore patterns and merging them with the workspace-level ignored deps.
+   */
+  private Set<String> getMemberIgnoredDeps(
+      String memberId, Map<String, CargoPackage> packageMap, Set<String> workspaceIgnoredDeps) {
+    CargoPackage memberPkg = packageMap.get(memberId);
+    if (memberPkg == null || memberPkg.manifestPath() == null) {
+      return workspaceIgnoredDeps;
+    }
+    Path memberManifest = Path.of(memberPkg.manifestPath());
+    if (!Files.isRegularFile(memberManifest)) {
+      return workspaceIgnoredDeps;
+    }
+    try {
+      TomlParseResult memberToml = Toml.parse(memberManifest);
+      if (memberToml.hasErrors()) {
+        return workspaceIgnoredDeps;
+      }
+      String memberContent = Files.readString(memberManifest, StandardCharsets.UTF_8);
+      Set<String> memberIgnored = getIgnoredDependencies(memberToml, memberContent);
+      if (memberIgnored.isEmpty()) {
+        return workspaceIgnoredDeps;
+      }
+      if (debugLoggingIsNeeded()) {
+        log.info(
+            "Found "
+                + memberIgnored.size()
+                + " ignored dependencies in member "
+                + memberPkg.name()
+                + ": "
+                + memberIgnored);
+      }
+      Set<String> merged = new HashSet<>(workspaceIgnoredDeps);
+      merged.addAll(memberIgnored);
+      return merged;
+    } catch (IOException e) {
+      log.warning(
+          "Failed to read member Cargo.toml for ignore patterns: "
+              + memberManifest
+              + ": "
+              + e.getMessage());
+      return workspaceIgnoredDeps;
     }
   }
 

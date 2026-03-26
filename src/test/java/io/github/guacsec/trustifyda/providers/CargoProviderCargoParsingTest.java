@@ -766,4 +766,83 @@ public class CargoProviderCargoParsingTest {
                 sbom, root, new HashMap<>(), new HashSet<>(), tomlResult),
         "processWorkspaceDependencies should handle missing [workspace.dependencies] gracefully");
   }
+
+  @Test
+  public void testMemberCargoTomlIgnorePatternsDetected(@TempDir Path tempDir) throws Exception {
+    // Simulate a member's Cargo.toml with exhortignore on a dependency
+    Path memberDir = tempDir.resolve("crate-a");
+    Files.createDirectories(memberDir);
+    Path memberCargoToml = memberDir.resolve("Cargo.toml");
+    String memberContent =
+        """
+        [package]
+        name = "crate-a"
+        version = "0.1.0"
+        edition = "2021"
+
+        [dependencies]
+        serde = "1.0" # exhortignore
+        tokio = "1.0"
+        reqwest = "0.11" # trustify-da-ignore
+        """;
+    Files.writeString(memberCargoToml, memberContent);
+
+    CargoProvider provider = new CargoProvider(memberCargoToml);
+
+    java.lang.reflect.Method method =
+        CargoProvider.class.getDeclaredMethod(
+            "getIgnoredDependencies", TomlParseResult.class, String.class);
+    method.setAccessible(true);
+
+    TomlParseResult tomlResult = Toml.parse(memberCargoToml);
+    String content = Files.readString(memberCargoToml, StandardCharsets.UTF_8);
+
+    @SuppressWarnings("unchecked")
+    Set<String> ignoredDeps = (Set<String>) method.invoke(provider, tomlResult, content);
+
+    assertTrue(ignoredDeps.contains("serde"), "serde should be ignored (exhortignore)");
+    assertFalse(ignoredDeps.contains("tokio"), "tokio should NOT be ignored");
+    assertTrue(ignoredDeps.contains("reqwest"), "reqwest should be ignored (trustify-da-ignore)");
+    assertEquals(2, ignoredDeps.size(), "Should find exactly 2 ignored dependencies in member");
+  }
+
+  @Test
+  public void testMemberIgnorePatternsWithTableFormat(@TempDir Path tempDir) throws Exception {
+    Path memberDir = tempDir.resolve("crate-b");
+    Files.createDirectories(memberDir);
+    Path memberCargoToml = memberDir.resolve("Cargo.toml");
+    String memberContent =
+        """
+        [package]
+        name = "crate-b"
+        version = "0.1.0"
+        edition = "2021"
+
+        [dependencies]
+        serde-json-wasm = "1.0"
+
+        [dependencies.aho-corasick] # trustify-da-ignore
+        version = "1.0.0"
+        """;
+    Files.writeString(memberCargoToml, memberContent);
+
+    CargoProvider provider = new CargoProvider(memberCargoToml);
+
+    java.lang.reflect.Method method =
+        CargoProvider.class.getDeclaredMethod(
+            "getIgnoredDependencies", TomlParseResult.class, String.class);
+    method.setAccessible(true);
+
+    TomlParseResult tomlResult = Toml.parse(memberCargoToml);
+    String content = Files.readString(memberCargoToml, StandardCharsets.UTF_8);
+
+    @SuppressWarnings("unchecked")
+    Set<String> ignoredDeps = (Set<String>) method.invoke(provider, tomlResult, content);
+
+    assertFalse(ignoredDeps.contains("serde-json-wasm"), "serde-json-wasm should NOT be ignored");
+    assertTrue(
+        ignoredDeps.contains("aho-corasick"),
+        "aho-corasick should be ignored (table format with trustify-da-ignore)");
+    assertEquals(1, ignoredDeps.size(), "Should find exactly 1 ignored dependency in member");
+  }
 }
