@@ -467,46 +467,31 @@ public class ImageUtils {
     var configPath = Environment.get(TRUSTIFY_DA_SKOPEO_CONFIG_PATH, "");
     var daemonHost = Environment.get(TRUSTIFY_DA_IMAGE_SERVICE_ENDPOINT, "");
 
-    String[] cmd;
-    if (daemonHost.isEmpty()) {
-      cmd =
-          configPath.isEmpty()
-              ? new String[] {
-                skopeo,
-                "inspect",
-                raw ? "--raw" : "",
-                String.format("docker://%s", imageRef.getImage().getFullName())
-              }
-              : new String[] {
-                skopeo,
-                "inspect",
-                "--authfile",
-                configPath,
-                raw ? "--raw" : "",
-                String.format("docker://%s", imageRef.getImage().getFullName())
-              };
-    } else {
-      cmd =
-          configPath.isEmpty()
-              ? new String[] {
-                skopeo,
-                "inspect",
-                "--daemon-host",
-                daemonHost,
-                raw ? "--raw" : "",
-                String.format("docker-daemon:%s", imageRef.getImage().getFullName())
-              }
-              : new String[] {
-                skopeo,
-                "inspect",
-                "--authfile",
-                configPath,
-                "--daemon-host",
-                daemonHost,
-                raw ? "--raw" : "",
-                String.format("docker-daemon:%s", imageRef.getImage().getFullName())
-              };
+    var cmdList = new java.util.ArrayList<String>();
+    cmdList.add(skopeo);
+    cmdList.add("inspect");
+
+    if (!configPath.isEmpty()) {
+      cmdList.add("--authfile");
+      cmdList.add(configPath);
     }
+
+    if (!daemonHost.isEmpty()) {
+      cmdList.add("--daemon-host");
+      cmdList.add(daemonHost);
+    }
+
+    if (raw) {
+      cmdList.add("--raw");
+    }
+
+    if (daemonHost.isEmpty()) {
+      cmdList.add(String.format("docker://%s", imageRef.getImage().getFullName()));
+    } else {
+      cmdList.add(String.format("docker-daemon:%s", imageRef.getImage().getFullName()));
+    }
+
+    String[] cmd = cmdList.toArray(new String[0]);
 
     return Operations.runProcessGetFullOutput(null, cmd, null);
   }
