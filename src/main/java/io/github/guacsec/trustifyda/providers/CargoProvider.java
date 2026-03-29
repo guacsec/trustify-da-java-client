@@ -761,7 +761,7 @@ public final class CargoProvider extends Provider {
     throw new IOException("Invalid Cargo.toml: no [package] or [workspace] section found");
   }
 
-  private Set<String> getIgnoredDependencies(TomlParseResult result, String content) {
+  Set<String> getIgnoredDependencies(TomlParseResult result, String content) {
     Set<String> normalDependencies = collectNormalDependencies(result);
     if (debugLoggingIsNeeded()) {
       log.info("Found " + normalDependencies.size() + " normal dependencies in Cargo.toml");

@@ -405,23 +405,11 @@ public class CargoProviderCargoParsingTest {
         """;
     Files.writeString(cargoToml, content);
 
-    // Create RustProvider and test ignore detection
     CargoProvider provider = new CargoProvider(cargoToml);
-
-    // Read the file content for the updated method signature
     String cargoContent = Files.readString(cargoToml, StandardCharsets.UTF_8);
+    TomlParseResult tomlResult = Toml.parse(cargoToml);
 
-    // Parse TOML using TOMLJ (matching the optimized implementation)
-    org.tomlj.TomlParseResult tomlResult = org.tomlj.Toml.parse(cargoToml);
-
-    // Use reflection to test the private getIgnoredDependencies method with new signature
-    java.lang.reflect.Method method =
-        CargoProvider.class.getDeclaredMethod(
-            "getIgnoredDependencies", org.tomlj.TomlParseResult.class, String.class);
-    method.setAccessible(true);
-
-    @SuppressWarnings("unchecked")
-    Set<String> ignoredDeps = (Set<String>) method.invoke(provider, tomlResult, cargoContent);
+    Set<String> ignoredDeps = provider.getIgnoredDependencies(tomlResult, cargoContent);
 
     System.out.println("Complex syntax test - Ignored dependencies found:");
     for (String dep : ignoredDeps) {
@@ -627,20 +615,10 @@ public class CargoProviderCargoParsingTest {
     assertTrue(sbomContent.contains("edge-case-project"), "Should contain project name");
 
     // Test ignore detection with edge case formatting
-    // Read the file content for the updated method signature
     String edgeCargoContent = Files.readString(edgeCaseCargoToml, StandardCharsets.UTF_8);
+    TomlParseResult edgeTomlResult = Toml.parse(edgeCaseCargoToml);
 
-    // Parse TOML using TOMLJ (matching the optimized implementation)
-    org.tomlj.TomlParseResult edgeTomlResult = org.tomlj.Toml.parse(edgeCaseCargoToml);
-
-    java.lang.reflect.Method method =
-        CargoProvider.class.getDeclaredMethod(
-            "getIgnoredDependencies", org.tomlj.TomlParseResult.class, String.class);
-    method.setAccessible(true);
-
-    @SuppressWarnings("unchecked")
-    Set<String> ignoredDeps =
-        (Set<String>) method.invoke(provider, edgeTomlResult, edgeCargoContent);
+    Set<String> ignoredDeps = provider.getIgnoredDependencies(edgeTomlResult, edgeCargoContent);
 
     // Should detect ignore patterns despite varying spacing and formatting
     assertTrue(ignoredDeps.contains("dep1"), "Should ignore dep1 (extra spaces)");
@@ -788,17 +766,10 @@ public class CargoProviderCargoParsingTest {
     Files.writeString(memberCargoToml, memberContent);
 
     CargoProvider provider = new CargoProvider(memberCargoToml);
-
-    java.lang.reflect.Method method =
-        CargoProvider.class.getDeclaredMethod(
-            "getIgnoredDependencies", TomlParseResult.class, String.class);
-    method.setAccessible(true);
-
     TomlParseResult tomlResult = Toml.parse(memberCargoToml);
     String content = Files.readString(memberCargoToml, StandardCharsets.UTF_8);
 
-    @SuppressWarnings("unchecked")
-    Set<String> ignoredDeps = (Set<String>) method.invoke(provider, tomlResult, content);
+    Set<String> ignoredDeps = provider.getIgnoredDependencies(tomlResult, content);
 
     assertTrue(ignoredDeps.contains("serde"), "serde should be ignored (exhortignore)");
     assertFalse(ignoredDeps.contains("tokio"), "tokio should NOT be ignored");
@@ -827,17 +798,10 @@ public class CargoProviderCargoParsingTest {
     Files.writeString(memberCargoToml, memberContent);
 
     CargoProvider provider = new CargoProvider(memberCargoToml);
-
-    java.lang.reflect.Method method =
-        CargoProvider.class.getDeclaredMethod(
-            "getIgnoredDependencies", TomlParseResult.class, String.class);
-    method.setAccessible(true);
-
     TomlParseResult tomlResult = Toml.parse(memberCargoToml);
     String content = Files.readString(memberCargoToml, StandardCharsets.UTF_8);
 
-    @SuppressWarnings("unchecked")
-    Set<String> ignoredDeps = (Set<String>) method.invoke(provider, tomlResult, content);
+    Set<String> ignoredDeps = provider.getIgnoredDependencies(tomlResult, content);
 
     assertFalse(ignoredDeps.contains("serde-json-wasm"), "serde-json-wasm should NOT be ignored");
     assertTrue(
