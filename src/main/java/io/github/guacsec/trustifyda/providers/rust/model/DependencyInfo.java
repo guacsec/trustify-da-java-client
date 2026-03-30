@@ -16,4 +16,10 @@
  */
 package io.github.guacsec.trustifyda.providers.rust.model;
 
-public record DependencyInfo(String name, String version) {}
+public record DependencyInfo(String name, String version, String source) {
+
+  /** Path dependencies have {@code source == null} in cargo metadata. */
+  public boolean isPathDependency() {
+    return source == null;
+  }
+}

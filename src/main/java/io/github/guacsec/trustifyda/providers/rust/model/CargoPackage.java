@@ -24,5 +24,12 @@ public record CargoPackage(
     @JsonProperty("name") String name,
     @JsonProperty("version") String version,
     @JsonProperty("id") String id,
+    @JsonProperty("source") String source,
     @JsonProperty("manifest_path") String manifestPath,
-    @JsonProperty("dependencies") List<CargoDependency> dependencies) {}
+    @JsonProperty("dependencies") List<CargoDependency> dependencies) {
+
+  /** Path dependencies have {@code source == null} in cargo metadata. */
+  public boolean isPathDependency() {
+    return source == null;
+  }
+}

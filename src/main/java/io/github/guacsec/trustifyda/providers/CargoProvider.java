@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -285,8 +286,7 @@ public final class CargoProvider extends Provider {
       CargoPackage depPackage = findPackageByName(packageMap, depName);
       try {
         PackageURL depUrl =
-            new PackageURL(
-                Type.CARGO.getType(), null, depPackage.name(), depPackage.version(), null, null);
+            createCargoPurl(depPackage.name(), depPackage.version(), depPackage.isPathDependency());
         sbom.addDependency(root, depUrl, null);
       } catch (Exception e) {
         log.warning("Failed to create PackageURL for workspace dependency: " + depName);
@@ -332,8 +332,7 @@ public final class CargoProvider extends Provider {
 
     try {
       PackageURL memberUrl =
-          new PackageURL(
-              Type.CARGO.getType(), null, memberPkg.name(), memberPkg.version(), null, null);
+          createCargoPurl(memberPkg.name(), memberPkg.version(), memberPkg.isPathDependency());
       sbom.addDependency(workspaceRoot, memberUrl, null);
 
       if (debugLoggingIsNeeded()) {
@@ -528,8 +527,7 @@ public final class CargoProvider extends Provider {
 
       try {
         PackageURL packageUrl =
-            new PackageURL(
-                Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
+            createCargoPurl(childInfo.name(), childInfo.version(), childInfo.isPathDependency());
         sbom.addDependency(sourceUrl, packageUrl, null);
         if (debugLoggingIsNeeded()) {
           log.info(
@@ -594,8 +592,7 @@ public final class CargoProvider extends Provider {
 
       try {
         PackageURL childUrl =
-            new PackageURL(
-                Type.CARGO.getType(), null, childInfo.name(), childInfo.version(), null, null);
+            createCargoPurl(childInfo.name(), childInfo.version(), childInfo.isPathDependency());
 
         String relationshipKey = parent.getCoordinates() + "->" + childUrl.getCoordinates();
 
@@ -641,7 +638,7 @@ public final class CargoProvider extends Provider {
 
   private DependencyInfo getPackageInfo(String packageId, Map<String, CargoPackage> packageMap) {
     CargoPackage pkg = packageMap.get(packageId);
-    return new DependencyInfo(pkg.name(), pkg.version());
+    return new DependencyInfo(pkg.name(), pkg.version(), pkg.source());
   }
 
   public CargoProvider(Path manifest) {
@@ -820,5 +817,17 @@ public final class CargoProvider extends Provider {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Creates a {@link PackageURL} for a Cargo package. Path dependencies ({@code source == null})
+   * get a {@code repository_url=local} qualifier so the backend can distinguish them from registry
+   * packages and skip vulnerability checks.
+   */
+  private static PackageURL createCargoPurl(String name, String version, boolean isPathDep)
+      throws Exception {
+    TreeMap<String, String> qualifiers =
+        isPathDep ? new TreeMap<>(Map.of("repository_url", "local")) : null;
+    return new PackageURL(Type.CARGO.getType(), null, name, version, qualifiers, null);
   }
 }
