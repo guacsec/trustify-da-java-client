@@ -394,10 +394,10 @@ public final class GoModulesProvider extends Provider {
         .collect(Collectors.toList());
   }
 
-  private static boolean isGoToolchainEntry(String dependency) {
-    // Filter out Go toolchain entries like "go@1.18", "go@1.19", etc.
-    // These are not actual dependencies but the Go toolchain itself
-    return dependency.startsWith("go@");
+  static boolean isGoToolchainEntry(String dependency) {
+    // Filter out Go toolchain entries like "go@1.18" and "toolchain@go1.21.0".
+    // These are not actual dependencies but the Go toolchain itself.
+    return dependency.startsWith("go@") || dependency.startsWith("toolchain@");
   }
 
   private String buildGoModulesDependencies(Path manifestPath) {

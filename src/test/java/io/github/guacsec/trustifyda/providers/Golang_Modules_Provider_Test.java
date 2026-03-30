@@ -198,6 +198,19 @@ class Golang_Modules_Provider_Test extends ExhortTest {
             == 1);
   }
 
+  @Test
+  void test_isGoToolchainEntry_filters_go_and_toolchain() {
+    // go@* entries should be filtered
+    assertThat(GoModulesProvider.isGoToolchainEntry("go@1.18")).isTrue();
+    assertThat(GoModulesProvider.isGoToolchainEntry("go@1.21.0")).isTrue();
+    // toolchain@* entries should be filtered
+    assertThat(GoModulesProvider.isGoToolchainEntry("toolchain@go1.21.0")).isTrue();
+    assertThat(GoModulesProvider.isGoToolchainEntry("toolchain@go1.22.2")).isTrue();
+    // normal module entries should NOT be filtered
+    assertThat(GoModulesProvider.isGoToolchainEntry("github.com/spf13/cobra@v0.0.5")).isFalse();
+    assertThat(GoModulesProvider.isGoToolchainEntry("golang.org/x/tools@v0.1.0")).isFalse();
+  }
+
   private String dropIgnoredKeepFormat(String s) {
     return s.replaceAll("goarch=\\w+&goos=\\w+&", "")
         .replaceAll("\"timestamp\" : \"[a-zA-Z0-9\\-\\:]+\",\n    ", "");
