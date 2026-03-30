@@ -91,7 +91,6 @@ public class PythonControllerVirtualEnv extends PythonControllerBase {
         Files.deleteIfExists(envRequirements);
         String freezeOutput =
             Operations.runProcessGetOutput(pythonEnvironmentDir, pipBinaryLocation, "freeze");
-        Files.createFile(envRequirements);
         Files.write(envRequirements, freezeOutput.getBytes());
         Operations.runProcessGetOutput(
             pythonEnvironmentDir, pipBinaryLocation, "uninstall", "-y", "-r", "requirements.txt");

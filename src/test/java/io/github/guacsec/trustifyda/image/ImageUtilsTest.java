@@ -229,7 +229,6 @@ class ImageUtilsTest extends ExhortTest {
                           new String[] {
                             "skopeo",
                             "inspect",
-                            "",
                             String.format("docker://%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -866,7 +865,6 @@ class ImageUtilsTest extends ExhortTest {
                             mockSkopeoConfig,
                             "--daemon-host",
                             mockSkopeoDaemon,
-                            "",
                             String.format("docker-daemon:%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -898,7 +896,6 @@ class ImageUtilsTest extends ExhortTest {
                             "inspect",
                             "--daemon-host",
                             mockSkopeoDaemon,
-                            "",
                             String.format("docker-daemon:%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -930,7 +927,6 @@ class ImageUtilsTest extends ExhortTest {
                             "inspect",
                             "--authfile",
                             mockSkopeoConfig,
-                            "",
                             String.format("docker://%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -960,7 +956,6 @@ class ImageUtilsTest extends ExhortTest {
                           new String[] {
                             "skopeo",
                             "inspect",
-                            "",
                             String.format("docker://%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -1062,7 +1057,6 @@ class ImageUtilsTest extends ExhortTest {
                           new String[] {
                             "skopeo",
                             "inspect",
-                            "",
                             String.format("docker://%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
@@ -1097,7 +1091,6 @@ class ImageUtilsTest extends ExhortTest {
                           new String[] {
                             "skopeo",
                             "inspect",
-                            "",
                             String.format("docker://%s", mockImageRef.getImage().getFullName())
                           }),
                       isNull()))
