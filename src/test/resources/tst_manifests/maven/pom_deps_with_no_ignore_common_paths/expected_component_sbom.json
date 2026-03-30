@@ -20,7 +20,7 @@
       "group" : "org.springframework.boot",
       "name" : "spring-boot-starter",
       "version" : "2.3.5.RELEASE",
-      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter@2.3.5.RELEASE?scope=compile"
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter@2.3.5.RELEASE"
     },
     {
       "type" : "library",
@@ -28,7 +28,7 @@
       "group" : "org.springframework.boot",
       "name" : "spring-boot-starter-test",
       "version" : "2.3.5.RELEASE",
-      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-test@2.3.5.RELEASE?scope=test"
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-test@2.3.5.RELEASE"
     },
     {
       "type" : "library",
@@ -36,7 +36,7 @@
       "group" : "org.springframework.boot",
       "name" : "spring-boot-starter-web",
       "version" : "2.3.5.RELEASE",
-      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-web@2.3.5.RELEASE?scope=compile"
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-web@2.3.5.RELEASE"
     },
     {
       "type" : "library",
@@ -44,7 +44,7 @@
       "group" : "io.quarkus",
       "name" : "quarkus-resteasy",
       "version" : "2.7.7.Final",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.7.7.Final"
     },
     {
       "type" : "library",
@@ -52,7 +52,7 @@
       "group" : "org.keycloak",
       "name" : "keycloak-saml-core",
       "version" : "1.8.1.Final",
-      "purl" : "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
     },
     {
       "type" : "library",
@@ -60,7 +60,7 @@
       "group" : "io.quarkus",
       "name" : "quarkus-vertx-http",
       "version" : "2.13.5.Final",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -68,7 +68,7 @@
       "group" : "io.quarkus",
       "name" : "quarkus-jdbc-postgresql",
       "version" : "2.13.6.Final",
-      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.6.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.6.Final"
     }
   ],
   "dependencies" : [

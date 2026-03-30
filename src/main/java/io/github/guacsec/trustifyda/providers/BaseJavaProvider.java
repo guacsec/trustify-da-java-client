@@ -23,9 +23,7 @@ import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 
 public abstract class BaseJavaProvider extends Provider {
 
@@ -45,10 +43,10 @@ public abstract class BaseJavaProvider extends Provider {
     int targetDepth = getDepth(target);
     while (targetDepth > srcDepth && index < lines.length) {
       if (targetDepth == srcDepth + 1) {
-        PackageURL from = parseDep(src);
-        PackageURL to = parseDep(target);
-        if (dependencyIsNotTestScope(from) && dependencyIsNotTestScope(to)) {
-          sbom.addDependency(from, to, scope);
+        DependencyAggregator from = parseDep(src);
+        DependencyAggregator to = parseDep(target);
+        if (!from.isTestDependency() && !to.isTestDependency()) {
+          sbom.addDependency(from.toPurl(), to.toPurl(), scope);
         }
       } else {
         String[] modifiedLines = Arrays.copyOfRange(lines, index, lines.length);
@@ -64,13 +62,11 @@ public abstract class BaseJavaProvider extends Provider {
     }
   }
 
-  static boolean dependencyIsNotTestScope(PackageURL artifact) {
-    return (Objects.nonNull(artifact.getQualifiers())
-            && !artifact.getQualifiers().get("scope").equals("test"))
-        || Objects.isNull(artifact.getQualifiers());
+  static boolean dependencyIsNotTestScope(DependencyAggregator dep) {
+    return !dep.isTestDependency();
   }
 
-  PackageURL parseDep(String dep) {
+  DependencyAggregator parseDep(String dep) {
     // root package
     DependencyAggregator dependencyAggregator = new DependencyAggregator();
     // in case line in dependency tree text starts with a letter ( for root artifact).
@@ -81,7 +77,7 @@ public abstract class BaseJavaProvider extends Provider {
       dependencyAggregator.artifactId = parts[1];
       dependencyAggregator.version = parts[3];
 
-      return dependencyAggregator.toPurl();
+      return dependencyAggregator;
     }
     int firstDash = dep.indexOf("-");
     String dependency = dep.substring(++firstDash).trim();
@@ -137,7 +133,7 @@ public abstract class BaseJavaProvider extends Provider {
           Integer.min(parts[parts.length - 1].indexOf(""), parts[parts.length - 1].indexOf("-"));
       dependencyAggregator.scope = parts[parts.length - 1].substring(0, endOfLine).trim();
     }
-    return dependencyAggregator.toPurl();
+    return dependencyAggregator;
   }
 
   int getDepth(String line) {
@@ -185,12 +181,7 @@ public abstract class BaseJavaProvider extends Provider {
     PackageURL toPurl() {
       try {
         return new PackageURL(
-            Ecosystem.Type.MAVEN.getType(),
-            groupId,
-            artifactId,
-            version,
-            this.scope.equals("*") ? null : new TreeMap<>(Map.of("scope", this.scope)),
-            null);
+            Ecosystem.Type.MAVEN.getType(), groupId, artifactId, version, null, null);
       } catch (MalformedPackageURLException e) {
         throw new IllegalArgumentException("Unable to parse PackageURL", e);
       }

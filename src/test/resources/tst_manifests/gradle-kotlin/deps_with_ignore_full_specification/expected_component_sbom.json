@@ -20,7 +20,7 @@
       "name" : "quarkus-hibernate-orm",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -29,7 +29,7 @@
       "name" : "quarkus-agroal",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-agroal@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-agroal@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -38,7 +38,7 @@
       "name" : "quarkus-resteasy",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -47,7 +47,7 @@
       "name" : "quarkus-resteasy-jackson",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-jackson@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-jackson@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -56,7 +56,7 @@
       "name" : "quarkus-jdbc-postgresql",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -65,7 +65,7 @@
       "name" : "quarkus-vertx-http",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -74,7 +74,7 @@
       "name" : "quarkus-kubernetes-service-binding",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-kubernetes-service-binding@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-kubernetes-service-binding@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -83,7 +83,7 @@
       "name" : "quarkus-container-image-docker",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-container-image-docker@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-container-image-docker@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -92,7 +92,7 @@
       "name" : "jakarta.validation-api",
       "version" : "2.0.2",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2?scope=compile"
+      "purl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2"
     },
     {
       "type" : "library",
@@ -101,7 +101,7 @@
       "name" : "quarkus-resteasy-multipart",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-multipart@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-multipart@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -110,7 +110,7 @@
       "name" : "quarkus-hibernate-orm-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm-deployment@2.0.2.Final"
     }
   ],
   "dependencies" : [
