@@ -136,7 +136,6 @@ public class CycloneDXSbom implements Sbom {
       }
     }
     bom.getMetadata().setComponent(rootComponent);
-    bom.getComponents().add(rootComponent);
     bom.getDependencies().add(newDependency(rootRef));
     return this;
   }
@@ -266,13 +265,12 @@ public class CycloneDXSbom implements Sbom {
     if (s != null) {
       scope = Component.Scope.valueOf(s.toUpperCase());
     }
+    String rootCoordinates = root != null ? root.getCoordinates() : null;
     Component srcComp = newComponent(sourceRef, scope);
+    boolean isRootSource = srcComp.getBomRef().equals(rootCoordinates);
     Dependency srcDep;
-    if (bom.getComponents().stream().noneMatch(c -> c.getBomRef().equals(srcComp.getBomRef()))) {
-      bom.addComponent(srcComp);
-      srcDep = newDependency(sourceRef);
-      bom.addDependency(srcDep);
-    } else {
+    if (isRootSource
+        || bom.getComponents().stream().anyMatch(c -> c.getBomRef().equals(srcComp.getBomRef()))) {
       Optional<Dependency> existingDep =
           bom.getDependencies().stream()
               .filter(d -> d.getRef().equals(srcComp.getBomRef()))
@@ -283,13 +281,18 @@ public class CycloneDXSbom implements Sbom {
         srcDep = newDependency(sourceRef);
         bom.addDependency(srcDep);
       }
+    } else {
+      bom.addComponent(srcComp);
+      srcDep = newDependency(sourceRef);
+      bom.addDependency(srcDep);
     }
     Dependency targetDep = newDependency(targetRef);
     srcDep.addDependency(targetDep);
     if (bom.getDependencies().stream().noneMatch(d -> d.getRef().equals(targetDep.getRef()))) {
       bom.addDependency(targetDep);
     }
-    if (bom.getComponents().stream().noneMatch(c -> c.getBomRef().equals(targetDep.getRef()))) {
+    if (!targetDep.getRef().equals(rootCoordinates)
+        && bom.getComponents().stream().noneMatch(c -> c.getBomRef().equals(targetDep.getRef()))) {
       bom.addComponent(newComponent(targetRef, scope));
     }
     return this;
