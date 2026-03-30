@@ -13,13 +13,6 @@
   },
   "components": [
     {
-      "type": "application",
-      "bom-ref": "pkg:golang/rhda-test@v0.0.0",
-      "name": "rhda-test",
-      "version": "v0.0.0",
-      "purl": "pkg:golang/rhda-test@v0.0.0"
-    },
-    {
       "type": "library",
       "bom-ref": "pkg:golang/github.com/json-iterator/go@v1.1.9",
       "group": "github.com/json-iterator",

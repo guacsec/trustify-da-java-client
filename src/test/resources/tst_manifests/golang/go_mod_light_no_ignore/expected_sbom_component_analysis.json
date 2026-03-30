@@ -15,14 +15,6 @@
   },
   "components" : [
     {
-      "type" : "application",
-      "bom-ref" : "pkg:golang/golang.org/x/example@v0.0.0",
-      "group" : "golang.org/x",
-      "name" : "example",
-      "version" : "v0.0.0",
-      "purl" : "pkg:golang/golang.org/x/example@v0.0.0"
-    },
-    {
       "type" : "library",
       "bom-ref" : "pkg:golang/github.com/spf13/cobra@v0.0.5",
       "group" : "github.com/spf13",

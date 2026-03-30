@@ -15,14 +15,6 @@
   },
   "components" : [
     {
-      "type" : "application",
-      "bom-ref" : "pkg:maven/org.springframework.boot/spring-boot-starter-parent@2.3.5.RELEASE",
-      "group" : "org.springframework.boot",
-      "name" : "spring-boot-starter-parent",
-      "version" : "2.3.5.RELEASE",
-      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-parent@2.3.5.RELEASE"
-    },
-    {
       "type" : "library",
       "bom-ref" : "pkg:maven/org.springframework.boot/spring-boot-starter@2.3.5.RELEASE",
       "group" : "org.springframework.boot",

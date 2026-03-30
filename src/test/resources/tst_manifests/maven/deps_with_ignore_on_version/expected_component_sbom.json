@@ -13,16 +13,6 @@
       "purl" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1"
     }
   },
-  "components" : [
-    {
-      "type" : "application",
-      "bom-ref" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
-      "group" : "pom-with-deps-and-ignore",
-      "name" : "pom-with-dependency-not-ignored-for-tests",
-      "version" : "0.0.1",
-      "purl" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1"
-    }
-  ],
   "dependencies" : [
     {
       "ref" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",

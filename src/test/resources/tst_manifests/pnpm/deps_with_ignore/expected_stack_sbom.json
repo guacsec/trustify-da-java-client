@@ -25,24 +25,6 @@
   },
   "components" : [
     {
-      "type" : "application",
-      "bom-ref" : "pkg:npm/backend@1.0.0",
-      "name" : "backend",
-      "version" : "1.0.0",
-      "licenses" : [ {
-        "license" : {
-          "id" : "ISC",
-          "text" : {
-            "contentType" : "text/plain",
-            "encoding" : "base64",
-            "content" : "SVNDIExpY2Vuc2U6CgpDb3B5cmlnaHQgKGMpIDIwMDQtMjAxMCBieSBJbnRlcm5ldCBTeXN0ZW1zIENvbnNvcnRpdW0sIEluYy4gKCJJU0MiKQpDb3B5cmlnaHQgKGMpIDE5OTUtMjAwMyBieSBJbnRlcm5ldCBTb2Z0d2FyZSBDb25zb3J0aXVtCgpQZXJtaXNzaW9uIHRvIHVzZSwgY29weSwgbW9kaWZ5LCBhbmQvb3IgZGlzdHJpYnV0ZSB0aGlzIHNvZnR3YXJlIGZvciBhbnkgcHVycG9zZSB3aXRoIG9yIHdpdGhvdXQgZmVlIGlzIGhlcmVieSBncmFudGVkLCBwcm92aWRlZCB0aGF0IHRoZSBhYm92ZSBjb3B5cmlnaHQgbm90aWNlIGFuZCB0aGlzIHBlcm1pc3Npb24gbm90aWNlIGFwcGVhciBpbiBhbGwgY29waWVzLgoKVEhFIFNPRlRXQVJFIElTIFBST1ZJREVEICJBUyBJUyIgQU5EIElTQyBESVNDTEFJTVMgQUxMIFdBUlJBTlRJRVMgV0lUSCBSRUdBUkQgVE8gVEhJUyBTT0ZUV0FSRSBJTkNMVURJTkcgQUxMIElNUExJRUQgV0FSUkFOVElFUyBPRiBNRVJDSEFOVEFCSUxJVFkgQU5EIEZJVE5FU1MuIElOIE5PIEVWRU5UIFNIQUxMIElTQyBCRSBMSUFCTEUgRk9SIEFOWSBTUEVDSUFMLCBESVJFQ1QsIElORElSRUNULCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgT1IgQU5ZIERBTUFHRVMgV0hBVFNPRVZFUiBSRVNVTFRJTkcgRlJPTSBMT1NTIE9GIFVTRSwgREFUQSBPUiBQUk9GSVRTLCBXSEVUSEVSIElOIEFOIEFDVElPTiBPRiBDT05UUkFDVCwgTkVHTElHRU5DRSBPUiBPVEhFUiBUT1JUSU9VUyBBQ1RJT04sIEFSSVNJTkcgT1VUIE9GIE9SIElOIENPTk5FQ1RJT04gV0lUSCBUSEUgVVNFIE9SIFBFUkZPUk1BTkNFIE9GIFRISVMgU09GVFdBUkUuCg=="
-          },
-          "url" : "https://www.isc.org/licenses/"
-        }
-      } ],
-      "purl" : "pkg:npm/backend@1.0.0"
-    },
-    {
       "type" : "library",
       "bom-ref" : "pkg:npm/backend@0.0.0",
       "name" : "backend",
