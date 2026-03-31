@@ -196,6 +196,16 @@ public abstract class BaseJavaProvider extends Provider {
       }
     }
 
+    /** Creates a PackageURL without version for coordinate-based matching. */
+    PackageURL toPurlWithoutVersion() {
+      try {
+        return new PackageURL(
+            Ecosystem.Type.MAVEN.getType(), groupId, artifactId, null, null, null);
+      } catch (MalformedPackageURLException e) {
+        throw new IllegalArgumentException("Unable to parse PackageURL", e);
+      }
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;

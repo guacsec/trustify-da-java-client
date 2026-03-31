@@ -18,7 +18,6 @@ package io.github.guacsec.trustifyda.providers;
 
 import static io.github.guacsec.trustifyda.impl.ExhortApi.debugLoggingIsNeeded;
 
-import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
@@ -40,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -429,78 +427,6 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     }
 
     return args;
-  }
-
-  // NOTE if we want to include "scope" tags in ignore,
-  // add property here and a case in the start-element-switch in the getIgnored method
-
-  /** Aggregator class for aggregating Dependency data over stream iterations, * */
-  private static final class DependencyAggregator {
-    private String scope = "*";
-    private String groupId;
-    private String artifactId;
-    private String version;
-    boolean ignored = false;
-
-    /**
-     * Get the string representation of the dependency to use as excludes
-     *
-     * @return an exclude string for the dependency:tree plugin, i.e. group-id:artifact-id:*:version
-     */
-    @Override
-    public String toString() {
-      // NOTE if you add scope, don't forget to replace the * with its value
-      return String.format("%s:%s:%s:%s", groupId, artifactId, scope, version);
-    }
-
-    public boolean isValid() {
-      return Objects.nonNull(groupId) && Objects.nonNull(artifactId) && Objects.nonNull(version);
-    }
-
-    public boolean isTestDependency() {
-      return scope.trim().equals("test");
-    }
-
-    public PackageURL toPurl() {
-      try {
-        return new PackageURL(
-            Type.MAVEN.getType(),
-            groupId,
-            artifactId,
-            version,
-            this.scope.equals("*") ? null : new TreeMap<>(Map.of("scope", this.scope)),
-            null);
-      } catch (MalformedPackageURLException e) {
-        throw new IllegalArgumentException("Unable to parse PackageURL", e);
-      }
-    }
-
-    /** Creates a PackageURL without version for coordinate-based matching. */
-    public PackageURL toPurlWithoutVersion() {
-      try {
-        return new PackageURL(Type.MAVEN.getType(), groupId, artifactId, null, null, null);
-      } catch (MalformedPackageURLException e) {
-        throw new IllegalArgumentException("Unable to parse PackageURL", e);
-      }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof DependencyAggregator)) return false;
-      var that = (DependencyAggregator) o;
-      // NOTE we do not compare the ignored field
-      // This is required for comparing pom.xml with effective_pom.xml as the latter doesn't
-      // contain comments indicating ignore
-      return Objects.equals(this.groupId, that.groupId)
-          && Objects.equals(this.artifactId, that.artifactId)
-          && Objects.equals(this.version, that.version);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(groupId, artifactId, version);
-    }
   }
 
   private String selectMvnRuntime(final Path manifestPath) {
