@@ -62,10 +62,6 @@ public abstract class BaseJavaProvider extends Provider {
     }
   }
 
-  static boolean dependencyIsNotTestScope(DependencyAggregator dep) {
-    return !dep.isTestDependency();
-  }
-
   DependencyAggregator parseDep(String dep) {
     // root package
     DependencyAggregator dependencyAggregator = new DependencyAggregator();
