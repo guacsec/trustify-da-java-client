@@ -20,7 +20,7 @@
       "name" : "quarkus-hibernate-orm",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -29,7 +29,7 @@
       "name" : "quarkus-core",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-core@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-core@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -38,7 +38,7 @@
       "name" : "jakarta.annotation-api",
       "version" : "1.3.5",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.annotation/jakarta.annotation-api@1.3.5?scope=compile"
+      "purl" : "pkg:maven/jakarta.annotation/jakarta.annotation-api@1.3.5"
     },
     {
       "type" : "library",
@@ -47,7 +47,7 @@
       "name" : "jakarta.enterprise.cdi-api",
       "version" : "2.0.2",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.enterprise/jakarta.enterprise.cdi-api@2.0.2?scope=compile"
+      "purl" : "pkg:maven/jakarta.enterprise/jakarta.enterprise.cdi-api@2.0.2"
     },
     {
       "type" : "library",
@@ -56,7 +56,7 @@
       "name" : "jakarta.el-api",
       "version" : "3.0.3",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.el/jakarta.el-api@3.0.3?scope=compile"
+      "purl" : "pkg:maven/jakarta.el/jakarta.el-api@3.0.3"
     },
     {
       "type" : "library",
@@ -65,7 +65,7 @@
       "name" : "jakarta.interceptor-api",
       "version" : "1.2.5",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.interceptor/jakarta.interceptor-api@1.2.5?scope=compile"
+      "purl" : "pkg:maven/jakarta.interceptor/jakarta.interceptor-api@1.2.5"
     },
     {
       "type" : "library",
@@ -74,7 +74,7 @@
       "name" : "jakarta.ejb-api",
       "version" : "3.2.6",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.ejb/jakarta.ejb-api@3.2.6?scope=compile"
+      "purl" : "pkg:maven/jakarta.ejb/jakarta.ejb-api@3.2.6"
     },
     {
       "type" : "library",
@@ -83,7 +83,7 @@
       "name" : "jakarta.transaction-api",
       "version" : "1.3.3",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.transaction/jakarta.transaction-api@1.3.3?scope=compile"
+      "purl" : "pkg:maven/jakarta.transaction/jakarta.transaction-api@1.3.3"
     },
     {
       "type" : "library",
@@ -92,7 +92,7 @@
       "name" : "jakarta.inject-api",
       "version" : "1.0",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.inject/jakarta.inject-api@1.0?scope=compile"
+      "purl" : "pkg:maven/jakarta.inject/jakarta.inject-api@1.0"
     },
     {
       "type" : "library",
@@ -101,7 +101,7 @@
       "name" : "quarkus-ide-launcher",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-ide-launcher@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-ide-launcher@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -110,7 +110,7 @@
       "name" : "quarkus-development-mode-spi",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-development-mode-spi@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-development-mode-spi@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -119,7 +119,7 @@
       "name" : "smallrye-config",
       "version" : "2.12.3",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.config/smallrye-config@2.12.3?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.config/smallrye-config@2.12.3"
     },
     {
       "type" : "library",
@@ -128,7 +128,7 @@
       "name" : "smallrye-config-core",
       "version" : "2.12.3",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.config/smallrye-config-core@2.12.3?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.config/smallrye-config-core@2.12.3"
     },
     {
       "type" : "library",
@@ -137,7 +137,7 @@
       "name" : "microprofile-config-api",
       "version" : "2.0.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.eclipse.microprofile.config/microprofile-config-api@2.0.1?scope=compile"
+      "purl" : "pkg:maven/org.eclipse.microprofile.config/microprofile-config-api@2.0.1"
     },
     {
       "type" : "library",
@@ -146,7 +146,7 @@
       "name" : "smallrye-common-annotation",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-annotation@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-annotation@1.13.1"
     },
     {
       "type" : "library",
@@ -155,7 +155,7 @@
       "name" : "smallrye-common-expression",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-expression@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-expression@1.13.1"
     },
     {
       "type" : "library",
@@ -164,7 +164,7 @@
       "name" : "smallrye-common-function",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-function@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-function@1.13.1"
     },
     {
       "type" : "library",
@@ -173,7 +173,7 @@
       "name" : "smallrye-common-constraint",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-constraint@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-constraint@1.13.1"
     },
     {
       "type" : "library",
@@ -182,7 +182,7 @@
       "name" : "jboss-logging",
       "version" : "3.5.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.logging/jboss-logging@3.5.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.logging/jboss-logging@3.5.0.Final"
     },
     {
       "type" : "library",
@@ -191,7 +191,7 @@
       "name" : "smallrye-common-classloader",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-classloader@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-classloader@1.13.1"
     },
     {
       "type" : "library",
@@ -200,7 +200,7 @@
       "name" : "asm",
       "version" : "9.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.ow2.asm/asm@9.3?scope=compile"
+      "purl" : "pkg:maven/org.ow2.asm/asm@9.3"
     },
     {
       "type" : "library",
@@ -209,7 +209,7 @@
       "name" : "smallrye-config-common",
       "version" : "2.12.3",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.config/smallrye-config-common@2.12.3?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.config/smallrye-config-common@2.12.3"
     },
     {
       "type" : "library",
@@ -218,7 +218,7 @@
       "name" : "jboss-logmanager-embedded",
       "version" : "1.0.10",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.logmanager/jboss-logmanager-embedded@1.0.10?scope=compile"
+      "purl" : "pkg:maven/org.jboss.logmanager/jboss-logmanager-embedded@1.0.10"
     },
     {
       "type" : "library",
@@ -227,7 +227,7 @@
       "name" : "wildfly-common",
       "version" : "1.5.4.Final-format-001",
       "scope" : "required",
-      "purl" : "pkg:maven/org.wildfly.common/wildfly-common@1.5.4.Final-format-001?scope=compile"
+      "purl" : "pkg:maven/org.wildfly.common/wildfly-common@1.5.4.Final-format-001"
     },
     {
       "type" : "library",
@@ -236,7 +236,7 @@
       "name" : "jboss-logging-annotations",
       "version" : "2.2.1.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.logging/jboss-logging-annotations@2.2.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.logging/jboss-logging-annotations@2.2.1.Final"
     },
     {
       "type" : "library",
@@ -245,7 +245,7 @@
       "name" : "jboss-threads",
       "version" : "3.4.3.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.threads/jboss-threads@3.4.3.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.threads/jboss-threads@3.4.3.Final"
     },
     {
       "type" : "library",
@@ -254,7 +254,7 @@
       "name" : "slf4j-api",
       "version" : "1.7.36",
       "scope" : "required",
-      "purl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?scope=compile"
+      "purl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36"
     },
     {
       "type" : "library",
@@ -263,7 +263,7 @@
       "name" : "slf4j-jboss-logmanager",
       "version" : "1.2.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.slf4j/slf4j-jboss-logmanager@1.2.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.slf4j/slf4j-jboss-logmanager@1.2.0.Final"
     },
     {
       "type" : "library",
@@ -272,7 +272,7 @@
       "name" : "graal-sdk",
       "version" : "22.3.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.graalvm.sdk/graal-sdk@22.3.0?scope=compile"
+      "purl" : "pkg:maven/org.graalvm.sdk/graal-sdk@22.3.0"
     },
     {
       "type" : "library",
@@ -281,7 +281,7 @@
       "name" : "quarkus-bootstrap-runner",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-runner@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-runner@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -290,7 +290,7 @@
       "name" : "smallrye-common-io",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-io@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-io@1.13.1"
     },
     {
       "type" : "library",
@@ -299,7 +299,7 @@
       "name" : "org-crac",
       "version" : "0.1.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.github.crac/org-crac@0.1.1?scope=compile"
+      "purl" : "pkg:maven/io.github.crac/org-crac@0.1.1"
     },
     {
       "type" : "library",
@@ -308,7 +308,7 @@
       "name" : "quarkus-fs-util",
       "version" : "0.0.9",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-fs-util@0.0.9?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-fs-util@0.0.9"
     },
     {
       "type" : "library",
@@ -317,7 +317,7 @@
       "name" : "quarkus-agroal",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-agroal@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-agroal@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -326,7 +326,7 @@
       "name" : "quarkus-arc",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-arc@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-arc@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -335,7 +335,7 @@
       "name" : "arc",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus.arc/arc@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus.arc/arc@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -344,7 +344,7 @@
       "name" : "mutiny",
       "version" : "1.7.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/mutiny@1.7.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/mutiny@1.7.0"
     },
     {
       "type" : "library",
@@ -353,7 +353,7 @@
       "name" : "reactive-streams",
       "version" : "1.0.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.reactivestreams/reactive-streams@1.0.3?scope=compile"
+      "purl" : "pkg:maven/org.reactivestreams/reactive-streams@1.0.3"
     },
     {
       "type" : "library",
@@ -362,7 +362,7 @@
       "name" : "microprofile-context-propagation-api",
       "version" : "1.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.eclipse.microprofile.context-propagation/microprofile-context-propagation-api@1.3?scope=compile"
+      "purl" : "pkg:maven/org.eclipse.microprofile.context-propagation/microprofile-context-propagation-api@1.3"
     },
     {
       "type" : "library",
@@ -371,7 +371,7 @@
       "name" : "quarkus-datasource",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-datasource@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-datasource@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -380,7 +380,7 @@
       "name" : "quarkus-datasource-common",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-common@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-common@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -389,7 +389,7 @@
       "name" : "quarkus-credentials",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-credentials@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-credentials@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -398,7 +398,7 @@
       "name" : "quarkus-narayana-jta",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-narayana-jta@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-narayana-jta@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -407,7 +407,7 @@
       "name" : "quarkus-transaction-annotations",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-transaction-annotations@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-transaction-annotations@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -416,7 +416,7 @@
       "name" : "quarkus-mutiny",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-mutiny@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-mutiny@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -425,7 +425,7 @@
       "name" : "quarkus-smallrye-context-propagation",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-context-propagation@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-context-propagation@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -434,7 +434,7 @@
       "name" : "smallrye-context-propagation",
       "version" : "1.2.2",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation@1.2.2?scope=compile"
+      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation@1.2.2"
     },
     {
       "type" : "library",
@@ -443,7 +443,7 @@
       "name" : "smallrye-context-propagation-api",
       "version" : "1.2.2",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-api@1.2.2?scope=compile"
+      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-api@1.2.2"
     },
     {
       "type" : "library",
@@ -452,7 +452,7 @@
       "name" : "smallrye-context-propagation-storage",
       "version" : "1.2.2",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-storage@1.2.2?scope=compile"
+      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-storage@1.2.2"
     },
     {
       "type" : "library",
@@ -461,7 +461,7 @@
       "name" : "mutiny-smallrye-context-propagation",
       "version" : "1.7.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/mutiny-smallrye-context-propagation@1.7.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/mutiny-smallrye-context-propagation@1.7.0"
     },
     {
       "type" : "library",
@@ -470,7 +470,7 @@
       "name" : "smallrye-context-propagation-jta",
       "version" : "1.2.2",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-jta@1.2.2?scope=compile"
+      "purl" : "pkg:maven/io.smallrye/smallrye-context-propagation-jta@1.2.2"
     },
     {
       "type" : "library",
@@ -479,7 +479,7 @@
       "name" : "smallrye-reactive-converter-api",
       "version" : "2.7.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-reactive-converter-api@2.7.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-reactive-converter-api@2.7.0"
     },
     {
       "type" : "library",
@@ -488,7 +488,7 @@
       "name" : "smallrye-reactive-converter-mutiny",
       "version" : "2.7.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-reactive-converter-mutiny@2.7.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-reactive-converter-mutiny@2.7.0"
     },
     {
       "type" : "library",
@@ -497,7 +497,7 @@
       "name" : "narayana-jta",
       "version" : "5.13.1.Alpha1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.narayana.jta/narayana-jta@5.13.1.Alpha1?scope=compile"
+      "purl" : "pkg:maven/org.jboss.narayana.jta/narayana-jta@5.13.1.Alpha1"
     },
     {
       "type" : "library",
@@ -506,7 +506,7 @@
       "name" : "jboss-transaction-spi",
       "version" : "7.6.1.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss/jboss-transaction-spi@7.6.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss/jboss-transaction-spi@7.6.1.Final"
     },
     {
       "type" : "library",
@@ -515,7 +515,7 @@
       "name" : "jboss-connector-api_1.7_spec",
       "version" : "1.0.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.spec.javax.resource/jboss-connector-api_1.7_spec@1.0.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.spec.javax.resource/jboss-connector-api_1.7_spec@1.0.0.Final"
     },
     {
       "type" : "library",
@@ -524,7 +524,7 @@
       "name" : "narayana-jts-integration",
       "version" : "5.13.1.Alpha1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.narayana.jts/narayana-jts-integration@5.13.1.Alpha1?scope=compile"
+      "purl" : "pkg:maven/org.jboss.narayana.jts/narayana-jts-integration@5.13.1.Alpha1"
     },
     {
       "type" : "library",
@@ -533,7 +533,7 @@
       "name" : "agroal-api",
       "version" : "1.16",
       "scope" : "required",
-      "purl" : "pkg:maven/io.agroal/agroal-api@1.16?scope=compile"
+      "purl" : "pkg:maven/io.agroal/agroal-api@1.16"
     },
     {
       "type" : "library",
@@ -542,7 +542,7 @@
       "name" : "agroal-narayana",
       "version" : "1.16",
       "scope" : "required",
-      "purl" : "pkg:maven/io.agroal/agroal-narayana@1.16?scope=compile"
+      "purl" : "pkg:maven/io.agroal/agroal-narayana@1.16"
     },
     {
       "type" : "library",
@@ -551,7 +551,7 @@
       "name" : "agroal-pool",
       "version" : "1.16",
       "scope" : "required",
-      "purl" : "pkg:maven/io.agroal/agroal-pool@1.16?scope=compile"
+      "purl" : "pkg:maven/io.agroal/agroal-pool@1.16"
     },
     {
       "type" : "library",
@@ -560,7 +560,7 @@
       "name" : "hibernate-core",
       "version" : "5.6.14.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.hibernate/hibernate-core@5.6.14.Final?scope=compile"
+      "purl" : "pkg:maven/org.hibernate/hibernate-core@5.6.14.Final"
     },
     {
       "type" : "library",
@@ -569,7 +569,7 @@
       "name" : "byte-buddy",
       "version" : "1.12.18",
       "scope" : "required",
-      "purl" : "pkg:maven/net.bytebuddy/byte-buddy@1.12.18?scope=compile"
+      "purl" : "pkg:maven/net.bytebuddy/byte-buddy@1.12.18"
     },
     {
       "type" : "library",
@@ -578,7 +578,7 @@
       "name" : "antlr",
       "version" : "2.7.7",
       "scope" : "required",
-      "purl" : "pkg:maven/antlr/antlr@2.7.7?scope=compile"
+      "purl" : "pkg:maven/antlr/antlr@2.7.7"
     },
     {
       "type" : "library",
@@ -587,7 +587,7 @@
       "name" : "classmate",
       "version" : "1.5.1",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml/classmate@1.5.1?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml/classmate@1.5.1"
     },
     {
       "type" : "library",
@@ -596,7 +596,7 @@
       "name" : "hibernate-commons-annotations",
       "version" : "5.1.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.hibernate.common/hibernate-commons-annotations@5.1.2.Final?scope=compile"
+      "purl" : "pkg:maven/org.hibernate.common/hibernate-commons-annotations@5.1.2.Final"
     },
     {
       "type" : "library",
@@ -605,7 +605,7 @@
       "name" : "hibernate-graalvm",
       "version" : "5.6.14.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.hibernate/hibernate-graalvm@5.6.14.Final?scope=compile"
+      "purl" : "pkg:maven/org.hibernate/hibernate-graalvm@5.6.14.Final"
     },
     {
       "type" : "library",
@@ -614,7 +614,7 @@
       "name" : "jaxb-runtime",
       "version" : "2.3.3-b02",
       "scope" : "required",
-      "purl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.3-b02?scope=compile"
+      "purl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.3-b02"
     },
     {
       "type" : "library",
@@ -623,7 +623,7 @@
       "name" : "txw2",
       "version" : "2.3.3-b02",
       "scope" : "required",
-      "purl" : "pkg:maven/org.glassfish.jaxb/txw2@2.3.3-b02?scope=compile"
+      "purl" : "pkg:maven/org.glassfish.jaxb/txw2@2.3.3-b02"
     },
     {
       "type" : "library",
@@ -632,7 +632,7 @@
       "name" : "istack-commons-runtime",
       "version" : "3.0.10",
       "scope" : "required",
-      "purl" : "pkg:maven/com.sun.istack/istack-commons-runtime@3.0.10?scope=compile"
+      "purl" : "pkg:maven/com.sun.istack/istack-commons-runtime@3.0.10"
     },
     {
       "type" : "library",
@@ -641,7 +641,7 @@
       "name" : "jakarta.activation",
       "version" : "1.2.1",
       "scope" : "required",
-      "purl" : "pkg:maven/com.sun.activation/jakarta.activation@1.2.1?scope=compile"
+      "purl" : "pkg:maven/com.sun.activation/jakarta.activation@1.2.1"
     },
     {
       "type" : "library",
@@ -650,7 +650,7 @@
       "name" : "jboss-jaxb-api_2.3_spec",
       "version" : "2.0.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.spec.javax.xml.bind/jboss-jaxb-api_2.3_spec@2.0.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.spec.javax.xml.bind/jboss-jaxb-api_2.3_spec@2.0.0.Final"
     },
     {
       "type" : "library",
@@ -659,7 +659,7 @@
       "name" : "jakarta.persistence-api",
       "version" : "2.2.3",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.persistence/jakarta.persistence-api@2.2.3?scope=compile"
+      "purl" : "pkg:maven/jakarta.persistence/jakarta.persistence-api@2.2.3"
     },
     {
       "type" : "library",
@@ -668,7 +668,7 @@
       "name" : "quarkus-local-cache",
       "version" : "0.1.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.hibernate/quarkus-local-cache@0.1.1?scope=compile"
+      "purl" : "pkg:maven/org.hibernate/quarkus-local-cache@0.1.1"
     },
     {
       "type" : "library",
@@ -677,7 +677,7 @@
       "name" : "quarkus-caffeine",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-caffeine@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-caffeine@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -686,7 +686,7 @@
       "name" : "caffeine",
       "version" : "2.9.3",
       "scope" : "required",
-      "purl" : "pkg:maven/com.github.ben-manes.caffeine/caffeine@2.9.3?scope=compile"
+      "purl" : "pkg:maven/com.github.ben-manes.caffeine/caffeine@2.9.3"
     },
     {
       "type" : "library",
@@ -695,7 +695,7 @@
       "name" : "error_prone_annotations",
       "version" : "2.10.0",
       "scope" : "required",
-      "purl" : "pkg:maven/com.google.errorprone/error_prone_annotations@2.10.0?scope=compile"
+      "purl" : "pkg:maven/com.google.errorprone/error_prone_annotations@2.10.0"
     },
     {
       "type" : "library",
@@ -704,7 +704,7 @@
       "name" : "quarkus-resteasy",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -713,7 +713,7 @@
       "name" : "quarkus-vertx-http",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -722,7 +722,7 @@
       "name" : "quarkus-security-runtime-spi",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-security-runtime-spi@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-security-runtime-spi@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -731,7 +731,7 @@
       "name" : "quarkus-security",
       "version" : "1.1.4.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus.security/quarkus-security@1.1.4.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus.security/quarkus-security@1.1.4.Final"
     },
     {
       "type" : "library",
@@ -740,7 +740,7 @@
       "name" : "smallrye-common-vertx-context",
       "version" : "1.13.1",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-vertx-context@1.13.1?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.common/smallrye-common-vertx-context@1.13.1"
     },
     {
       "type" : "library",
@@ -749,7 +749,7 @@
       "name" : "vertx-core",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-core@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-core@4.3.4"
     },
     {
       "type" : "library",
@@ -758,7 +758,7 @@
       "name" : "netty-common",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-common@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-common@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -767,7 +767,7 @@
       "name" : "netty-buffer",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-buffer@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-buffer@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -776,7 +776,7 @@
       "name" : "netty-transport",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-transport@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-transport@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -785,7 +785,7 @@
       "name" : "netty-resolver",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-resolver@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-resolver@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -794,7 +794,7 @@
       "name" : "netty-handler",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-handler@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-handler@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -803,7 +803,7 @@
       "name" : "netty-transport-native-unix-common",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-transport-native-unix-common@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-transport-native-unix-common@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -812,7 +812,7 @@
       "name" : "netty-codec",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -821,7 +821,7 @@
       "name" : "netty-handler-proxy",
       "version" : "4.1.82.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-handler-proxy@4.1.82.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-handler-proxy@4.1.82.Final"
     },
     {
       "type" : "library",
@@ -830,7 +830,7 @@
       "name" : "netty-codec-socks",
       "version" : "4.1.82.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec-socks@4.1.82.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec-socks@4.1.82.Final"
     },
     {
       "type" : "library",
@@ -839,7 +839,7 @@
       "name" : "netty-codec-http",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec-http@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec-http@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -848,7 +848,7 @@
       "name" : "netty-codec-http2",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec-http2@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec-http2@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -857,7 +857,7 @@
       "name" : "netty-resolver-dns",
       "version" : "4.1.82.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-resolver-dns@4.1.82.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-resolver-dns@4.1.82.Final"
     },
     {
       "type" : "library",
@@ -866,7 +866,7 @@
       "name" : "netty-codec-dns",
       "version" : "4.1.82.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec-dns@4.1.82.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec-dns@4.1.82.Final"
     },
     {
       "type" : "library",
@@ -875,7 +875,7 @@
       "name" : "jackson-core",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.4"
     },
     {
       "type" : "library",
@@ -884,7 +884,7 @@
       "name" : "jackson-bom",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson/jackson-bom@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson/jackson-bom@2.13.4"
     },
     {
       "type" : "library",
@@ -893,7 +893,7 @@
       "name" : "jackson-annotations",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.4"
     },
     {
       "type" : "library",
@@ -902,7 +902,7 @@
       "name" : "jackson-databind",
       "version" : "2.13.4.2",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.4.2?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.4.2"
     },
     {
       "type" : "library",
@@ -911,7 +911,7 @@
       "name" : "jackson-datatype-jdk8",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.13.4"
     },
     {
       "type" : "library",
@@ -920,7 +920,7 @@
       "name" : "jackson-datatype-jsr310",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.13.4"
     },
     {
       "type" : "library",
@@ -929,7 +929,7 @@
       "name" : "jackson-jaxrs-json-provider",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider@2.13.4"
     },
     {
       "type" : "library",
@@ -938,7 +938,7 @@
       "name" : "jackson-module-parameter-names",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.13.4"
     },
     {
       "type" : "library",
@@ -947,7 +947,7 @@
       "name" : "jackson-jaxrs-base",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.jaxrs/jackson-jaxrs-base@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.jaxrs/jackson-jaxrs-base@2.13.4"
     },
     {
       "type" : "library",
@@ -956,7 +956,7 @@
       "name" : "jackson-module-jaxb-annotations",
       "version" : "2.13.4",
       "scope" : "required",
-      "purl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-jaxb-annotations@2.13.4?scope=compile"
+      "purl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-jaxb-annotations@2.13.4"
     },
     {
       "type" : "library",
@@ -965,7 +965,7 @@
       "name" : "quarkus-vertx-http-dev-console-runtime-spi",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http-dev-console-runtime-spi@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http-dev-console-runtime-spi@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -974,7 +974,7 @@
       "name" : "vertx-web",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-web@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-web@4.3.4"
     },
     {
       "type" : "library",
@@ -983,7 +983,7 @@
       "name" : "vertx-web-common",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-web-common@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-web-common@4.3.4"
     },
     {
       "type" : "library",
@@ -992,7 +992,7 @@
       "name" : "vertx-auth-common",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-auth-common@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-auth-common@4.3.4"
     },
     {
       "type" : "library",
@@ -1001,7 +1001,7 @@
       "name" : "vertx-bridge-common",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-bridge-common@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-bridge-common@4.3.4"
     },
     {
       "type" : "library",
@@ -1010,7 +1010,7 @@
       "name" : "quarkus-vertx",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1019,7 +1019,7 @@
       "name" : "quarkus-netty",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-netty@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-netty@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1028,7 +1028,7 @@
       "name" : "brotli4j",
       "version" : "1.7.1",
       "scope" : "required",
-      "purl" : "pkg:maven/com.aayushatharva.brotli4j/brotli4j@1.7.1?scope=compile"
+      "purl" : "pkg:maven/com.aayushatharva.brotli4j/brotli4j@1.7.1"
     },
     {
       "type" : "library",
@@ -1037,7 +1037,7 @@
       "name" : "netty-codec-haproxy",
       "version" : "4.1.86.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.netty/netty-codec-haproxy@4.1.86.Final?scope=compile"
+      "purl" : "pkg:maven/io.netty/netty-codec-haproxy@4.1.86.Final"
     },
     {
       "type" : "library",
@@ -1046,7 +1046,7 @@
       "name" : "quarkus-vertx-latebound-mdc-provider",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-latebound-mdc-provider@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-latebound-mdc-provider@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1055,7 +1055,7 @@
       "name" : "smallrye-mutiny-vertx-core",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-core@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-core@2.27.0"
     },
     {
       "type" : "library",
@@ -1064,7 +1064,7 @@
       "name" : "smallrye-mutiny-vertx-runtime",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-runtime@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-runtime@2.27.0"
     },
     {
       "type" : "library",
@@ -1073,7 +1073,7 @@
       "name" : "vertx-mutiny-generator",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/vertx-mutiny-generator@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/vertx-mutiny-generator@2.27.0"
     },
     {
       "type" : "library",
@@ -1082,7 +1082,7 @@
       "name" : "vertx-codegen",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-codegen@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-codegen@4.3.4"
     },
     {
       "type" : "library",
@@ -1091,7 +1091,7 @@
       "name" : "smallrye-fault-tolerance-vertx",
       "version" : "5.5.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye/smallrye-fault-tolerance-vertx@5.5.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye/smallrye-fault-tolerance-vertx@5.5.0"
     },
     {
       "type" : "library",
@@ -1100,7 +1100,7 @@
       "name" : "smallrye-mutiny-vertx-web",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-web@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-web@2.27.0"
     },
     {
       "type" : "library",
@@ -1109,7 +1109,7 @@
       "name" : "smallrye-mutiny-vertx-web-common",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-web-common@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-web-common@2.27.0"
     },
     {
       "type" : "library",
@@ -1118,7 +1118,7 @@
       "name" : "smallrye-mutiny-vertx-auth-common",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-auth-common@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-auth-common@2.27.0"
     },
     {
       "type" : "library",
@@ -1127,7 +1127,7 @@
       "name" : "smallrye-mutiny-vertx-bridge-common",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-bridge-common@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-bridge-common@2.27.0"
     },
     {
       "type" : "library",
@@ -1136,7 +1136,7 @@
       "name" : "smallrye-mutiny-vertx-uri-template",
       "version" : "2.27.0",
       "scope" : "required",
-      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-uri-template@2.27.0?scope=compile"
+      "purl" : "pkg:maven/io.smallrye.reactive/smallrye-mutiny-vertx-uri-template@2.27.0"
     },
     {
       "type" : "library",
@@ -1145,7 +1145,7 @@
       "name" : "vertx-uri-template",
       "version" : "4.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/io.vertx/vertx-uri-template@4.3.4?scope=compile"
+      "purl" : "pkg:maven/io.vertx/vertx-uri-template@4.3.4"
     },
     {
       "type" : "library",
@@ -1154,7 +1154,7 @@
       "name" : "quarkus-resteasy-server-common",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-server-common@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-server-common@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1163,7 +1163,7 @@
       "name" : "quarkus-resteasy-common",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-common@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-common@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1172,7 +1172,7 @@
       "name" : "resteasy-core",
       "version" : "4.7.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-core@4.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-core@4.7.7.Final"
     },
     {
       "type" : "library",
@@ -1181,7 +1181,7 @@
       "name" : "jboss-annotations-api_1.3_spec",
       "version" : "2.0.1.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.spec.javax.annotation/jboss-annotations-api_1.3_spec@2.0.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.spec.javax.annotation/jboss-annotations-api_1.3_spec@2.0.1.Final"
     },
     {
       "type" : "library",
@@ -1190,7 +1190,7 @@
       "name" : "jboss-jaxrs-api_2.1_spec",
       "version" : "2.0.1.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.spec.javax.ws.rs/jboss-jaxrs-api_2.1_spec@2.0.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.spec.javax.ws.rs/jboss-jaxrs-api_2.1_spec@2.0.1.Final"
     },
     {
       "type" : "library",
@@ -1199,7 +1199,7 @@
       "name" : "resteasy-core-spi",
       "version" : "4.7.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-core-spi@4.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-core-spi@4.7.7.Final"
     },
     {
       "type" : "library",
@@ -1208,7 +1208,7 @@
       "name" : "jakarta.validation-api",
       "version" : "2.0.2",
       "scope" : "required",
-      "purl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2?scope=compile"
+      "purl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2"
     },
     {
       "type" : "library",
@@ -1217,7 +1217,7 @@
       "name" : "asyncutil",
       "version" : "0.1.0",
       "scope" : "required",
-      "purl" : "pkg:maven/com.ibm.async/asyncutil@0.1.0?scope=compile"
+      "purl" : "pkg:maven/com.ibm.async/asyncutil@0.1.0"
     },
     {
       "type" : "library",
@@ -1226,7 +1226,7 @@
       "name" : "quarkus-resteasy-jackson",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-jackson@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-jackson@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1235,7 +1235,7 @@
       "name" : "quarkus-jackson",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-jackson@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-jackson@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1244,7 +1244,7 @@
       "name" : "resteasy-jackson2-provider",
       "version" : "4.7.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-jackson2-provider@4.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-jackson2-provider@4.7.7.Final"
     },
     {
       "type" : "library",
@@ -1253,7 +1253,7 @@
       "name" : "json-patch",
       "version" : "1.13",
       "scope" : "required",
-      "purl" : "pkg:maven/com.github.java-json-tools/json-patch@1.13?scope=compile"
+      "purl" : "pkg:maven/com.github.java-json-tools/json-patch@1.13"
     },
     {
       "type" : "library",
@@ -1262,7 +1262,7 @@
       "name" : "msg-simple",
       "version" : "1.2",
       "scope" : "required",
-      "purl" : "pkg:maven/com.github.java-json-tools/msg-simple@1.2?scope=compile"
+      "purl" : "pkg:maven/com.github.java-json-tools/msg-simple@1.2"
     },
     {
       "type" : "library",
@@ -1271,7 +1271,7 @@
       "name" : "btf",
       "version" : "1.3",
       "scope" : "required",
-      "purl" : "pkg:maven/com.github.java-json-tools/btf@1.3?scope=compile"
+      "purl" : "pkg:maven/com.github.java-json-tools/btf@1.3"
     },
     {
       "type" : "library",
@@ -1280,7 +1280,7 @@
       "name" : "jackson-coreutils",
       "version" : "2.0",
       "scope" : "required",
-      "purl" : "pkg:maven/com.github.java-json-tools/jackson-coreutils@2.0?scope=compile"
+      "purl" : "pkg:maven/com.github.java-json-tools/jackson-coreutils@2.0"
     },
     {
       "type" : "library",
@@ -1289,7 +1289,7 @@
       "name" : "quarkus-jdbc-postgresql",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1298,7 +1298,7 @@
       "name" : "postgresql",
       "version" : "42.5.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.postgresql/postgresql@42.5.0?scope=compile"
+      "purl" : "pkg:maven/org.postgresql/postgresql@42.5.0"
     },
     {
       "type" : "library",
@@ -1307,7 +1307,7 @@
       "name" : "quarkus-kubernetes-service-binding",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-kubernetes-service-binding@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-kubernetes-service-binding@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1316,7 +1316,7 @@
       "name" : "quarkus-container-image-docker",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-container-image-docker@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-container-image-docker@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1325,7 +1325,7 @@
       "name" : "quarkus-container-image",
       "version" : "2.13.5.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-container-image@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-container-image@2.13.5.Final"
     },
     {
       "type" : "library",
@@ -1334,7 +1334,7 @@
       "name" : "quarkus-resteasy-multipart",
       "version" : "2.13.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-multipart@2.13.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy-multipart@2.13.7.Final"
     },
     {
       "type" : "library",
@@ -1343,7 +1343,7 @@
       "name" : "resteasy-multipart-provider",
       "version" : "4.7.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-multipart-provider@4.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-multipart-provider@4.7.7.Final"
     },
     {
       "type" : "library",
@@ -1352,7 +1352,7 @@
       "name" : "resteasy-jaxb-provider",
       "version" : "4.7.7.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-jaxb-provider@4.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.resteasy/resteasy-jaxb-provider@4.7.7.Final"
     },
     {
       "type" : "library",
@@ -1361,7 +1361,7 @@
       "name" : "jakarta.mail",
       "version" : "1.6.5",
       "scope" : "required",
-      "purl" : "pkg:maven/com.sun.mail/jakarta.mail@1.6.5?scope=compile"
+      "purl" : "pkg:maven/com.sun.mail/jakarta.mail@1.6.5"
     },
     {
       "type" : "library",
@@ -1370,7 +1370,7 @@
       "name" : "apache-mime4j-dom",
       "version" : "0.8.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.james/apache-mime4j-dom@0.8.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.james/apache-mime4j-dom@0.8.3"
     },
     {
       "type" : "library",
@@ -1379,7 +1379,7 @@
       "name" : "apache-mime4j-core",
       "version" : "0.8.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.james/apache-mime4j-core@0.8.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.james/apache-mime4j-core@0.8.3"
     },
     {
       "type" : "library",
@@ -1388,7 +1388,7 @@
       "name" : "apache-mime4j-storage",
       "version" : "0.8.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.james/apache-mime4j-storage@0.8.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.james/apache-mime4j-storage@0.8.3"
     },
     {
       "type" : "library",
@@ -1397,7 +1397,7 @@
       "name" : "commons-io",
       "version" : "2.6",
       "scope" : "required",
-      "purl" : "pkg:maven/commons-io/commons-io@2.6?scope=compile"
+      "purl" : "pkg:maven/commons-io/commons-io@2.6"
     },
     {
       "type" : "library",
@@ -1406,7 +1406,7 @@
       "name" : "commons-logging-jboss-logging",
       "version" : "1.0.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss.logging/commons-logging-jboss-logging@1.0.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss.logging/commons-logging-jboss-logging@1.0.0.Final"
     },
     {
       "type" : "library",
@@ -1415,7 +1415,7 @@
       "name" : "quarkus-hibernate-orm-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-hibernate-orm-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1424,7 +1424,7 @@
       "name" : "quarkus-core-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-core-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-core-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1433,7 +1433,7 @@
       "name" : "readline",
       "version" : "2.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.aesh/readline@2.1?scope=compile"
+      "purl" : "pkg:maven/org.aesh/readline@2.1"
     },
     {
       "type" : "library",
@@ -1442,7 +1442,7 @@
       "name" : "jansi",
       "version" : "1.18",
       "scope" : "required",
-      "purl" : "pkg:maven/org.fusesource.jansi/jansi@1.18?scope=compile"
+      "purl" : "pkg:maven/org.fusesource.jansi/jansi@1.18"
     },
     {
       "type" : "library",
@@ -1451,7 +1451,7 @@
       "name" : "commons-lang3",
       "version" : "3.12.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.commons/commons-lang3@3.12.0?scope=compile"
+      "purl" : "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
     },
     {
       "type" : "library",
@@ -1460,7 +1460,7 @@
       "name" : "gizmo",
       "version" : "1.0.9.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus.gizmo/gizmo@1.0.9.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus.gizmo/gizmo@1.0.9.Final"
     },
     {
       "type" : "library",
@@ -1469,7 +1469,7 @@
       "name" : "asm-util",
       "version" : "9.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.ow2.asm/asm-util@9.1?scope=compile"
+      "purl" : "pkg:maven/org.ow2.asm/asm-util@9.1"
     },
     {
       "type" : "library",
@@ -1478,7 +1478,7 @@
       "name" : "asm-tree",
       "version" : "9.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.ow2.asm/asm-tree@9.1?scope=compile"
+      "purl" : "pkg:maven/org.ow2.asm/asm-tree@9.1"
     },
     {
       "type" : "library",
@@ -1487,7 +1487,7 @@
       "name" : "asm-analysis",
       "version" : "9.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.ow2.asm/asm-analysis@9.1?scope=compile"
+      "purl" : "pkg:maven/org.ow2.asm/asm-analysis@9.1"
     },
     {
       "type" : "library",
@@ -1496,7 +1496,7 @@
       "name" : "jandex",
       "version" : "2.3.0.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jboss/jandex@2.3.0.Final?scope=compile"
+      "purl" : "pkg:maven/org.jboss/jandex@2.3.0.Final"
     },
     {
       "type" : "library",
@@ -1505,7 +1505,7 @@
       "name" : "quarkus-class-change-agent",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-class-change-agent@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-class-change-agent@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1514,7 +1514,7 @@
       "name" : "quarkus-bootstrap-core",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-core@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-core@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1523,7 +1523,7 @@
       "name" : "quarkus-bootstrap-app-model",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-app-model@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-app-model@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1532,7 +1532,7 @@
       "name" : "quarkus-bootstrap-maven-resolver",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-maven-resolver@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-maven-resolver@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1541,7 +1541,7 @@
       "name" : "maven-embedder",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-embedder@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-embedder@3.8.1"
     },
     {
       "type" : "library",
@@ -1550,7 +1550,7 @@
       "name" : "maven-settings",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-settings@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-settings@3.8.1"
     },
     {
       "type" : "library",
@@ -1559,7 +1559,7 @@
       "name" : "plexus-utils",
       "version" : "3.3.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.codehaus.plexus/plexus-utils@3.3.0?scope=compile"
+      "purl" : "pkg:maven/org.codehaus.plexus/plexus-utils@3.3.0"
     },
     {
       "type" : "library",
@@ -1568,7 +1568,7 @@
       "name" : "maven-settings-builder",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-settings-builder@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-settings-builder@3.8.1"
     },
     {
       "type" : "library",
@@ -1577,7 +1577,7 @@
       "name" : "maven-builder-support",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-builder-support@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-builder-support@3.8.1"
     },
     {
       "type" : "library",
@@ -1586,7 +1586,7 @@
       "name" : "plexus-interpolation",
       "version" : "1.25",
       "scope" : "required",
-      "purl" : "pkg:maven/org.codehaus.plexus/plexus-interpolation@1.25?scope=compile"
+      "purl" : "pkg:maven/org.codehaus.plexus/plexus-interpolation@1.25"
     },
     {
       "type" : "library",
@@ -1595,7 +1595,7 @@
       "name" : "plexus-sec-dispatcher",
       "version" : "1.4",
       "scope" : "required",
-      "purl" : "pkg:maven/org.sonatype.plexus/plexus-sec-dispatcher@1.4?scope=compile"
+      "purl" : "pkg:maven/org.sonatype.plexus/plexus-sec-dispatcher@1.4"
     },
     {
       "type" : "library",
@@ -1604,7 +1604,7 @@
       "name" : "plexus-cipher",
       "version" : "1.4",
       "scope" : "required",
-      "purl" : "pkg:maven/org.sonatype.plexus/plexus-cipher@1.4?scope=compile"
+      "purl" : "pkg:maven/org.sonatype.plexus/plexus-cipher@1.4"
     },
     {
       "type" : "library",
@@ -1613,7 +1613,7 @@
       "name" : "maven-core",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-core@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-core@3.8.1"
     },
     {
       "type" : "library",
@@ -1622,7 +1622,7 @@
       "name" : "maven-model",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-model@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-model@3.8.1"
     },
     {
       "type" : "library",
@@ -1631,7 +1631,7 @@
       "name" : "maven-repository-metadata",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-repository-metadata@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-repository-metadata@3.8.1"
     },
     {
       "type" : "library",
@@ -1640,7 +1640,7 @@
       "name" : "maven-artifact",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-artifact@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-artifact@3.8.1"
     },
     {
       "type" : "library",
@@ -1649,7 +1649,7 @@
       "name" : "maven-plugin-api",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-plugin-api@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-plugin-api@3.8.1"
     },
     {
       "type" : "library",
@@ -1658,7 +1658,7 @@
       "name" : "org.eclipse.sisu.plexus",
       "version" : "0.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/org.eclipse.sisu/org.eclipse.sisu.plexus@0.3.4?scope=compile"
+      "purl" : "pkg:maven/org.eclipse.sisu/org.eclipse.sisu.plexus@0.3.4"
     },
     {
       "type" : "library",
@@ -1667,7 +1667,7 @@
       "name" : "plexus-component-annotations",
       "version" : "2.1.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.codehaus.plexus/plexus-component-annotations@2.1.0?scope=compile"
+      "purl" : "pkg:maven/org.codehaus.plexus/plexus-component-annotations@2.1.0"
     },
     {
       "type" : "library",
@@ -1676,7 +1676,7 @@
       "name" : "plexus-classworlds",
       "version" : "2.6.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.codehaus.plexus/plexus-classworlds@2.6.0?scope=compile"
+      "purl" : "pkg:maven/org.codehaus.plexus/plexus-classworlds@2.6.0"
     },
     {
       "type" : "library",
@@ -1685,7 +1685,7 @@
       "name" : "maven-model-builder",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-model-builder@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-model-builder@3.8.1"
     },
     {
       "type" : "library",
@@ -1694,7 +1694,7 @@
       "name" : "maven-resolver-provider",
       "version" : "3.8.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven/maven-resolver-provider@3.8.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven/maven-resolver-provider@3.8.1"
     },
     {
       "type" : "library",
@@ -1703,7 +1703,7 @@
       "name" : "maven-resolver-api",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-api@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-api@1.6.2"
     },
     {
       "type" : "library",
@@ -1712,7 +1712,7 @@
       "name" : "maven-resolver-spi",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-spi@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-spi@1.6.2"
     },
     {
       "type" : "library",
@@ -1721,7 +1721,7 @@
       "name" : "maven-resolver-util",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-util@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-util@1.6.2"
     },
     {
       "type" : "library",
@@ -1730,7 +1730,7 @@
       "name" : "maven-resolver-impl",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-impl@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-impl@1.6.2"
     },
     {
       "type" : "library",
@@ -1739,7 +1739,7 @@
       "name" : "maven-shared-utils",
       "version" : "3.2.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.shared/maven-shared-utils@3.2.1?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.shared/maven-shared-utils@3.2.1"
     },
     {
       "type" : "library",
@@ -1748,7 +1748,7 @@
       "name" : "guice",
       "version" : "4.2.1",
       "scope" : "required",
-      "purl" : "pkg:maven/com.google.inject/guice@4.2.1?scope=compile"
+      "purl" : "pkg:maven/com.google.inject/guice@4.2.1"
     },
     {
       "type" : "library",
@@ -1757,7 +1757,7 @@
       "name" : "aopalliance",
       "version" : "1.0",
       "scope" : "required",
-      "purl" : "pkg:maven/aopalliance/aopalliance@1.0?scope=compile"
+      "purl" : "pkg:maven/aopalliance/aopalliance@1.0"
     },
     {
       "type" : "library",
@@ -1766,7 +1766,7 @@
       "name" : "guava",
       "version" : "25.1-android",
       "scope" : "required",
-      "purl" : "pkg:maven/com.google.guava/guava@25.1-android?scope=compile"
+      "purl" : "pkg:maven/com.google.guava/guava@25.1-android"
     },
     {
       "type" : "library",
@@ -1775,7 +1775,7 @@
       "name" : "jsr305",
       "version" : "3.0.2",
       "scope" : "required",
-      "purl" : "pkg:maven/com.google.code.findbugs/jsr305@3.0.2?scope=compile"
+      "purl" : "pkg:maven/com.google.code.findbugs/jsr305@3.0.2"
     },
     {
       "type" : "library",
@@ -1784,7 +1784,7 @@
       "name" : "checker-compat-qual",
       "version" : "2.0.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.checkerframework/checker-compat-qual@2.0.0?scope=compile"
+      "purl" : "pkg:maven/org.checkerframework/checker-compat-qual@2.0.0"
     },
     {
       "type" : "library",
@@ -1793,7 +1793,7 @@
       "name" : "j2objc-annotations",
       "version" : "1.1",
       "scope" : "required",
-      "purl" : "pkg:maven/com.google.j2objc/j2objc-annotations@1.1?scope=compile"
+      "purl" : "pkg:maven/com.google.j2objc/j2objc-annotations@1.1"
     },
     {
       "type" : "library",
@@ -1802,7 +1802,7 @@
       "name" : "animal-sniffer-annotations",
       "version" : "1.14",
       "scope" : "required",
-      "purl" : "pkg:maven/org.codehaus.mojo/animal-sniffer-annotations@1.14?scope=compile"
+      "purl" : "pkg:maven/org.codehaus.mojo/animal-sniffer-annotations@1.14"
     },
     {
       "type" : "library",
@@ -1811,7 +1811,7 @@
       "name" : "commons-cli",
       "version" : "1.4",
       "scope" : "required",
-      "purl" : "pkg:maven/commons-cli/commons-cli@1.4?scope=compile"
+      "purl" : "pkg:maven/commons-cli/commons-cli@1.4"
     },
     {
       "type" : "library",
@@ -1820,7 +1820,7 @@
       "name" : "maven-resolver-connector-basic",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-connector-basic@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-connector-basic@1.6.2"
     },
     {
       "type" : "library",
@@ -1829,7 +1829,7 @@
       "name" : "maven-resolver-transport-wagon",
       "version" : "1.6.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-transport-wagon@1.6.2?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.resolver/maven-resolver-transport-wagon@1.6.2"
     },
     {
       "type" : "library",
@@ -1838,7 +1838,7 @@
       "name" : "wagon-http",
       "version" : "3.4.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-http@3.4.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-http@3.4.3"
     },
     {
       "type" : "library",
@@ -1847,7 +1847,7 @@
       "name" : "wagon-http-shared",
       "version" : "3.4.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-http-shared@3.4.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-http-shared@3.4.3"
     },
     {
       "type" : "library",
@@ -1856,7 +1856,7 @@
       "name" : "jsoup",
       "version" : "1.12.1",
       "scope" : "required",
-      "purl" : "pkg:maven/org.jsoup/jsoup@1.12.1?scope=compile"
+      "purl" : "pkg:maven/org.jsoup/jsoup@1.12.1"
     },
     {
       "type" : "library",
@@ -1865,7 +1865,7 @@
       "name" : "httpclient",
       "version" : "4.5.13",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?scope=compile"
+      "purl" : "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13"
     },
     {
       "type" : "library",
@@ -1874,7 +1874,7 @@
       "name" : "httpcore",
       "version" : "4.4.14",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.httpcomponents/httpcore@4.4.14?scope=compile"
+      "purl" : "pkg:maven/org.apache.httpcomponents/httpcore@4.4.14"
     },
     {
       "type" : "library",
@@ -1883,7 +1883,7 @@
       "name" : "commons-codec",
       "version" : "1.11",
       "scope" : "required",
-      "purl" : "pkg:maven/commons-codec/commons-codec@1.11?scope=compile"
+      "purl" : "pkg:maven/commons-codec/commons-codec@1.11"
     },
     {
       "type" : "library",
@@ -1892,7 +1892,7 @@
       "name" : "wagon-provider-api",
       "version" : "3.4.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-provider-api@3.4.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-provider-api@3.4.3"
     },
     {
       "type" : "library",
@@ -1901,7 +1901,7 @@
       "name" : "wagon-file",
       "version" : "3.4.3",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-file@3.4.3?scope=compile"
+      "purl" : "pkg:maven/org.apache.maven.wagon/wagon-file@3.4.3"
     },
     {
       "type" : "library",
@@ -1910,7 +1910,7 @@
       "name" : "quarkus-bootstrap-gradle-resolver",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-gradle-resolver@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-bootstrap-gradle-resolver@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1919,7 +1919,7 @@
       "name" : "quarkus-devtools-utilities",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-devtools-utilities@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-devtools-utilities@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1928,7 +1928,7 @@
       "name" : "org.eclipse.sisu.inject",
       "version" : "0.3.4",
       "scope" : "required",
-      "purl" : "pkg:maven/org.eclipse.sisu/org.eclipse.sisu.inject@0.3.4?scope=compile"
+      "purl" : "pkg:maven/org.eclipse.sisu/org.eclipse.sisu.inject@0.3.4"
     },
     {
       "type" : "library",
@@ -1937,7 +1937,7 @@
       "name" : "quarkus-builder",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-builder@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-builder@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -1946,7 +1946,7 @@
       "name" : "junit-platform-launcher",
       "version" : "1.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.platform/junit-platform-launcher@1.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.platform/junit-platform-launcher@1.7.2"
     },
     {
       "type" : "library",
@@ -1955,7 +1955,7 @@
       "name" : "junit-bom",
       "version" : "5.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit/junit-bom@5.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit/junit-bom@5.7.2"
     },
     {
       "type" : "library",
@@ -1964,7 +1964,7 @@
       "name" : "junit-jupiter",
       "version" : "5.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter@5.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter@5.7.2"
     },
     {
       "type" : "library",
@@ -1973,7 +1973,7 @@
       "name" : "junit-jupiter-api",
       "version" : "5.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.7.2"
     },
     {
       "type" : "library",
@@ -1982,7 +1982,7 @@
       "name" : "junit-jupiter-engine",
       "version" : "5.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-engine@5.7.2"
     },
     {
       "type" : "library",
@@ -1991,7 +1991,7 @@
       "name" : "junit-jupiter-params",
       "version" : "5.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.jupiter/junit-jupiter-params@5.7.2"
     },
     {
       "type" : "library",
@@ -2000,7 +2000,7 @@
       "name" : "junit-platform-engine",
       "version" : "1.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.platform/junit-platform-engine@1.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.platform/junit-platform-engine@1.7.2"
     },
     {
       "type" : "library",
@@ -2009,7 +2009,7 @@
       "name" : "junit-platform-commons",
       "version" : "1.7.2",
       "scope" : "required",
-      "purl" : "pkg:maven/org.junit.platform/junit-platform-commons@1.7.2?scope=compile"
+      "purl" : "pkg:maven/org.junit.platform/junit-platform-commons@1.7.2"
     },
     {
       "type" : "library",
@@ -2018,7 +2018,7 @@
       "name" : "apiguardian-api",
       "version" : "1.1.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.apiguardian/apiguardian-api@1.1.0?scope=compile"
+      "purl" : "pkg:maven/org.apiguardian/apiguardian-api@1.1.0"
     },
     {
       "type" : "library",
@@ -2027,7 +2027,7 @@
       "name" : "opentest4j",
       "version" : "1.2.0",
       "scope" : "required",
-      "purl" : "pkg:maven/org.opentest4j/opentest4j@1.2.0?scope=compile"
+      "purl" : "pkg:maven/org.opentest4j/opentest4j@1.2.0"
     },
     {
       "type" : "library",
@@ -2036,7 +2036,7 @@
       "name" : "quarkus-narayana-jta-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-narayana-jta-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-narayana-jta-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2045,7 +2045,7 @@
       "name" : "quarkus-arc-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-arc-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-arc-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2054,7 +2054,7 @@
       "name" : "quarkus-vertx-http-dev-console-spi",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http-dev-console-spi@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http-dev-console-spi@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2063,7 +2063,7 @@
       "name" : "arc-processor",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus.arc/arc-processor@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus.arc/arc-processor@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2072,7 +2072,7 @@
       "name" : "quarkus-mutiny-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-mutiny-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-mutiny-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2081,7 +2081,7 @@
       "name" : "quarkus-smallrye-context-propagation-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-context-propagation-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-context-propagation-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2090,7 +2090,7 @@
       "name" : "quarkus-agroal-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-agroal-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-agroal-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2099,7 +2099,7 @@
       "name" : "quarkus-datasource-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2108,7 +2108,7 @@
       "name" : "quarkus-datasource-deployment-spi",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-deployment-spi@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-datasource-deployment-spi@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2117,7 +2117,7 @@
       "name" : "quarkus-agroal-spi",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-agroal-spi@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-agroal-spi@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2126,7 +2126,7 @@
       "name" : "quarkus-credentials-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-credentials-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-credentials-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2135,7 +2135,7 @@
       "name" : "quarkus-smallrye-health-spi",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-health-spi@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-smallrye-health-spi@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2144,7 +2144,7 @@
       "name" : "quarkus-caffeine-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-caffeine-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-caffeine-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2153,7 +2153,7 @@
       "name" : "quarkus-panache-hibernate-common-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-panache-hibernate-common-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-panache-hibernate-common-deployment@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2162,7 +2162,7 @@
       "name" : "quarkus-panache-hibernate-common",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-panache-hibernate-common@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-panache-hibernate-common@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2171,7 +2171,7 @@
       "name" : "quarkus-panache-common",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-panache-common@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-panache-common@2.0.2.Final"
     },
     {
       "type" : "library",
@@ -2180,7 +2180,7 @@
       "name" : "quarkus-panache-common-deployment",
       "version" : "2.0.2.Final",
       "scope" : "required",
-      "purl" : "pkg:maven/io.quarkus/quarkus-panache-common-deployment@2.0.2.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-panache-common-deployment@2.0.2.Final"
     }
   ],
   "dependencies" : [

@@ -20,7 +20,7 @@
       "group" : "org.springframework.boot",
       "name" : "spring-boot-starter-web",
       "version" : "3.1.3",
-      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-web@3.1.3?scope=compile"
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-web@3.1.3"
     },
     {
       "type" : "library",
@@ -28,7 +28,7 @@
       "group" : "io.quarkus",
       "name" : "quarkus-resteasy",
       "version" : "2.7.7.Final",
-      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.7.7.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-resteasy@2.7.7.Final"
     },
     {
       "type" : "library",
@@ -36,7 +36,7 @@
       "group" : "org.keycloak",
       "name" : "keycloak-saml-core",
       "version" : "1.8.1.Final",
-      "purl" : "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final?scope=compile"
+      "purl" : "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
     },
     {
       "type" : "library",
@@ -44,7 +44,7 @@
       "group" : "io.quarkus",
       "name" : "quarkus-vertx-http",
       "version" : "2.13.5.Final",
-      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.5.Final?scope=compile"
+      "purl" : "pkg:maven/io.quarkus/quarkus-vertx-http@2.13.5.Final"
     }
   ],
   "dependencies" : [

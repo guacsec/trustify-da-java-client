@@ -177,7 +177,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     sbom.setCoordinateBasedMatching();
     List<String> lines = Files.readAllLines(textFormatFile);
     var root = lines.get(0);
-    var rootPurl = parseDep(root);
+    var rootPurl = parseDep(root).toPurl();
     sbom.addRoot(rootPurl, readLicenseFromManifest());
     lines.remove(0);
     String[] array = new String[lines.size()];

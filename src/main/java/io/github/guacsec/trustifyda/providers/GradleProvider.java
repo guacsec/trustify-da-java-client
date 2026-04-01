@@ -307,7 +307,7 @@ public final class GradleProvider extends BaseJavaProvider {
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
     String root = getRoot(textFormatFile, propertiesMap);
 
-    PackageURL rootPurl = parseDep(root);
+    PackageURL rootPurl = parseDep(root).toPurl();
     sbom.addRoot(rootPurl, readLicenseFromManifest());
 
     List<String> runtimeConfig = extractLines(textFormatFile, RUNTIME_CLASSPATH);
