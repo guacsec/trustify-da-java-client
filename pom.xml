@@ -628,7 +628,7 @@ limitations under the License.]]>
           <rules>
             <dependencyConvergence />
             <requireJavaVersion>
-              <version>[11,)</version>
+              <version>[21,)</version>
             </requireJavaVersion>
             <requireMavenVersion>
               <version>[3.8,)</version>

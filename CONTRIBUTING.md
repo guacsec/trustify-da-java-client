@@ -113,4 +113,4 @@ contribution. See the [DCO](DCO) file for details.
 [1]: https://github.com/guacsec/trustify-da-api-spec/blob/main/api/v5/openapi.yaml
 
 <!-- Badge links -->
-[10]: https://badgen.net/badge/Java%20Version/11/5382a1
+[10]: https://badgen.net/badge/Java%20Version/21/5382a1
