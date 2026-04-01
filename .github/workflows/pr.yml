@@ -14,11 +14,11 @@ jobs:
       checks: write
       pull-requests: write
     env:
-      MAIN_JAVA_VER: 17
+      MAIN_JAVA_VER: 21
       RUN_PYTHON_BIN: ${{ vars.RUN_PYTHON_BIN }}
     strategy:
       matrix:
-        java: [17, 21]
+        java: [21]
     steps:
     - name: Checkout sources
       uses: actions/checkout@v6

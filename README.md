@@ -3,6 +3,8 @@
 * Looking for our JavaScript/TypeScript API? Try [Trustify DA JavaScript Client](https://github.com/guacsec/trustify-da-javascript-client).
 * Looking for our Backend implementation? Try [Trustify Dependency Analytics](https://github.com/guacsec/trustify-dependency-analytics).
 
+**Requires Java 21 or later.**
+
 The _Trustify DA Java Client_ module is deployed to _GitHub Package Registry_.
 
 <details>
@@ -824,10 +826,9 @@ Released artifacts are available on [Maven Central](https://repo1.maven.org/mave
 
 
 
-- For maven pom.xml, it has been noticed that using java 17 might cause stack analysis to hang forever.
-  This is caused by maven [`dependency` Plugin](https://maven.apache.org/plugins/maven-dependency-plugin/) bug when running with JDK/JRE' JVM version 17.
-
-  To overcome this, you can use any other java version (14,20,21, etc..). ( best way is to install JDK/JRE version different from 17 , and set the location of the installation in environment variable `JAVA_HOME` so maven will use it.)
+- For maven pom.xml, it has been noticed that using Java 17 might cause stack analysis to hang forever.
+  This is caused by maven [`dependency` Plugin](https://maven.apache.org/plugins/maven-dependency-plugin/) bug when running with JDK/JRE JVM version 17.
+  This project now requires Java 21 as the minimum version, which is not affected by this issue.
 
 
 <!-- Badge links -->

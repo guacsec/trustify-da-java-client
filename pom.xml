@@ -16,7 +16,7 @@
     <code.coverage.threshold>81%</code.coverage.threshold>
     <mutation.coverage.threshold>50</mutation.coverage.threshold>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <!-- Dependencies -->
     <trustify-da-api-model.version>2.0.7</trustify-da-api-model.version>
     <jackson.version>2.21.2</jackson.version>
