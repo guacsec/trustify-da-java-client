@@ -24,6 +24,7 @@ import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.tools.Operations;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -108,21 +109,36 @@ public final class YarnBerryProcessor extends YarnProcessor {
     if (depTree == null) {
       return;
     }
+    Set<String> prodDeps = manifest.dependencies;
     depTree.forEach(
         n -> {
           var depName = n.get("value").asText();
-          var from = isRoot(depName) ? sbom.getRoot() : purlFromNode(depName, n);
+          var isRootNode = isRoot(depName);
+          var from = isRootNode ? sbom.getRoot() : purlFromNode(depName, n);
           var deps = (ArrayNode) n.get("children").get("Dependencies");
           if (deps != null && !deps.isEmpty()) {
             deps.forEach(
                 d -> {
                   var target = purlFromlocator(d.get("locator").asText());
                   if (target != null) {
+                    // For root node, only include production dependencies
+                    if (isRootNode) {
+                      var fullName = purlToFullName(target);
+                      if (!prodDeps.contains(fullName)) {
+                        return;
+                      }
+                    }
                     sbom.addDependency(from, target, null);
                   }
                 });
           }
         });
+  }
+
+  private static String purlToFullName(PackageURL purl) {
+    return purl.getNamespace() != null
+        ? purl.getNamespace() + "/" + purl.getName()
+        : purl.getName();
   }
 
   private PackageURL purlFromlocator(String locator) {

@@ -159,20 +159,29 @@ public abstract class JavaScriptProvider extends Provider {
     var sbom = SbomFactory.newInstance();
     sbom.addRoot(manifest.root, readLicenseFromManifest());
     addDependenciesToSbom(sbom, depTree);
+    ensurePeerAndOptionalDeps(sbom);
     sbom.filterIgnoredDeps(manifest.ignored);
     return sbom;
   }
 
   protected void addDependenciesToSbom(Sbom sbom, JsonNode depTree) {
-    var deps = depTree.get("dependencies");
+    addDependenciesFromKey(sbom, depTree, "dependencies");
+    addDependenciesFromKey(sbom, depTree, "optionalDependencies");
+  }
+
+  private void addDependenciesFromKey(Sbom sbom, JsonNode depTree, String key) {
+    var deps = depTree.get(key);
     if (deps == null) {
       return;
     }
     deps.fields()
         .forEachRemaining(
             e -> {
-              var version = e.getValue().get("version").asText();
-              var target = toPurl(e.getKey(), version);
+              JsonNode versionNode = e.getValue().get("version");
+              if (versionNode == null || versionNode.isNull()) {
+                return; // skip entries without a resolved version
+              }
+              var target = toPurl(e.getKey(), versionNode.asText());
               sbom.addDependency(manifest.root, target, null);
               addDependenciesOf(sbom, target, e.getValue());
             });
@@ -187,6 +196,7 @@ public abstract class JavaScriptProvider extends Provider {
         .filter(e -> manifest.dependencies.contains(e.getKey()))
         .map(Entry::getValue)
         .forEach(p -> sbom.addDependency(manifest.root, p, null));
+    ensurePeerAndOptionalDeps(sbom);
     sbom.filterIgnoredDeps(manifest.ignored);
     return sbom;
   }
@@ -195,9 +205,18 @@ public abstract class JavaScriptProvider extends Provider {
   // axios -> pkg:npm/axios@0.19.2
   protected Map<String, PackageURL> getRootDependencies(JsonNode depTree) {
     Map<String, PackageURL> direct = new TreeMap<>();
-    depTree
-        .get("dependencies")
-        .fields()
+    addRootDependenciesFromKey(direct, depTree, "dependencies");
+    addRootDependenciesFromKey(direct, depTree, "optionalDependencies");
+    return direct;
+  }
+
+  private void addRootDependenciesFromKey(
+      Map<String, PackageURL> direct, JsonNode depTree, String key) {
+    var node = depTree.get(key);
+    if (node == null) {
+      return;
+    }
+    node.fields()
         .forEachRemaining(
             e -> {
               String name = e.getKey();
@@ -208,7 +227,21 @@ public abstract class JavaScriptProvider extends Provider {
                 direct.put(name, purl);
               }
             });
-    return direct;
+  }
+
+  private void ensurePeerAndOptionalDeps(Sbom sbom) {
+    var rootComponent = sbom.getRoot();
+    var depSources = new Map[] {manifest.peerDependencies, manifest.optionalDependencies};
+    for (var source : depSources) {
+      @SuppressWarnings("unchecked")
+      Map<String, String> deps = source;
+      deps.forEach(
+          (name, version) -> {
+            if (!sbom.checkIfPackageInsideDependsOnList(rootComponent, name)) {
+              sbom.addDependency(manifest.root, toPurl(name, version), null);
+            }
+          });
+    }
   }
 
   protected JsonNode buildDependencyTree(boolean includeTransitive) throws JsonProcessingException {
