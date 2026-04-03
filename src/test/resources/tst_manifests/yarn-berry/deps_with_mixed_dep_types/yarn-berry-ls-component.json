@@ -1,0 +1,6 @@
+{"value":"axios@npm:0.19.0","children":{"Version":"0.19.0","Dependencies":[{"descriptor":"follow-redirects@npm:1.5.10","locator":"follow-redirects@npm:1.5.10"}]}}
+{"value":"eslint@npm:7.0.0","children":{"Version":"7.0.0"}}
+{"value":"express@npm:4.17.1","children":{"Version":"4.17.1","Dependencies":[{"descriptor":"body-parser@npm:1.19.0","locator":"body-parser@npm:1.19.0"}]}}
+{"value":"jest@npm:26.0.0","children":{"Version":"26.0.0"}}
+{"value":"lodash@npm:4.17.19","children":{"Version":"4.17.19"}}
+{"value":"mixed-deps-test@workspace:.","children":{"Version":"1.0.0","Dependencies":[{"descriptor":"axios@npm:0.19.0","locator":"axios@npm:0.19.0"},{"descriptor":"eslint@npm:7.0.0","locator":"eslint@npm:7.0.0"},{"descriptor":"express@npm:4.17.1","locator":"express@npm:4.17.1"},{"descriptor":"jest@npm:26.0.0","locator":"jest@npm:26.0.0"},{"descriptor":"lodash@npm:4.17.19","locator":"lodash@npm:4.17.19"}]}}

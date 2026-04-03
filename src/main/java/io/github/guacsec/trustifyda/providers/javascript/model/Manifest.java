@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Manifest {
@@ -35,6 +37,8 @@ public class Manifest {
   public final String license;
   public final PackageURL root;
   public final Set<String> dependencies;
+  public final Map<String, String> peerDependencies;
+  public final Map<String, String> optionalDependencies;
   public final Set<String> ignored;
   public final Path path;
 
@@ -45,6 +49,8 @@ public class Manifest {
     }
     var content = loadManifest(manifestPath);
     this.dependencies = loadDependencies(content);
+    this.peerDependencies = loadDependencyMap(content, "peerDependencies");
+    this.optionalDependencies = loadDependencyMap(content, "optionalDependencies");
     this.name = content.get("name").asText();
     this.version = content.get("version").asText();
     this.license = loadLicense(content);
@@ -63,10 +69,27 @@ public class Manifest {
 
   private Set<String> loadDependencies(JsonNode content) {
     var names = new HashSet<String>();
-    if (content != null && content.has("dependencies")) {
-      content.get("dependencies").fieldNames().forEachRemaining(names::add);
+    if (content != null) {
+      addFieldNames(names, content, "dependencies");
+      addFieldNames(names, content, "optionalDependencies");
+      addFieldNames(names, content, "peerDependencies");
     }
     return Collections.unmodifiableSet(names);
+  }
+
+  private void addFieldNames(Set<String> names, JsonNode content, String field) {
+    if (content.has(field)) {
+      content.get(field).fieldNames().forEachRemaining(names::add);
+    }
+  }
+
+  private Map<String, String> loadDependencyMap(JsonNode content, String field) {
+    if (content == null || !content.has(field)) {
+      return Collections.emptyMap();
+    }
+    var map = new HashMap<String, String>();
+    content.get(field).fields().forEachRemaining(e -> map.put(e.getKey(), e.getValue().asText()));
+    return Collections.unmodifiableMap(map);
   }
 
   private String loadLicense(JsonNode content) {

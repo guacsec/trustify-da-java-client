@@ -45,7 +45,7 @@ class Javascript_Provider_Test extends ExhortTest {
   // - package.json: the target manifest for testing
   // - expected_sbom.json: the SBOM expected to be provided
   static Stream<String> testFolders() {
-    return Stream.of("deps_with_ignore", "deps_with_no_ignore");
+    return Stream.of("deps_with_ignore", "deps_with_no_ignore", "deps_with_mixed_dep_types");
   }
 
   static Stream<String> providers() {

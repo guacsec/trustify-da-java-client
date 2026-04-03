@@ -1,0 +1,21 @@
+{
+  "name": "mixed-deps-test",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "4.17.1",
+    "axios": "0.19.0"
+  },
+  "peerDependencies": {
+    "minimist": "1.2.0"
+  },
+  "optionalDependencies": {
+    "lodash": "4.17.19"
+  },
+  "bundledDependencies": [
+    "express"
+  ],
+  "devDependencies": {
+    "jest": "26.0.0",
+    "eslint": "7.0.0"
+  }
+}
