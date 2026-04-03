@@ -337,18 +337,28 @@ public class CycloneDXSbom implements Sbom {
       List<Dependency> deps = targetComponent.getDependencies();
       List<PackageURL> allDirectDeps = Collections.emptyList();
       if (deps != null) {
-        deps.stream()
-            .map(
-                dep -> {
-                  try {
-                    return new PackageURL(dep.getRef());
-                  } catch (MalformedPackageURLException e) {
-                    throw new RuntimeException(e);
-                  }
-                })
-            .collect(Collectors.toList());
+        allDirectDeps =
+            deps.stream()
+                .map(
+                    dep -> {
+                      try {
+                        return new PackageURL(dep.getRef());
+                      } catch (MalformedPackageURLException e) {
+                        throw new RuntimeException(e);
+                      }
+                    })
+                .collect(Collectors.toList());
       }
-      result = allDirectDeps.stream().anyMatch(dep -> dep.getName().equals(name));
+      result =
+          allDirectDeps.stream()
+              .anyMatch(
+                  dep -> {
+                    var fullName =
+                        dep.getNamespace() != null
+                            ? dep.getNamespace() + "/" + dep.getName()
+                            : dep.getName();
+                    return fullName.equals(name);
+                  });
     }
     return result;
   }
