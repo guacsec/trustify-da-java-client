@@ -9,7 +9,7 @@
     "minimist": "1.2.0"
   },
   "optionalDependencies": {
-    "lodash": "4.17.19"
+    "lodash": "4.18.1"
   },
   "bundledDependencies": [
     "express"
