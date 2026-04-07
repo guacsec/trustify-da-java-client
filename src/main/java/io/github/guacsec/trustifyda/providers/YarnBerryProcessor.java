@@ -23,6 +23,9 @@ import io.github.guacsec.trustifyda.providers.javascript.model.Manifest;
 import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.tools.Operations;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -109,30 +112,91 @@ public final class YarnBerryProcessor extends YarnProcessor {
     if (depTree == null) {
       return;
     }
+
+    Map<String, JsonNode> nodeIndex = new HashMap<>();
+    depTree.forEach(n -> nodeIndex.put(n.get("value").asText(), n));
+
     Set<String> prodDeps = manifest.dependencies;
+    Set<String> reachable = new HashSet<>();
+    var queue = new ArrayDeque<String>();
+
+    for (JsonNode n : depTree) {
+      var depName = n.get("value").asText();
+      if (isRoot(depName)) {
+        var deps = (ArrayNode) n.get("children").get("Dependencies");
+        if (deps != null) {
+          for (JsonNode d : deps) {
+            var locator = d.get("locator").asText();
+            var target = purlFromlocator(locator);
+            if (target != null) {
+              var fullName = purlToFullName(target);
+              if (prodDeps.contains(fullName)) {
+                queue.add(locator);
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    Set<String> reachableNodeValues = new HashSet<>();
+    while (!queue.isEmpty()) {
+      var locator = queue.poll();
+      if (reachable.contains(locator)) {
+        continue;
+      }
+      reachable.add(locator);
+
+      var nodeValue = nodeValueFromLocator(locator);
+      reachableNodeValues.add(nodeValue);
+
+      var node = nodeIndex.get(nodeValue);
+      if (node != null) {
+        var deps = (ArrayNode) node.get("children").get("Dependencies");
+        if (deps != null) {
+          for (JsonNode d : deps) {
+            var childLocator = d.get("locator").asText();
+            if (!reachable.contains(childLocator)) {
+              queue.add(childLocator);
+            }
+          }
+        }
+      }
+    }
+
     depTree.forEach(
         n -> {
           var depName = n.get("value").asText();
           var isRootNode = isRoot(depName);
+          if (!isRootNode && !reachableNodeValues.contains(depName)) {
+            return;
+          }
+
           var from = isRootNode ? sbom.getRoot() : purlFromNode(depName, n);
           var deps = (ArrayNode) n.get("children").get("Dependencies");
           if (deps != null && !deps.isEmpty()) {
             deps.forEach(
                 d -> {
-                  var target = purlFromlocator(d.get("locator").asText());
+                  var locator = d.get("locator").asText();
+                  if (!reachable.contains(locator)) {
+                    return;
+                  }
+                  var target = purlFromlocator(locator);
                   if (target != null) {
-                    // For root node, only include production dependencies
-                    if (isRootNode) {
-                      var fullName = purlToFullName(target);
-                      if (!prodDeps.contains(fullName)) {
-                        return;
-                      }
-                    }
                     sbom.addDependency(from, target, null);
                   }
                 });
           }
         });
+  }
+
+  private String nodeValueFromLocator(String locator) {
+    var matcher = VIRTUAL_LOCATOR_PATTERN.matcher(locator);
+    if (matcher.matches()) {
+      return matcher.group(1) + "@npm:" + matcher.group(2);
+    }
+    return locator;
   }
 
   private static String purlToFullName(PackageURL purl) {
