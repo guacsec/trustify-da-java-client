@@ -12,26 +12,10 @@
       "purl": "pkg:golang/github.com/devfile-samples/devfile-sample-go-basic@v0.0.0"
     }
   },
-  "components": [
-    {
-      "type": "library",
-      "bom-ref": "pkg:golang/github.com/miekg/dns@v1.1.12",
-      "group": "github.com/miekg",
-      "name": "dns",
-      "version": "v1.1.12",
-      "purl": "pkg:golang/github.com/miekg/dns@v1.1.12"
-    }
-  ],
   "dependencies": [
     {
       "ref": "pkg:golang/github.com/devfile-samples/devfile-sample-go-basic@v0.0.0",
-      "dependsOn": [
-        "pkg:golang/github.com/miekg/dns@v1.1.12"
-      ]
-    },
-    {
-      "ref": "pkg:golang/github.com/miekg/dns@v1.1.12",
-      "dependsOn": []
+      "dependsOn": [ ]
     }
   ]
 }

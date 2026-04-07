@@ -623,14 +623,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:golang/github.com/miekg/dns@v1.1.12",
-      "group": "github.com/miekg",
-      "name": "dns",
-      "version": "v1.1.12",
-      "purl": "pkg:golang/github.com/miekg/dns@v1.1.12"
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:golang/github.com/multiformats/go-multiaddr-dns@v0.0.2",
       "group": "github.com/multiformats",
       "name": "go-multiaddr-dns",
@@ -1505,9 +1497,7 @@
   "dependencies": [
     {
       "ref": "pkg:golang/github.com/devfile-samples/devfile-sample-go-basic@v0.0.0",
-      "dependsOn": [
-        "pkg:golang/github.com/miekg/dns@v1.1.12"
-      ]
+      "dependsOn": [ ]
     },
     {
       "ref": "pkg:golang/github.com/ipfs/go-verifcid@v0.0.1",
@@ -2036,7 +2026,6 @@
         "pkg:golang/github.com/libp2p/go-stream-muxer-multistream@v0.2.0",
         "pkg:golang/github.com/libp2p/go-tcp-transport@v0.1.0",
         "pkg:golang/github.com/libp2p/go-ws-transport@v0.1.0",
-        "pkg:golang/github.com/miekg/dns@v1.1.12",
         "pkg:golang/github.com/multiformats/go-multiaddr@v0.0.4",
         "pkg:golang/github.com/multiformats/go-multiaddr-dns@v0.0.2",
         "pkg:golang/github.com/multiformats/go-multiaddr-net@v0.0.1",
@@ -2213,10 +2202,6 @@
         "pkg:golang/github.com/multiformats/go-multiaddr-net@v0.0.1",
         "pkg:golang/github.com/whyrusleeping/mafmt@v1.2.8"
       ]
-    },
-    {
-      "ref": "pkg:golang/github.com/miekg/dns@v1.1.12",
-      "dependsOn": []
     },
     {
       "ref": "pkg:golang/github.com/multiformats/go-multiaddr-dns@v0.0.2",

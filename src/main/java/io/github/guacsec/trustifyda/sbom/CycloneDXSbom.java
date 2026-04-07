@@ -353,6 +353,9 @@ public class CycloneDXSbom implements Sbom {
           allDirectDeps.stream()
               .anyMatch(
                   dep -> {
+                    if (dep.getName().equals(name)) {
+                      return true;
+                    }
                     var fullName =
                         dep.getNamespace() != null
                             ? dep.getNamespace() + "/" + dep.getName()
