@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-saml-core</artifactId>
-			<version>1.8.1.Final</version>
+			<version>26.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>io.quarkus</groupId>
