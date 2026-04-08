@@ -1,0 +1,134 @@
+---
+name: Stage
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - ".github/**"
+
+concurrency:
+  group: stage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build project
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build with Maven
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn package -B -DskipTests -Dskip.junit_platform=true
+
+      - name: Upload JAR artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: distributions
+          path: |
+            ./target/trustify-da-java-client-*.jar
+            !./target/original-*.jar
+
+  release:
+    runs-on: ubuntu-latest
+    name: Create an early-access release
+    permissions:
+      contents: write
+    needs: build
+    if: github.repository_owner == 'guacsec'
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: ./distributions
+
+      - name: Check for existing early-access release
+        id: existing_release
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo_name = context.payload.repository.full_name
+            var response = await github.request('GET /repos/' + repo_name + '/releases/tags/early-access')
+            // if the request fails (ie 404) the next steps will not occur and the output will not be set
+            core.setOutput('id', response.data.id)
+
+      - name: Delete early-access release if exists
+        if: ${{ steps.existing_release.outputs.id }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo_name = context.payload.repository.full_name
+            await github.request('DELETE /repos/' + repo_name + '/releases/' + ${{ steps.existing_release.outputs.id }})
+
+      - name: Delete early-access tag if exists
+        continue-on-error: true
+        run: git push --delete origin early-access
+
+      # a little pause between deleting the release and creating a new one
+      # without it, the new release might be a weird release, i.e. a draft release
+      - name: Sleep 5
+        run: sleep 5
+
+      - name: Create new early-access release
+        id: new_release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo_name = context.payload.repository.full_name
+            const response = await github.request('POST /repos/' + repo_name + '/releases', {
+              tag_name: 'early-access',
+              name: 'Early-Access',
+              draft: false,
+              prerelease: true,
+              generate_release_notes: true,
+              make_latest: 'false'
+            })
+            core.setOutput('upload_url', response.data.upload_url)
+
+      - name: Create SHA256 checksums for the binaries
+        working-directory: distributions
+        run: |
+          short_sha="${{ github.sha }}"
+          short_sha="${short_sha:0:7}"
+          # Rename JAR files to include short commit ID and create checksums
+          for pkg in *.jar; do
+            [ ! -f "$pkg" ] && continue
+            new_filename="${pkg%.jar}-${short_sha}.jar"
+            echo "Renaming $pkg to $new_filename"
+            mv "$pkg" "$new_filename"
+            echo "Creating checksum for $new_filename"
+            sha256sum "$new_filename" > "$new_filename.sha256"
+          done
+
+      - name: Upload packages and checksums as early-access release assets
+        working-directory: distributions
+        run: |
+          for file in *
+          do
+            asset_name=$(basename "$file")
+            upload_url=$(echo "${{ steps.new_release.outputs.upload_url }}" | sed "s/{?name,label}/?name=$asset_name/g")
+            curl --data-binary @"$file" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/octet-stream" \
+            "$upload_url"
+          done
