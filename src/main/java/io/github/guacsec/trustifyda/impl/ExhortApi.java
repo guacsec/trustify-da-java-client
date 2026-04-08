@@ -83,10 +83,10 @@ public final class ExhortApi implements Api {
   public static final String S_API_V5_LICENSES_IDENTIFY = "%s/api/v5/licenses/identify";
   private static final String TRUSTIFY_DA_LICENSE_CHECK = "TRUSTIFY_DA_LICENSE_CHECK";
 
-  private final String endpoint;
+  private String endpoint;
 
   public String getEndpoint() {
-    return endpoint;
+    return getOrResolveEndpoint();
   }
 
   private final HttpClient client;
@@ -117,7 +117,6 @@ public final class ExhortApi implements Api {
     commonHookBeginning(true);
     this.client = client;
     this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    this.endpoint = getExhortUrl();
   }
 
   public static HttpClient createHttpClient() {
@@ -161,6 +160,13 @@ public final class ExhortApi implements Api {
 
   private static String getClientRequestId() {
     return RequestManager.getInstance().getTraceIdOfRequest();
+  }
+
+  private String getOrResolveEndpoint() {
+    if (this.endpoint == null) {
+      this.endpoint = getExhortUrl();
+    }
+    return this.endpoint;
   }
 
   private String getExhortUrl() {
@@ -346,7 +352,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getOrResolveEndpoint()));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -390,7 +396,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getOrResolveEndpoint()));
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -431,7 +437,7 @@ public final class ExhortApi implements Api {
       throws IOException {
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getOrResolveEndpoint()));
     var content = provider.provideStack();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
 
@@ -518,7 +524,7 @@ public final class ExhortApi implements Api {
       final String analysisName)
       throws IOException {
     String exClientTraceId = commonHookBeginning(false);
-    var uri = URI.create(String.format(S_API_V_5_BATCH_ANALYSIS, this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_BATCH_ANALYSIS, getOrResolveEndpoint()));
     var sboms = sbomsGenerator.get();
     var content =
         new Provider.Content(
@@ -580,7 +586,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, this.endpoint));
+    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getOrResolveEndpoint()));
     var content = provider.provideComponent();
     String sbomJson = new String(content.buffer);
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
@@ -611,7 +617,7 @@ public final class ExhortApi implements Api {
    */
   public CompletableFuture<JsonNode> getLicenseDetails(String spdxId) {
     String encodedId = URLEncoder.encode(spdxId, StandardCharsets.UTF_8).replace("+", "%20");
-    URI uri = URI.create(String.format(S_API_V5_LICENSES, this.endpoint, encodedId));
+    URI uri = URI.create(String.format(S_API_V5_LICENSES, getOrResolveEndpoint(), encodedId));
     HttpRequest request = buildGetRequest(uri, "License Details");
 
     return this.client
@@ -657,7 +663,7 @@ public final class ExhortApi implements Api {
       LOG.warning(String.format("Failed to read license file: %s", e.getMessage()));
       return CompletableFuture.completedFuture(null);
     }
-    URI uri = URI.create(String.format(S_API_V5_LICENSES_IDENTIFY, this.endpoint));
+    URI uri = URI.create(String.format(S_API_V5_LICENSES_IDENTIFY, getOrResolveEndpoint()));
     HttpRequest request =
         buildPostRequest(
             uri,

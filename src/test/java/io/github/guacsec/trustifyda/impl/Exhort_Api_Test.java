@@ -413,9 +413,11 @@ class Exhort_Api_Test extends ExhortTest {
   @Test
   @ClearSystemProperty(key = "TRUSTIFY_DA_BACKEND_URL")
   void check_TRUSTIFY_DA_Url_Throws_Exception_When_Not_Set() {
+    // Backend URL validation is lazy — construction succeeds, but accessing the endpoint throws
+    ExhortApi api = new ExhortApi();
     IllegalStateException exception =
         org.junit.jupiter.api.Assertions.assertThrows(
-            IllegalStateException.class, () -> new ExhortApi());
+            IllegalStateException.class, api::getEndpoint);
     then(exception.getMessage())
         .isEqualTo(
             "Backend URL not configured. Please set the TRUSTIFY_DA_BACKEND_URL environment"
