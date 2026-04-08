@@ -9,14 +9,13 @@ on:
     paths-ignore:
       - ".github/**"
 
-concurrency:
-  group: stage-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Build project
+    concurrency:
+      group: stage-build-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
@@ -44,6 +43,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: Create an early-access release
+    concurrency:
+      group: stage-release-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
     needs: build
@@ -61,14 +63,21 @@ jobs:
       - name: Check for existing early-access release
         id: existing_release
         uses: actions/github-script@v7
-        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repo_name = context.payload.repository.full_name
-            var response = await github.request('GET /repos/' + repo_name + '/releases/tags/early-access')
-            // if the request fails (ie 404) the next steps will not occur and the output will not be set
-            core.setOutput('id', response.data.id)
+            try {
+              const response = await github.request('GET /repos/' + repo_name + '/releases/tags/early-access')
+              core.setOutput('id', response.data.id)
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('No existing early-access release found')
+                core.setOutput('id', '')
+              } else {
+                core.setFailed(`Failed to check for early-access release: ${error.status} ${error.message}`)
+              }
+            }
 
       - name: Delete early-access release if exists
         if: ${{ steps.existing_release.outputs.id }}
@@ -123,12 +132,16 @@ jobs:
       - name: Upload packages and checksums as early-access release assets
         working-directory: distributions
         run: |
+          set -euo pipefail
           for file in *
           do
             asset_name=$(basename "$file")
             upload_url=$(echo "${{ steps.new_release.outputs.upload_url }}" | sed "s/{?name,label}/?name=$asset_name/g")
-            curl --data-binary @"$file" \
+            echo "Uploading $asset_name..."
+            curl --fail-with-body --retry 3 --retry-all-errors --show-error --silent \
+            --data-binary @"$file" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             "$upload_url"
+            echo ""
           done
