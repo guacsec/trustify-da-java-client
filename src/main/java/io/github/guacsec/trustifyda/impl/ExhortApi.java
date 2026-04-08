@@ -439,6 +439,14 @@ public final class ExhortApi implements Api {
   }
 
   @Override
+  public String generateSbom(final String manifestFile) throws IOException {
+    var manifestPath = Path.of(manifestFile);
+    var provider = Ecosystem.getProvider(manifestPath);
+    var content = provider.provideStack();
+    return new String(content.buffer, java.nio.charset.StandardCharsets.UTF_8);
+  }
+
+  @Override
   public CompletableFuture<Map<ImageRef, AnalysisReport>> imageAnalysis(
       final Set<ImageRef> imageRefs) throws IOException {
     return this.performBatchAnalysis(

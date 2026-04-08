@@ -404,11 +404,13 @@ class AppTest extends ExhortTest {
     assertThat(Command.COMPONENT).isNotNull();
     assertThat(Command.IMAGE).isNotNull();
     assertThat(Command.LICENSE).isNotNull();
-    assertThat(Command.values()).hasSize(4);
+    assertThat(Command.SBOM).isNotNull();
+    assertThat(Command.values()).hasSize(5);
     assertThat(Command.valueOf("STACK")).isEqualTo(Command.STACK);
     assertThat(Command.valueOf("COMPONENT")).isEqualTo(Command.COMPONENT);
     assertThat(Command.valueOf("IMAGE")).isEqualTo(Command.IMAGE);
     assertThat(Command.valueOf("LICENSE")).isEqualTo(Command.LICENSE);
+    assertThat(Command.valueOf("SBOM")).isEqualTo(Command.SBOM);
   }
 
   @Test
@@ -1012,5 +1014,94 @@ class AppTest extends ExhortTest {
             .status(new ProviderStatus().code(200).message("OK"))
             .putSourcesItem("osv", new Source().summary(new SourceSummary())));
     return report;
+  }
+
+  @Test
+  void executeCommand_with_sbom_should_return_sbom_json() throws Exception {
+    CliArgs args = new CliArgs(Command.SBOM, TEST_FILE, (Path) null);
+
+    var fakeSbom = "{\"bomFormat\":\"CycloneDX\",\"components\":[]}";
+
+    try (MockedConstruction<ExhortApi> mockedExhortApi =
+        mockConstruction(
+            ExhortApi.class,
+            (mock, context) -> {
+              when(mock.generateSbom(any(String.class))).thenReturn(fakeSbom);
+            })) {
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      CompletableFuture<String> result =
+          (CompletableFuture<String>) executeCommandMethod.invoke(null, args);
+
+      assertThat(result).isNotNull();
+      assertThat(result.get()).isEqualTo(fakeSbom);
+    }
+  }
+
+  @Test
+  void executeCommand_with_sbom_and_output_should_write_to_file() throws Exception {
+    var outputFile = java.nio.file.Files.createTempFile("sbom_output_", ".json");
+    java.nio.file.Files.deleteIfExists(outputFile);
+
+    CliArgs args = new CliArgs(Command.SBOM, TEST_FILE, outputFile);
+
+    var fakeSbom = "{\"bomFormat\":\"CycloneDX\",\"components\":[]}";
+
+    try (MockedConstruction<ExhortApi> mockedExhortApi =
+        mockConstruction(
+            ExhortApi.class,
+            (mock, context) -> {
+              when(mock.generateSbom(any(String.class))).thenReturn(fakeSbom);
+            })) {
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      CompletableFuture<String> result =
+          (CompletableFuture<String>) executeCommandMethod.invoke(null, args);
+
+      assertThat(result).isNotNull();
+      assertThat(result.get()).contains("SBOM written to");
+      assertThat(java.nio.file.Files.readString(outputFile)).isEqualTo(fakeSbom);
+    } finally {
+      java.nio.file.Files.deleteIfExists(outputFile);
+    }
+  }
+
+  @Test
+  void executeCommand_with_sbom_and_unsupported_file_should_throw_exception() throws Exception {
+    var tmpFile = java.nio.file.Files.createTempFile("unsupported_", ".xyz");
+
+    CliArgs args = new CliArgs(Command.SBOM, tmpFile, (Path) null);
+
+    try (MockedConstruction<ExhortApi> mockedExhortApi =
+        mockConstruction(
+            ExhortApi.class,
+            (mock, context) -> {
+              when(mock.generateSbom(any(String.class)))
+                  .thenThrow(new IllegalStateException("Unknown manifest file unsupported_.xyz"));
+            })) {
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      assertThatThrownBy(() -> executeCommandMethod.invoke(null, args))
+          .cause()
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("Unknown manifest file");
+    } finally {
+      java.nio.file.Files.deleteIfExists(tmpFile);
+    }
+  }
+
+  @Test
+  void parseCommand_with_sbom_should_return_sbom_command() throws Exception {
+    Method parseCommandMethod = App.class.getDeclaredMethod("parseCommand", String.class);
+    parseCommandMethod.setAccessible(true);
+
+    Command result = (Command) parseCommandMethod.invoke(null, "sbom");
+    assertThat(result).isEqualTo(Command.SBOM);
   }
 }

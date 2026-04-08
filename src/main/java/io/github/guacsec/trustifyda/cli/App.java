@@ -94,6 +94,7 @@ public class App {
     return switch (command) {
       case STACK, COMPONENT, LICENSE -> parseFileBasedArgs(command, args);
       case IMAGE -> parseImageBasedArgs(command, args);
+      case SBOM -> parseSbomArgs(args);
     };
   }
 
@@ -153,17 +154,40 @@ public class App {
     return new CliArgs(command, imageRefs, outputFormat);
   }
 
+  private static CliArgs parseSbomArgs(String[] args) {
+    if (args.length < 2) {
+      throw new IllegalArgumentException("Missing required file path for sbom command");
+    }
+
+    Path path = validateFile(args[1]);
+    Path outputPath = null;
+
+    for (int i = 2; i < args.length; i++) {
+      if ("--output".equals(args[i])) {
+        if (i + 1 >= args.length) {
+          throw new IllegalArgumentException("Missing value for --output flag");
+        }
+        outputPath = Paths.get(args[++i]);
+      } else {
+        throw new IllegalArgumentException("Unknown option for sbom command: " + args[i]);
+      }
+    }
+
+    return new CliArgs(Command.SBOM, path, outputPath);
+  }
+
   private static Command parseCommand(String commandStr) {
     return switch (commandStr) {
       case "stack" -> Command.STACK;
       case "component" -> Command.COMPONENT;
       case "image" -> Command.IMAGE;
       case "license" -> Command.LICENSE;
+      case "sbom" -> Command.SBOM;
       default ->
           throw new IllegalArgumentException(
               "Unknown command: "
                   + commandStr
-                  + ". Use 'stack', 'component', 'image', or 'license'");
+                  + ". Use 'stack', 'component', 'image', 'license', or 'sbom'");
     };
   }
 
@@ -202,6 +226,7 @@ public class App {
           executeComponentAnalysis(args.filePath.toAbsolutePath().toString(), args.outputFormat);
       case IMAGE -> executeImageAnalysis(args.imageRefs, args.outputFormat);
       case LICENSE -> executeLicenseCheck(args.filePath.toAbsolutePath());
+      case SBOM -> executeSbomGeneration(args);
     };
   }
 
@@ -298,6 +323,17 @@ public class App {
               .thenApply(App::extractImageSummary)
               .thenApply(App::toJsonString);
     };
+  }
+
+  private static CompletableFuture<String> executeSbomGeneration(CliArgs args) throws IOException {
+    Api api = new ExhortApi();
+    String sbomJson = api.generateSbom(args.filePath.toAbsolutePath().toString());
+    if (args.outputPath != null) {
+      Files.writeString(args.outputPath, sbomJson);
+      return CompletableFuture.completedFuture(
+          "SBOM written to " + args.outputPath.toAbsolutePath());
+    }
+    return CompletableFuture.completedFuture(sbomJson);
   }
 
   private static String formatImageAnalysisResult(Map<ImageRef, AnalysisReport> analysisResults) {

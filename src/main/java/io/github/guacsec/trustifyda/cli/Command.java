@@ -20,5 +20,6 @@ public enum Command {
   STACK,
   COMPONENT,
   IMAGE,
-  LICENSE
+  LICENSE,
+  SBOM
 }

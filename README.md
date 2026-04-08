@@ -168,6 +168,9 @@ public class TrustifyExample {
         var result = componentWithLicense.get();
         var report = result.report();              // standard AnalysisReport
         var licenseSummary = result.licenseSummary(); // license compatibility summary (may be null)
+
+        // generate a CycloneDX SBOM locally (no backend call required)
+        String sbomJson = exhortApi.generateSbom("/path/to/pom.xml");
     }
 }
 ```
@@ -670,6 +673,16 @@ java -jar trustify-da-java-client-cli.jar license <file_path>
 ```
 Display project license information from manifest and LICENSE file in JSON format.
 
+**SBOM Generation**
+```shell
+java -jar trustify-da-java-client-cli.jar sbom <file_path> [--output <path>]
+```
+Generate a CycloneDX SBOM from the specified manifest file locally, without sending anything to the backend.
+
+Options:
+- `--output <path>` - Write SBOM JSON to the specified file
+- (default) - Print SBOM JSON to stdout
+
 **Image Analysis**
 ```shell
 java -jar trustify-da-java-client-cli.jar image <image_ref> [<image_ref>...] [--summary|--html]
@@ -690,9 +703,9 @@ Options:
 
 The client requires the backend URL to be configured through the environment variable:
 
-- **Environment variable**: `TRUSTIFY_DA_BACKEND_URL=https://backend.url` (required)
+- **Environment variable**: `TRUSTIFY_DA_BACKEND_URL=https://backend.url` (required for analysis commands)
 
-The application will fail to start if this environment variable is not set.
+The application will fail to start if this environment variable is not set, except for the `sbom` command which operates locally without a backend connection.
 
 #### Examples
 
@@ -719,6 +732,10 @@ java -jar trustify-da-java-client-cli.jar component /path/to/go.mod --summary
 
 # Rust Cargo analysis
 java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml --summary
+
+# SBOM generation (no backend required)
+java -jar trustify-da-java-client-cli.jar sbom /path/to/pom.xml
+java -jar trustify-da-java-client-cli.jar sbom /path/to/package.json --output sbom.json
 
 # License information
 java -jar trustify-da-java-client-cli.jar license /path/to/pom.xml

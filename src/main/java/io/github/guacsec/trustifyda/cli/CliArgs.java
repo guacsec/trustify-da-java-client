@@ -25,12 +25,14 @@ public class CliArgs {
   public final Path filePath;
   public final Set<ImageRef> imageRefs;
   public final OutputFormat outputFormat;
+  public final Path outputPath;
 
   public CliArgs(Command command, Path filePath, OutputFormat outputFormat) {
     this.command = command;
     this.filePath = filePath;
     this.imageRefs = null;
     this.outputFormat = outputFormat;
+    this.outputPath = null;
   }
 
   public CliArgs(Command command, Set<ImageRef> imageRefs, OutputFormat outputFormat) {
@@ -38,5 +40,14 @@ public class CliArgs {
     this.filePath = null;
     this.imageRefs = imageRefs;
     this.outputFormat = outputFormat;
+    this.outputPath = null;
+  }
+
+  public CliArgs(Command command, Path filePath, Path outputPath) {
+    this.command = command;
+    this.filePath = filePath;
+    this.imageRefs = null;
+    this.outputFormat = null;
+    this.outputPath = outputPath;
   }
 }

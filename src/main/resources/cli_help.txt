@@ -18,6 +18,12 @@ COMMANDS:
       --summary    Output summary in JSON format (without license check)
       (default)    Output full report in JSON format (includes license summary)
 
+  sbom <file_path> [--output <path>]
+    Generate a CycloneDX SBOM from the specified manifest file (no backend call)
+    Options:
+      --output <path>  Write SBOM JSON to the specified file
+      (default)        Print SBOM JSON to stdout
+
   license <file_path>
     Display project license information from manifest and LICENSE file in JSON format
 
@@ -48,6 +54,10 @@ EXAMPLES:
   java -jar trustify-da-java-client-cli.jar stack /path/to/build.gradle --html
   java -jar trustify-da-java-client-cli.jar component /path/to/requirements.txt
   java -jar trustify-da-java-client-cli.jar stack /path/to/Cargo.toml
+
+  # SBOM generation
+  java -jar trustify-da-java-client-cli.jar sbom /path/to/pom.xml
+  java -jar trustify-da-java-client-cli.jar sbom /path/to/package.json --output sbom.json
 
   # License information
   java -jar trustify-da-java-client-cli.jar license /path/to/pom.xml
