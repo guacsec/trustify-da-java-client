@@ -140,9 +140,16 @@ public final class PythonPyprojectProvider extends PythonProvider {
     }
 
     String pip = findPipBinary();
-    return Operations.runProcessGetOutput(
-        manifestDir,
-        new String[] {pip, "install", "--dry-run", "--ignore-installed", "--report", "-", "."});
+    String[] cmd = {pip, "install", "--dry-run", "--ignore-installed", "--report", "-", "."};
+    Operations.ProcessExecOutput result =
+        Operations.runProcessGetFullOutput(manifestDir, cmd, null);
+    if (result.getExitCode() != 0) {
+      throw new RuntimeException(
+          String.format(
+              "pip report command failed with exit code %d: %s",
+              result.getExitCode(), result.getError()));
+    }
+    return result.getOutput();
   }
 
   private String findPipBinary() {
