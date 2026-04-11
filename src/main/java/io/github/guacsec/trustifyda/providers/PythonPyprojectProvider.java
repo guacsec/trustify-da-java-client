@@ -16,18 +16,30 @@
  */
 package io.github.guacsec.trustifyda.providers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.packageurl.PackageURL;
+import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.license.LicenseUtils;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.sbom.Sbom;
+import io.github.guacsec.trustifyda.sbom.SbomFactory;
+import io.github.guacsec.trustifyda.tools.Operations;
+import io.github.guacsec.trustifyda.utils.Environment;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -39,6 +51,12 @@ public final class PythonPyprojectProvider extends PythonProvider {
   private static final Logger log =
       LoggersFactory.getLogger(PythonPyprojectProvider.class.getName());
 
+  static final String PROP_TRUSTIFY_DA_PIP_REPORT = "TRUSTIFY_DA_PIP_REPORT";
+
+  private static final Pattern DEP_NAME_PATTERN =
+      Pattern.compile("^([A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?)");
+  private static final Pattern EXTRA_MARKER_PATTERN = Pattern.compile(";\\s*.*extra\\s*==");
+
   private Set<String> collectedIgnoredDeps;
   private TomlParseResult cachedToml;
 
@@ -47,18 +65,214 @@ public final class PythonPyprojectProvider extends PythonProvider {
   }
 
   @Override
-  protected Path getRequirementsPath() throws IOException {
-    List<String> depStrings = parseDependencyStrings();
-    Path tmpDir = Files.createTempDirectory("trustify_da_pyproject_");
-    Path tmpFile = Files.createFile(tmpDir.resolve("requirements.txt"));
-    Files.write(tmpFile, depStrings);
-    return tmpFile;
+  protected Path getRequirementsPath() {
+    throw new UnsupportedOperationException("pip report approach does not use requirements.txt");
   }
 
   @Override
-  protected void cleanupRequirementsPath(Path requirementsPath) throws IOException {
-    Files.deleteIfExists(requirementsPath);
-    Files.deleteIfExists(requirementsPath.getParent());
+  protected void cleanupRequirementsPath(Path requirementsPath) {
+    // no-op: pip report approach does not create temporary files
+  }
+
+  @Override
+  public Content provideStack() throws IOException {
+    parseDependencyStrings();
+    String reportJson = getPipReportOutput(manifest.getParent());
+    PipReportData data = parsePipReport(reportJson);
+
+    Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
+    sbom.addRoot(
+        toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
+
+    for (String directKey : data.directDeps) {
+      PipPackage pkg = data.graph.get(directKey);
+      if (pkg != null) {
+        addDependencyTree(sbom.getRoot(), pkg, data.graph, sbom, new HashSet<>());
+      }
+    }
+
+    String manifestContent = Files.readString(manifest);
+    handleIgnoredDependencies(manifestContent, sbom);
+    return new Content(
+        sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
+  }
+
+  @Override
+  public Content provideComponent() throws IOException {
+    parseDependencyStrings();
+    String reportJson = getPipReportOutput(manifest.getParent());
+    PipReportData data = parsePipReport(reportJson);
+
+    Sbom sbom = SbomFactory.newInstance();
+    sbom.addRoot(
+        toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
+
+    for (String directKey : data.directDeps) {
+      PipPackage pkg = data.graph.get(directKey);
+      if (pkg != null) {
+        sbom.addDependency(sbom.getRoot(), toPurl(pkg.name, pkg.version), null);
+      }
+    }
+
+    String manifestContent = Files.readString(manifest);
+    handleIgnoredDependencies(manifestContent, sbom);
+    return new Content(
+        sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
+  }
+
+  private void addDependencyTree(
+      PackageURL source,
+      PipPackage pkg,
+      Map<String, PipPackage> graph,
+      Sbom sbom,
+      Set<String> visited) {
+    PackageURL packageURL = toPurl(pkg.name, pkg.version);
+    sbom.addDependency(source, packageURL, null);
+
+    String key = canonicalize(pkg.name);
+    if (!visited.add(key)) {
+      return;
+    }
+
+    for (String childKey : pkg.children) {
+      PipPackage child = graph.get(childKey);
+      if (child != null) {
+        addDependencyTree(packageURL, child, graph, sbom, visited);
+      }
+    }
+  }
+
+  String getPipReportOutput(Path manifestDir) {
+    String envValue = Environment.get(PROP_TRUSTIFY_DA_PIP_REPORT);
+    if (envValue != null && !envValue.isBlank()) {
+      return new String(Base64.getDecoder().decode(envValue), StandardCharsets.UTF_8);
+    }
+
+    String pip = findPipBinary();
+    return Operations.runProcessGetOutput(
+        manifestDir,
+        new String[] {pip, "install", "--dry-run", "--ignore-installed", "--report", "-", "."});
+  }
+
+  private String findPipBinary() {
+    String pip = Operations.getCustomPathOrElse("pip3");
+    try {
+      Operations.runProcess(pip, "--version");
+      return pip;
+    } catch (Exception e) {
+      pip = Operations.getCustomPathOrElse("pip");
+      Operations.runProcess(pip, "--version");
+      return pip;
+    }
+  }
+
+  PipReportData parsePipReport(String reportJson) throws IOException {
+    JsonNode report = objectMapper.readTree(reportJson);
+    JsonNode installArray = report.get("install");
+    if (installArray == null || !installArray.isArray()) {
+      return new PipReportData(List.of(), Map.of());
+    }
+
+    // Find root entry (has dir_info in download_info) and collect non-root packages
+    JsonNode rootEntry = null;
+    List<JsonNode> nonRootPackages = new ArrayList<>();
+    for (JsonNode entry : installArray) {
+      JsonNode downloadInfo = entry.get("download_info");
+      if (downloadInfo != null && downloadInfo.has("dir_info")) {
+        rootEntry = entry;
+      } else {
+        nonRootPackages.add(entry);
+      }
+    }
+
+    // Extract direct dependency names from root's requires_dist
+    Set<String> directDepNames = new HashSet<>();
+    if (rootEntry != null) {
+      JsonNode metadata = rootEntry.get("metadata");
+      if (metadata != null) {
+        JsonNode requiresDist = metadata.get("requires_dist");
+        if (requiresDist != null && requiresDist.isArray()) {
+          for (JsonNode req : requiresDist) {
+            String reqStr = req.asText();
+            if (hasExtraMarker(reqStr)) {
+              continue;
+            }
+            String name = extractDepName(reqStr);
+            if (name != null) {
+              directDepNames.add(canonicalize(name));
+            }
+          }
+        }
+      }
+    }
+
+    // Build graph from non-root packages
+    Map<String, PipPackage> graph = new HashMap<>();
+    for (JsonNode pkg : nonRootPackages) {
+      JsonNode metadata = pkg.get("metadata");
+      if (metadata == null) {
+        continue;
+      }
+      String name = metadata.has("name") ? metadata.get("name").asText() : null;
+      String version = metadata.has("version") ? metadata.get("version").asText() : null;
+      if (name == null) {
+        continue;
+      }
+      String key = canonicalize(name);
+      graph.put(key, new PipPackage(name, version, new ArrayList<>()));
+    }
+
+    // Build children from each package's requires_dist
+    for (JsonNode pkg : nonRootPackages) {
+      JsonNode metadata = pkg.get("metadata");
+      if (metadata == null) {
+        continue;
+      }
+      String name = metadata.has("name") ? metadata.get("name").asText() : null;
+      if (name == null) {
+        continue;
+      }
+      String key = canonicalize(name);
+      PipPackage pipPkg = graph.get(key);
+      if (pipPkg == null) {
+        continue;
+      }
+      JsonNode requiresDist = metadata.get("requires_dist");
+      if (requiresDist == null || !requiresDist.isArray()) {
+        continue;
+      }
+      for (JsonNode req : requiresDist) {
+        String reqStr = req.asText();
+        if (hasExtraMarker(reqStr)) {
+          continue;
+        }
+        String depName = extractDepName(reqStr);
+        if (depName == null) {
+          continue;
+        }
+        String depKey = canonicalize(depName);
+        if (graph.containsKey(depKey)) {
+          pipPkg.children.add(depKey);
+        }
+      }
+    }
+
+    List<String> directDeps =
+        directDepNames.stream().filter(graph::containsKey).collect(Collectors.toList());
+    return new PipReportData(directDeps, graph);
+  }
+
+  static boolean hasExtraMarker(String req) {
+    return EXTRA_MARKER_PATTERN.matcher(req).find();
+  }
+
+  static String extractDepName(String req) {
+    Matcher m = DEP_NAME_PATTERN.matcher(req);
+    return m.find() ? m.group(1) : null;
+  }
+
+  static String canonicalize(String name) {
+    return name.toLowerCase().replaceAll("[-_.]+", "-");
   }
 
   private TomlParseResult getToml() throws IOException {
@@ -258,5 +472,27 @@ public final class PythonPyprojectProvider extends PythonProvider {
     int patch = parts.length > 2 ? parseNumericPart(parts[2]) : 0;
     String fullVer = major + "." + minor + "." + patch;
     return ">=" + fullVer + ",<" + major + "." + (minor + 1) + ".0";
+  }
+
+  static final class PipPackage {
+    final String name;
+    final String version;
+    final List<String> children;
+
+    PipPackage(String name, String version, List<String> children) {
+      this.name = name;
+      this.version = version;
+      this.children = children;
+    }
+  }
+
+  static final class PipReportData {
+    final List<String> directDeps;
+    final Map<String, PipPackage> graph;
+
+    PipReportData(List<String> directDeps, Map<String, PipPackage> graph) {
+      this.directDeps = directDeps;
+      this.graph = graph;
+    }
   }
 }

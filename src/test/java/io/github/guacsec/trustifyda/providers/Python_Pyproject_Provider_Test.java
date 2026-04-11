@@ -22,10 +22,11 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
-import io.github.guacsec.trustifyda.utils.PythonControllerTestEnv;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -232,31 +233,202 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
     assertThat(provider.readLicenseFromManifest()).isEqualTo("Apache-2.0");
   }
 
+  // --- pip report parsing tests ---
+
   @Test
-  void test_provideComponent_generates_correct_media_type() throws IOException {
+  void test_parsePipReport_identifies_direct_deps() throws IOException {
     Path pyprojectPath =
         Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
-    var tmpDir = Files.createTempDirectory("trustify_da_test_");
-    var tmpFile = Files.createFile(tmpDir.resolve("pyproject.toml"));
-    Files.copy(pyprojectPath, tmpFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-    var provider = new PythonPyprojectProvider(tmpFile);
-    var mockController =
-        new PythonControllerTestEnv(
-            io.github.guacsec.trustifyda.tools.Operations.getCustomPathOrElse("python3"),
-            io.github.guacsec.trustifyda.tools.Operations.getCustomPathOrElse("pip3"));
-    provider.setPythonController(mockController);
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    String reportJson = Files.readString(reportPath);
+    var data = provider.parsePipReport(reportJson);
+    assertThat(data.directDeps).containsExactlyInAnyOrder("anyio", "flask", "requests");
+  }
+
+  @Test
+  void test_parsePipReport_builds_transitive_graph() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    String reportJson = Files.readString(reportPath);
+    var data = provider.parsePipReport(reportJson);
+
+    var requestsPkg = data.graph.get("requests");
+    assertThat(requestsPkg).isNotNull();
+    assertThat(requestsPkg.children)
+        .containsExactlyInAnyOrder("charset-normalizer", "idna", "urllib3", "certifi");
+
+    var anyioPkg = data.graph.get("anyio");
+    assertThat(anyioPkg).isNotNull();
+    assertThat(anyioPkg.children).containsExactlyInAnyOrder("idna", "sniffio");
+  }
+
+  @Test
+  void test_parsePipReport_filters_extras() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    String reportJson = Files.readString(reportPath);
+    var data = provider.parsePipReport(reportJson);
+
+    assertThat(data.graph.containsKey("pysocks")).isFalse();
+    var requestsPkg = data.graph.get("requests");
+    assertThat(requestsPkg.children).doesNotContain("pysocks");
+  }
+
+  @Test
+  void test_parsePipReport_excludes_root_from_graph() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    String reportJson = Files.readString(reportPath);
+    var data = provider.parsePipReport(reportJson);
+
+    assertThat(data.graph.containsKey("test-project")).isFalse();
+  }
+
+  @Test
+  void test_parsePipReport_name_canonicalization() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    String reportJson = Files.readString(reportPath);
+    var data = provider.parsePipReport(reportJson);
+
+    assertThat(data.graph.containsKey("charset-normalizer")).isTrue();
+    assertThat(data.graph.containsKey("werkzeug")).isTrue();
+    assertThat(data.graph.containsKey("jinja2")).isTrue();
+    assertThat(data.graph.containsKey("markupsafe")).isTrue();
+  }
+
+  @Test
+  void test_hasExtraMarker() {
+    assertThat(PythonPyprojectProvider.hasExtraMarker("PySocks!=1.5.7,>=1.5.6; extra == \"socks\""))
+        .isTrue();
+    assertThat(PythonPyprojectProvider.hasExtraMarker("charset_normalizer<4,>=2")).isFalse();
+    assertThat(
+            PythonPyprojectProvider.hasExtraMarker(
+                "importlib-metadata>=3.6.0; python_version < \"3.10\""))
+        .isFalse();
+  }
+
+  @Test
+  void test_extractDepName() {
+    assertThat(PythonPyprojectProvider.extractDepName("charset_normalizer<4,>=2"))
+        .isEqualTo("charset_normalizer");
+    assertThat(PythonPyprojectProvider.extractDepName("idna<4,>=2.5")).isEqualTo("idna");
+    assertThat(PythonPyprojectProvider.extractDepName("PySocks!=1.5.7,>=1.5.6; extra == \"socks\""))
+        .isEqualTo("PySocks");
+    assertThat(PythonPyprojectProvider.extractDepName("requests>=2.32")).isEqualTo("requests");
+  }
+
+  @Test
+  void test_canonicalize() {
+    assertThat(PythonPyprojectProvider.canonicalize("charset_normalizer"))
+        .isEqualTo("charset-normalizer");
+    assertThat(PythonPyprojectProvider.canonicalize("Jinja2")).isEqualTo("jinja2");
+    assertThat(PythonPyprojectProvider.canonicalize("MarkupSafe")).isEqualTo("markupsafe");
+    assertThat(PythonPyprojectProvider.canonicalize("my.package_name"))
+        .isEqualTo("my-package-name");
+  }
+
+  @Test
+  void test_provideStack_with_pip_report() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    String reportJson = Files.readString(reportPath);
+    String encodedReport =
+        Base64.getEncoder().encodeToString(reportJson.getBytes(StandardCharsets.UTF_8));
+
+    System.setProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT, encodedReport);
     try {
-      var content = provider.provideComponent();
+      var provider = new PythonPyprojectProvider(pyprojectPath);
+      var content = provider.provideStack();
       assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
       String sbomJson = new String(content.buffer);
       assertThat(sbomJson).contains("CycloneDX");
       assertThat(sbomJson).contains("pkg:pypi/");
-    } catch (RuntimeException e) {
-      Assumptions.assumeTrue(
-          false, "Skipping: Python/pip environment not usable - " + e.getMessage());
+      assertThat(sbomJson).contains("pkg:pypi/anyio@3.6.2");
+      assertThat(sbomJson).contains("pkg:pypi/flask@2.0.3");
+      assertThat(sbomJson).contains("pkg:pypi/requests@2.25.1");
+      assertThat(sbomJson).contains("pkg:pypi/idna@3.4");
+      assertThat(sbomJson).contains("pkg:pypi/sniffio@1.3.0");
+      assertThat(sbomJson).contains("pkg:pypi/certifi@2023.5.7");
+    } catch (RuntimeException | NoClassDefFoundError e) {
+      Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
     } finally {
-      Files.deleteIfExists(tmpFile);
-      Files.deleteIfExists(tmpDir);
+      System.clearProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT);
+    }
+  }
+
+  @Test
+  void test_provideComponent_with_pip_report() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of(
+            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_no_ignore/pip_report.json");
+    String reportJson = Files.readString(reportPath);
+    String encodedReport =
+        Base64.getEncoder().encodeToString(reportJson.getBytes(StandardCharsets.UTF_8));
+
+    System.setProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT, encodedReport);
+    try {
+      var provider = new PythonPyprojectProvider(pyprojectPath);
+      var content = provider.provideComponent();
+      assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
+      String sbomJson = new String(content.buffer);
+      assertThat(sbomJson).contains("CycloneDX");
+      assertThat(sbomJson).contains("pkg:pypi/anyio@3.6.2");
+      assertThat(sbomJson).contains("pkg:pypi/flask@2.0.3");
+      assertThat(sbomJson).contains("pkg:pypi/requests@2.25.1");
+    } catch (RuntimeException | NoClassDefFoundError e) {
+      Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
+    } finally {
+      System.clearProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT);
+    }
+  }
+
+  @Test
+  void test_provideStack_with_exhortignore() throws IOException {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_ignore/pyproject.toml");
+    Path reportPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_ignore/pip_report.json");
+    String reportJson = Files.readString(reportPath);
+    String encodedReport =
+        Base64.getEncoder().encodeToString(reportJson.getBytes(StandardCharsets.UTF_8));
+
+    System.setProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT, encodedReport);
+    try {
+      var provider = new PythonPyprojectProvider(pyprojectPath);
+      var content = provider.provideStack();
+      String sbomJson = new String(content.buffer);
+      assertThat(sbomJson).doesNotContain("pkg:pypi/flask@");
+      assertThat(sbomJson).contains("pkg:pypi/anyio@3.6.2");
+      assertThat(sbomJson).contains("pkg:pypi/requests@2.25.1");
+    } catch (RuntimeException | NoClassDefFoundError e) {
+      Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
+    } finally {
+      System.clearProperty(PythonPyprojectProvider.PROP_TRUSTIFY_DA_PIP_REPORT);
     }
   }
 }

@@ -174,7 +174,7 @@ public abstract class PythonProvider extends Provider {
     }
   }
 
-  private void handleIgnoredDependencies(String manifestContent, Sbom sbom) {
+  protected void handleIgnoredDependencies(String manifestContent, Sbom sbom) {
     Set<PackageURL> ignoredDeps = getIgnoredDependencies(manifestContent);
     Set<String> ignoredDepsVersions =
         ignoredDeps.stream()
