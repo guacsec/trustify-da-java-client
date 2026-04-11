@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,18 +66,8 @@ public final class PythonPyprojectProvider extends PythonProvider {
   }
 
   @Override
-  protected Path getRequirementsPath() {
-    throw new UnsupportedOperationException("pip report approach does not use requirements.txt");
-  }
-
-  @Override
-  protected void cleanupRequirementsPath(Path requirementsPath) {
-    // no-op: pip report approach does not create temporary files
-  }
-
-  @Override
   public Content provideStack() throws IOException {
-    parseDependencyStrings();
+    collectIgnoredDeps();
     String reportJson = getPipReportOutput(manifest.getParent());
     PipReportData data = parsePipReport(reportJson);
 
@@ -99,7 +90,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
 
   @Override
   public Content provideComponent() throws IOException {
-    parseDependencyStrings();
+    collectIgnoredDeps();
     String reportJson = getPipReportOutput(manifest.getParent());
     PipReportData data = parsePipReport(reportJson);
 
@@ -166,6 +157,54 @@ public final class PythonPyprojectProvider extends PythonProvider {
     }
   }
 
+  /**
+   * Parses the JSON document produced by {@code pip install --dry-run --ignore-installed --report}.
+   * That output is pip’s <em>installation report</em>: a single object describing the resolved
+   * dependency set, not a log file.
+   *
+   * <p><b>Top-level shape (fields this code uses)</b>
+   *
+   * <ul>
+   *   <li>{@code install} — JSON array of one object per distribution pip would install. Other
+   *       top-level keys (e.g. {@code version}, {@code pip_version}) are ignored here.
+   * </ul>
+   *
+   * <p><b>Each element of {@code install}</b>
+   *
+   * <ul>
+   *   <li>{@code download_info} — Where the distribution comes from. The <em>project root</em> (the
+   *       {@code .} passed to pip) is identified by the presence of {@code dir_info} (often {@code
+   *       {}}) under {@code download_info}. Every other entry is treated as a resolved dependency
+   *       package (wheels/sdists typically use {@code archive_info} instead).
+   *   <li>{@code metadata} — Core package metadata, aligned with core metadata fields:
+   *       <ul>
+   *         <li>{@code name}, {@code version} — Distribution name and version (strings).
+   *         <li>{@code requires_dist} — Optional array of PEP 508 requirement strings (e.g. {@code
+   *             "requests>=2.0"}, {@code "foo; extra == \"bar\""}). Version specifiers and
+   *             environment markers appear after the name; optional dependencies use {@code extra
+   *             == "..."} markers, which this parser skips when building edges.
+   *       </ul>
+   * </ul>
+   *
+   * <p><b>How this method interprets the report</b>
+   *
+   * <ul>
+   *   <li>The entry whose {@code download_info} contains {@code dir_info} is the <em>root</em>
+   *       package. Its {@code metadata.requires_dist} names the <em>direct</em> dependencies.
+   *   <li>All other {@code install} entries contribute nodes in the dependency graph ({@code
+   *       metadata.name} / {@code version}).
+   *   <li>Edges are derived from each node’s {@code requires_dist}: the first token of each
+   *       requirement is taken as the dependency name; the edge is kept only if that name resolves
+   *       to another node in the graph (after canonicalization).
+   * </ul>
+   *
+   * @param reportJson raw UTF-8 JSON text from pip’s {@code --report} output
+   * @return direct dependency keys (canonicalized names) and a map of graph nodes; empty if {@code
+   *     install} is missing or not an array
+   * @throws IOException if {@code reportJson} is not valid JSON
+   * @see <a href="https://pip.pypa.io/en/stable/reference/installation-report/">pip installation
+   *     report</a>
+   */
   PipReportData parsePipReport(String reportJson) throws IOException {
     JsonNode report = objectMapper.readTree(reportJson);
     JsonNode installArray = report.get("install");
@@ -178,15 +217,15 @@ public final class PythonPyprojectProvider extends PythonProvider {
     List<JsonNode> nonRootPackages = new ArrayList<>();
     for (JsonNode entry : installArray) {
       JsonNode downloadInfo = entry.get("download_info");
-      if (downloadInfo != null && downloadInfo.has("dir_info")) {
+      if (rootEntry == null && downloadInfo != null && downloadInfo.has("dir_info")) {
         rootEntry = entry;
       } else {
         nonRootPackages.add(entry);
       }
     }
 
-    // Extract direct dependency names from root's requires_dist
-    Set<String> directDepNames = new HashSet<>();
+    // Extract direct dependency names from root's requires_dist (LinkedHashSet preserves order)
+    Set<String> directDepNames = new LinkedHashSet<>();
     if (rootEntry != null) {
       JsonNode metadata = rootEntry.get("metadata");
       if (metadata != null) {
@@ -360,19 +399,16 @@ public final class PythonPyprojectProvider extends PythonProvider {
         .collect(Collectors.toSet());
   }
 
-  List<String> parseDependencyStrings() throws IOException {
+  private void collectIgnoredDeps() throws IOException {
     TomlParseResult toml = getToml();
-
     List<String> rawLines = Files.readAllLines(manifest);
     collectedIgnoredDeps = new HashSet<>();
-    List<String> deps = new ArrayList<>();
 
     // [project.dependencies] - PEP 621
     TomlArray projectDeps = toml.getArray("project.dependencies");
     if (projectDeps != null) {
       for (int i = 0; i < projectDeps.size(); i++) {
         String dep = projectDeps.getString(i);
-        deps.add(dep);
         checkIgnored(rawLines, dep, dep);
       }
     }
@@ -382,8 +418,29 @@ public final class PythonPyprojectProvider extends PythonProvider {
     if (poetryDeps != null) {
       for (String name : poetryDeps.keySet()) {
         if (!"python".equalsIgnoreCase(name)) {
-          deps.add(poetryDepToRequirement(name, poetryDeps, name));
           checkIgnored(rawLines, name, name);
+        }
+      }
+    }
+  }
+
+  List<String> parseDependencyStrings() throws IOException {
+    collectIgnoredDeps();
+    TomlParseResult toml = getToml();
+    List<String> deps = new ArrayList<>();
+
+    TomlArray projectDeps = toml.getArray("project.dependencies");
+    if (projectDeps != null) {
+      for (int i = 0; i < projectDeps.size(); i++) {
+        deps.add(projectDeps.getString(i));
+      }
+    }
+
+    TomlTable poetryDeps = toml.getTable("tool.poetry.dependencies");
+    if (poetryDeps != null) {
+      for (String name : poetryDeps.keySet()) {
+        if (!"python".equalsIgnoreCase(name)) {
+          deps.add(poetryDepToRequirement(name, poetryDeps, name));
         }
       }
     }
