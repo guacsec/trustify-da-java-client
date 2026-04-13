@@ -18,7 +18,6 @@ package io.github.guacsec.trustifyda.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
@@ -65,34 +64,6 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
   }
 
   @Test
-  void test_parse_poetry_dependencies_converts_to_pep440() throws IOException {
-    Path pyprojectPath =
-        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    List<String> deps = provider.parseDependencyStrings();
-    assertThat(deps)
-        .contains("anyio>=3.6.2,<4.0.0", "flask>=2.0.3,<3.0.0", "requests>=2.25.1,<3.0.0");
-  }
-
-  @Test
-  void test_parse_poetry_excludes_python() throws IOException {
-    Path pyprojectPath =
-        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    List<String> deps = provider.parseDependencyStrings();
-    assertThat(deps).doesNotContain("python");
-  }
-
-  @Test
-  void test_parse_poetry_excludes_dev_group_dependencies() throws IOException {
-    Path pyprojectPath =
-        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    List<String> deps = provider.parseDependencyStrings();
-    assertThat(deps).doesNotContain("click", "click>=8.0.4,<9.0.0");
-  }
-
-  @Test
   void test_provideStack_rejects_poetry_dependencies() {
     Path pyprojectPath =
         Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
@@ -110,65 +81,6 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
     assertThatIllegalStateException()
         .isThrownBy(provider::provideComponent)
         .withMessageContaining("Poetry dependencies in pyproject.toml are not supported");
-  }
-
-  @Test
-  void test_convert_caret_major() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("^3.6.2")).isEqualTo(">=3.6.2,<4.0.0");
-  }
-
-  @Test
-  void test_convert_caret_zero_major() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("^0.5.1")).isEqualTo(">=0.5.1,<0.6.0");
-  }
-
-  @Test
-  void test_convert_caret_zero_zero() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("^0.0.3")).isEqualTo(">=0.0.3,<0.0.4");
-  }
-
-  @Test
-  void test_convert_caret_two_parts() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("^2.0")).isEqualTo(">=2.0.0,<3.0.0");
-  }
-
-  @Test
-  void test_convert_tilde() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("~1.2.3")).isEqualTo(">=1.2.3,<1.3.0");
-  }
-
-  @Test
-  void test_convert_tilde_two_parts() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("~1.2")).isEqualTo(">=1.2.0,<1.3.0");
-  }
-
-  @Test
-  void test_pep440_passthrough() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion(">=2.0")).isEqualTo(">=2.0");
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("==1.0.0")).isEqualTo("==1.0.0");
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("~=1.4")).isEqualTo("~=1.4");
-  }
-
-  @Test
-  void test_convert_bare_version_prepends_equals() {
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("1.2.3")).isEqualTo("==1.2.3");
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("2.0")).isEqualTo("==2.0");
-  }
-
-  @Test
-  void test_convert_caret_prerelease_does_not_crash() {
-    assertThatNoException()
-        .isThrownBy(() -> PythonPyprojectProvider.convertPoetryVersion("^1.2.3b1"));
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("^1.2.3b1"))
-        .isEqualTo(">=1.2.3,<2.0.0");
-  }
-
-  @Test
-  void test_convert_tilde_prerelease_does_not_crash() {
-    assertThatNoException()
-        .isThrownBy(() -> PythonPyprojectProvider.convertPoetryVersion("~1.2.3rc1"));
-    assertThat(PythonPyprojectProvider.convertPoetryVersion("~1.2.3rc1"))
-        .isEqualTo(">=1.2.3,<1.3.0");
   }
 
   @Test
@@ -194,14 +106,6 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
   }
 
   @Test
-  void test_getRootComponentName_reads_poetry_name() {
-    Path pyprojectPath =
-        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    assertThat(provider.getRootComponentName()).isEqualTo("test-project");
-  }
-
-  @Test
   void test_getRootComponentName_falls_back_to_default() {
     Path pyprojectPath =
         Path.of(
@@ -220,14 +124,6 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
   }
 
   @Test
-  void test_getRootComponentVersion_reads_poetry_version() {
-    Path pyprojectPath =
-        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    assertThat(provider.getRootComponentVersion()).isEqualTo("0.1.0");
-  }
-
-  @Test
   void test_getRootComponentVersion_falls_back_to_default() {
     Path pyprojectPath =
         Path.of(
@@ -243,15 +139,6 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
             "src/test/resources/tst_manifests/pip/pip_pyproject_toml_pep621_license/pyproject.toml");
     var provider = new PythonPyprojectProvider(pyprojectPath);
     assertThat(provider.readLicenseFromManifest()).isEqualTo("MIT");
-  }
-
-  @Test
-  void test_readLicenseFromManifest_reads_poetry_license() {
-    Path pyprojectPath =
-        Path.of(
-            "src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry_license/pyproject.toml");
-    var provider = new PythonPyprojectProvider(pyprojectPath);
-    assertThat(provider.readLicenseFromManifest()).isEqualTo("Apache-2.0");
   }
 
   // --- pip report parsing tests ---
