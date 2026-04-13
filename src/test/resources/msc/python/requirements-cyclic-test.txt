@@ -49,7 +49,7 @@ PyQtWebEngine==5.15.6
 pyscreenshot==3.1
 PyScreeze==0.1.29
 PySocks==1.7.1
-pytest==7.2.2
+pytest==9.0.3
 pytest-play==2.3.1
 pytest-variables==3.0.0
 python-dateutil==2.8.2
