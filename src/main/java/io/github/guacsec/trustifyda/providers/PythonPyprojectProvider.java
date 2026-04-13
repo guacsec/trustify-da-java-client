@@ -47,6 +47,17 @@ import org.tomlj.TomlArray;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
+/**
+ * Provider for Python projects using {@code pyproject.toml} with <a
+ * href="https://peps.python.org/pep-0621/">PEP 621</a> {@code [project.dependencies]}.
+ *
+ * <p>Dependency resolution is performed via {@code pip install --dry-run --ignore-installed
+ * --report - .}, which produces a JSON installation report containing the full dependency graph.
+ *
+ * <p><strong>Poetry is not supported.</strong> If the manifest contains {@code
+ * [tool.poetry.dependencies]}, both {@link #provideStack()} and {@link #provideComponent()} will
+ * throw an {@link IllegalStateException}.
+ */
 public final class PythonPyprojectProvider extends PythonProvider {
 
   private static final Logger log =
