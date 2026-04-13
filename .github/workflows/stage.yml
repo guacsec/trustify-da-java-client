@@ -62,7 +62,7 @@ jobs:
 
       - name: Check for existing early-access release
         id: existing_release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -81,7 +81,7 @@ jobs:
 
       - name: Delete early-access release if exists
         if: ${{ steps.existing_release.outputs.id }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -99,7 +99,7 @@ jobs:
 
       - name: Create new early-access release
         id: new_release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
