@@ -182,7 +182,7 @@ public class TrustifyExample {
 <li><a href="https://www.java.com/">Java</a> - <a href="https://maven.apache.org/">Maven</a></li>
 <li><a href="https://www.javascript.com//">JavaScript</a> - <a href="https://www.npmjs.com//">Npm</a></li>
 <li><a href="https://go.dev//">Golang</a> - <a href="https://go.dev/blog/using-go-modules//">Go Modules</a></li>
-<li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a> (<code>requirements.txt</code>, <code>pyproject.toml</code>)</li>
+<li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a> (<code>requirements.txt</code>, <code>pyproject.toml</code> with PEP 621 format). <strong>Note:</strong> Poetry-style dependencies (<code>[tool.poetry.dependencies]</code>) are not supported.</li>
 <li><a href="https://gradle.org//">Gradle</a> - <a href="https://gradle.org/install//">Gradle Installation</a></li>
 <li><a href="https://www.rust-lang.org/">Rust</a> - <a href="https://doc.rust-lang.org/cargo/">Cargo</a></li>
 

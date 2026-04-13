@@ -17,6 +17,7 @@
 package io.github.guacsec.trustifyda.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import io.github.guacsec.trustifyda.Api;
@@ -89,6 +90,26 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
     var provider = new PythonPyprojectProvider(pyprojectPath);
     List<String> deps = provider.parseDependencyStrings();
     assertThat(deps).doesNotContain("click", "click>=8.0.4,<9.0.0");
+  }
+
+  @Test
+  void test_provideStack_rejects_poetry_dependencies() {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThatIllegalStateException()
+        .isThrownBy(provider::provideStack)
+        .withMessageContaining("Poetry dependencies in pyproject.toml are not supported");
+  }
+
+  @Test
+  void test_provideComponent_rejects_poetry_dependencies() {
+    Path pyprojectPath =
+        Path.of("src/test/resources/tst_manifests/pip/pip_pyproject_toml_poetry/pyproject.toml");
+    var provider = new PythonPyprojectProvider(pyprojectPath);
+    assertThatIllegalStateException()
+        .isThrownBy(provider::provideComponent)
+        .withMessageContaining("Poetry dependencies in pyproject.toml are not supported");
   }
 
   @Test

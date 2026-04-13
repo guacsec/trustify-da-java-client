@@ -67,8 +67,9 @@ public final class PythonPyprojectProvider extends PythonProvider {
 
   @Override
   public Content provideStack() throws IOException {
+    rejectPoetryDependencies();
     collectIgnoredDeps();
-    String reportJson = getPipReportOutput(manifest.getParent());
+    String reportJson = getPipReportOutput(manifest.toAbsolutePath().getParent());
     PipReportData data = parsePipReport(reportJson);
 
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
@@ -90,8 +91,9 @@ public final class PythonPyprojectProvider extends PythonProvider {
 
   @Override
   public Content provideComponent() throws IOException {
+    rejectPoetryDependencies();
     collectIgnoredDeps();
-    String reportJson = getPipReportOutput(manifest.getParent());
+    String reportJson = getPipReportOutput(manifest.toAbsolutePath().getParent());
     PipReportData data = parsePipReport(reportJson);
 
     Sbom sbom = SbomFactory.newInstance();
@@ -229,6 +231,12 @@ public final class PythonPyprojectProvider extends PythonProvider {
       } else {
         nonRootPackages.add(entry);
       }
+    }
+
+    if (rootEntry == null && !nonRootPackages.isEmpty()) {
+      log.warning(
+          "pip report contains packages but no root entry (dir_info);"
+              + " dependency tree will be empty");
     }
 
     // Extract direct dependency names from root's requires_dist (LinkedHashSet preserves order)
@@ -404,6 +412,16 @@ public final class PythonPyprojectProvider extends PythonProvider {
               return toPurl(name, "*");
             })
         .collect(Collectors.toSet());
+  }
+
+  private void rejectPoetryDependencies() throws IOException {
+    TomlParseResult toml = getToml();
+    TomlTable poetryDeps = toml.getTable("tool.poetry.dependencies");
+    if (poetryDeps != null) {
+      throw new IllegalStateException(
+          "Poetry dependencies in pyproject.toml are not supported."
+              + " Please use PEP 621 [project.dependencies] format instead.");
+    }
   }
 
   private void collectIgnoredDeps() throws IOException {
