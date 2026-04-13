@@ -10,3 +10,41 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  # Prevent Dependabot from scanning test fixture manifests.
+  # These contain intentionally pinned (and sometimes vulnerable)
+  # dependencies used as test data for the dependency-analysis client.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "src/test/**"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "src/test/**"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "src/test/**"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "src/test/**"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    exclude-paths:
+      - "src/test/**"
+    open-pull-requests-limit: 0
