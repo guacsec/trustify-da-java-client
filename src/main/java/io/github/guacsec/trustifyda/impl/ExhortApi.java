@@ -30,6 +30,7 @@ import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.utils.Environment;
 import jakarta.mail.MessagingException;
@@ -51,6 +52,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -701,6 +703,86 @@ public final class ExhortApi implements Api {
                   String.format("Failed to identify license from file: %s", ex.getMessage()));
               return null;
             });
+  }
+
+  @Override
+  public CompletableFuture<Map<String, AnalysisReport>> stackAnalysisBatch(
+      final Path workspaceDir, final Set<String> ignorePatterns) throws IOException {
+    return this.performBatchAnalysis(
+        () -> getBatchStackSboms(workspaceDir, ignorePatterns),
+        MediaType.APPLICATION_JSON,
+        HttpResponse.BodyHandlers.ofString(),
+        this::getBatchStackAnalysisReports,
+        Collections::emptyMap,
+        "Batch Stack Analysis");
+  }
+
+  @Override
+  public CompletableFuture<byte[]> stackAnalysisBatchHtml(
+      final Path workspaceDir, final Set<String> ignorePatterns) throws IOException {
+    return this.performBatchAnalysis(
+        () -> getBatchStackSboms(workspaceDir, ignorePatterns),
+        MediaType.TEXT_HTML,
+        HttpResponse.BodyHandlers.ofByteArray(),
+        HttpResponse::body,
+        () -> new byte[0],
+        "Batch Stack Analysis");
+  }
+
+  Map<String, JsonNode> getBatchStackSboms(
+      final Path workspaceDir, final Set<String> ignorePatterns) {
+    boolean continueOnError = Environment.getBoolean("TRUSTIFY_DA_CONTINUE_ON_ERROR", false);
+    try {
+      List<Path> manifests =
+          JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, ignorePatterns);
+      if (manifests.isEmpty()) {
+        LOG.warning("No workspace members discovered in " + workspaceDir);
+        return Collections.emptyMap();
+      }
+
+      return manifests.parallelStream()
+          .map(
+              manifest -> {
+                try {
+                  var provider = Ecosystem.getProvider(manifest);
+                  var content = provider.provideStack();
+                  var sbomJson = mapper.readTree(content.buffer);
+                  String key = manifest.getParent().getFileName().toString();
+                  return new AbstractMap.SimpleEntry<>(key, sbomJson);
+                } catch (Exception ex) {
+                  if (continueOnError) {
+                    LOG.warning(
+                        String.format(
+                            "Skipping manifest %s due to error: %s", manifest, ex.getMessage()));
+                    return null;
+                  }
+                  throw new RuntimeException("Failed to generate SBOM for " + manifest, ex);
+                }
+              })
+          .filter(Objects::nonNull)
+          .collect(
+              Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to discover workspace manifests", e);
+    }
+  }
+
+  Map<String, AnalysisReport> getBatchStackAnalysisReports(
+      final HttpResponse<String> httpResponse) {
+    if (httpResponse.statusCode() == 200) {
+      try {
+        Map<?, ?> reports = this.mapper.readValue(httpResponse.body(), Map.class);
+        return reports.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey().toString(),
+                    e -> mapper.convertValue(e.getValue(), AnalysisReport.class)));
+      } catch (JsonProcessingException e) {
+        throw new CompletionException(e);
+      }
+    } else {
+      return Collections.emptyMap();
+    }
   }
 
   /**

@@ -11,6 +11,7 @@ module io.github.guacsec.trustifyda {
   requires transitive packageurl.java;
   requires transitive java.logging;
   requires org.tomlj;
+  requires com.fasterxml.jackson.dataformat.yaml;
   requires java.base;
 
   opens io.github.guacsec.trustifyda.providers to
@@ -32,6 +33,7 @@ module io.github.guacsec.trustifyda {
 
   exports io.github.guacsec.trustifyda.providers;
   exports io.github.guacsec.trustifyda.providers.javascript.model;
+  exports io.github.guacsec.trustifyda.providers.javascript.workspace;
   exports io.github.guacsec.trustifyda.providers.rust.model;
   exports io.github.guacsec.trustifyda.logging;
   exports io.github.guacsec.trustifyda.image;

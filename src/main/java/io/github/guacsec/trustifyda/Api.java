@@ -19,6 +19,7 @@ package io.github.guacsec.trustifyda;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -134,4 +135,29 @@ public interface Api {
    * @throws IllegalStateException when the manifest file type is not supported
    */
   String generateSbom(String manifestFile) throws IOException;
+
+  /**
+   * Performs batch stack analysis for all workspace members discovered in the given workspace
+   * directory. Discovers package.json manifests via pnpm-workspace.yaml or package.json workspaces
+   * field, generates SBOMs for each, and sends them as a batch to the backend.
+   *
+   * @param workspaceDir the workspace root directory path
+   * @param ignorePatterns glob patterns for paths to exclude from workspace discovery
+   * @return a map of manifest name to analysis report, wrapped in a CompletableFuture
+   * @throws IOException when workspace discovery or SBOM generation fails
+   */
+  CompletableFuture<Map<String, AnalysisReport>> stackAnalysisBatch(
+      Path workspaceDir, Set<String> ignorePatterns) throws IOException;
+
+  /**
+   * Performs batch stack analysis returning an HTML report for all workspace members discovered in
+   * the given workspace directory.
+   *
+   * @param workspaceDir the workspace root directory path
+   * @param ignorePatterns glob patterns for paths to exclude from workspace discovery
+   * @return the HTML report as a byte array wrapped in a CompletableFuture
+   * @throws IOException when workspace discovery or SBOM generation fails
+   */
+  CompletableFuture<byte[]> stackAnalysisBatchHtml(Path workspaceDir, Set<String> ignorePatterns)
+      throws IOException;
 }

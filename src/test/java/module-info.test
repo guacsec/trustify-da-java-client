@@ -13,6 +13,8 @@
 --add-opens
   io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.providers=org.junit.platform.commons
 --add-opens
+  io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.providers.javascript.workspace=org.junit.platform.commons
+--add-opens
   io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.tools=org.junit.platform.commons
 --add-opens
   io.github.guacsec.trustifyda/io.github.guacsec.trustifyda.image=org.junit.platform.commons
