@@ -205,9 +205,6 @@ class Golang_Modules_Provider_Test extends ExhortTest {
    * HashMap.put()} which overwrites children when two original parent versions remap to the same
    * MVS-selected version. This causes the Java client to produce fewer components than the JS
    * client.
-   *
-   * <p>The JS client produces 138 components for this fixture. This test is expected to FAIL until
-   * the HashMap.put() collision bug is fixed.
    */
   @Test
   void Test_Golang_MvS_Enabled_Preserves_All_Transitive_Dependencies() throws IOException {
