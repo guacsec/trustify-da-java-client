@@ -31,8 +31,11 @@ import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
+import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
+import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.WorkspaceUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
@@ -51,6 +54,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -731,37 +735,75 @@ public final class ExhortApi implements Api {
 
   Map<String, JsonNode> getBatchStackSboms(
       final Path workspaceDir, final Set<String> ignorePatterns) {
-    boolean continueOnError = Environment.getBoolean("TRUSTIFY_DA_CONTINUE_ON_ERROR", false);
+    boolean continueOnError = Environment.getBoolean("TRUSTIFY_DA_CONTINUE_ON_ERROR", true);
+    int concurrency = resolveBatchConcurrency();
     try {
-      List<Path> manifests =
-          JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, ignorePatterns);
+      Set<String> resolved = resolveIgnorePatterns(ignorePatterns);
+      List<Path> manifests = discoverWorkspaceManifests(workspaceDir, resolved);
       if (manifests.isEmpty()) {
         LOG.warning("No workspace members discovered in " + workspaceDir);
         return Collections.emptyMap();
       }
 
-      return manifests.parallelStream()
-          .map(
-              manifest -> {
-                try {
-                  var provider = Ecosystem.getProvider(manifest);
-                  var content = provider.provideStack();
-                  var sbomJson = mapper.readTree(content.buffer);
-                  String key = manifest.getParent().getFileName().toString();
-                  return new AbstractMap.SimpleEntry<>(key, sbomJson);
-                } catch (Exception ex) {
-                  if (continueOnError) {
-                    LOG.warning(
-                        String.format(
-                            "Skipping manifest %s due to error: %s", manifest, ex.getMessage()));
-                    return null;
-                  }
-                  throw new RuntimeException("Failed to generate SBOM for " + manifest, ex);
-                }
-              })
-          .filter(Objects::nonNull)
-          .collect(
-              Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+      var executor = java.util.concurrent.Executors.newFixedThreadPool(concurrency);
+      try {
+        var futures =
+            manifests.stream()
+                .map(
+                    manifest ->
+                        java.util.concurrent.CompletableFuture.supplyAsync(
+                            () -> {
+                              try {
+                                var provider = Ecosystem.getProvider(manifest);
+                                var content = provider.provideStack();
+                                var sbomJson = mapper.readTree(content.buffer);
+                                var purl =
+                                    sbomJson
+                                        .at("/metadata/component/purl")
+                                        .asText(
+                                            sbomJson
+                                                .at("/metadata/component/bom-ref")
+                                                .asText(null));
+                                if (purl == null || purl.isBlank()) {
+                                  throw new IllegalStateException(
+                                      "Missing purl in SBOM metadata.component for " + manifest);
+                                }
+                                return new AbstractMap.SimpleEntry<>(purl, sbomJson);
+                              } catch (Exception ex) {
+                                if (continueOnError) {
+                                  LOG.warning(
+                                      String.format(
+                                          "Skipping manifest %s due to error: %s",
+                                          manifest, ex.getMessage()));
+                                  return null;
+                                }
+                                throw new RuntimeException(
+                                    "Failed to generate SBOM for " + manifest, ex);
+                              }
+                            },
+                            executor))
+                .toList();
+
+        var results =
+            futures.stream()
+                .map(java.util.concurrent.CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(
+                    Collectors.toMap(
+                        AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+
+        if (Environment.getBoolean("TRUSTIFY_DA_BATCH_METADATA", false)) {
+          int failed = manifests.size() - results.size();
+          LOG.info(
+              String.format(
+                  "Batch metadata: workspaceRoot=%s, total=%d, successful=%d, failed=%d",
+                  workspaceDir, manifests.size(), results.size(), failed));
+        }
+
+        return results;
+      } finally {
+        executor.shutdown();
+      }
     } catch (IOException e) {
       throw new RuntimeException("Failed to discover workspace manifests", e);
     }
@@ -782,6 +824,128 @@ public final class ExhortApi implements Api {
       }
     } else {
       return Collections.emptyMap();
+    }
+  }
+
+  /**
+   * Resolves batch concurrency from TRUSTIFY_DA_BATCH_CONCURRENCY. default 10, max 256.
+   */
+  int resolveBatchConcurrency() {
+    String raw = Environment.get("TRUSTIFY_DA_BATCH_CONCURRENCY", "10");
+    try {
+      int n = Integer.parseInt(raw.trim());
+      if (n < 1) {
+        return 10;
+      }
+      return Math.min(256, n);
+    } catch (NumberFormatException e) {
+      return 10;
+    }
+  }
+
+  private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
+      Set.of("**/node_modules/**", "**/.git/**");
+
+  /**
+   * Merges default ignore patterns, env var overrides, and caller-provided patterns.
+   */
+  Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
+    var merged = new java.util.LinkedHashSet<>(DEFAULT_WORKSPACE_DISCOVERY_IGNORE);
+    String fromEnv = Environment.get("TRUSTIFY_DA_WORKSPACE_DISCOVERY_IGNORE", null);
+    if (fromEnv != null && !fromEnv.isBlank()) {
+      for (String p : fromEnv.split(",")) {
+        String trimmed = p.trim();
+        if (!trimmed.isEmpty()) {
+          merged.add(trimmed);
+        }
+      }
+    }
+    if (callerPatterns != null) {
+      merged.addAll(callerPatterns);
+    }
+    return merged;
+  }
+
+  /**
+   * Detects the workspace ecosystem and discovers manifest paths. Checks for Cargo workspace first
+   * (Cargo.toml + Cargo.lock), then falls back to JS workspace discovery.
+   */
+  List<Path> discoverWorkspaceManifests(Path workspaceDir, Set<String> ignorePatterns)
+      throws IOException {
+    // Cargo workspace: Cargo.toml + Cargo.lock
+    Path cargoToml = workspaceDir.resolve("Cargo.toml");
+    Path cargoLock = workspaceDir.resolve("Cargo.lock");
+    if (Files.isRegularFile(cargoToml) && Files.isRegularFile(cargoLock)) {
+      return discoverCargoManifests(workspaceDir, ignorePatterns);
+    }
+
+    // JS workspace: require package.json + a lock file
+    Path packageJson = workspaceDir.resolve("package.json");
+    boolean hasJsLock =
+        Files.isRegularFile(workspaceDir.resolve("pnpm-lock.yaml"))
+            || Files.isRegularFile(workspaceDir.resolve("yarn.lock"))
+            || Files.isRegularFile(workspaceDir.resolve("package-lock.json"));
+
+    if (Files.isRegularFile(packageJson) && hasJsLock) {
+      List<Path> manifests =
+          JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, ignorePatterns);
+      if (manifests.isEmpty()) {
+        return List.of(packageJson);
+      }
+      // Include root package.json if it is not private and not already discovered
+      if (!manifests.contains(packageJson) && !isPrivatePackageJson(packageJson)) {
+        var withRoot = new ArrayList<>(manifests);
+        withRoot.addFirst(packageJson);
+        manifests = withRoot;
+      }
+      return manifests;
+    }
+
+    return Collections.emptyList();
+  }
+
+  private List<Path> discoverCargoManifests(Path workspaceDir, Set<String> ignorePatterns) {
+    try {
+      String cargo = Operations.getCustomPathOrElse("cargo");
+      Operations.ProcessExecOutput output =
+          Operations.runProcessGetFullOutput(
+              workspaceDir,
+              new String[] {cargo, "metadata", "--format-version", "1", "--no-deps"},
+              null);
+      if (output.getExitCode() != 0) {
+        LOG.warning("cargo metadata failed with exit code " + output.getExitCode());
+        return Collections.emptyList();
+      }
+      CargoMetadata metadata = mapper.readValue(output.getOutput(), CargoMetadata.class);
+      var memberIds = new java.util.HashSet<String>(metadata.workspaceMembers());
+      List<Path> manifests = new ArrayList<>();
+      for (var pkg : metadata.packages()) {
+        if (memberIds.contains(pkg.id()) && pkg.manifestPath() != null) {
+          Path manifestPath = Path.of(pkg.manifestPath());
+          if (Files.isRegularFile(manifestPath)) {
+            manifests.add(manifestPath);
+          }
+        }
+      }
+      return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
+    } catch (Exception e) {
+      LOG.warning("Failed to discover Cargo workspace manifests: " + e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Checks whether a package.json has "private": true, meaning it should not be analyzed as a
+   * publishable package.
+   */
+  private boolean isPrivatePackageJson(Path packageJson) {
+    try {
+      JsonNode root = mapper.readTree(Files.newInputStream(packageJson));
+      JsonNode privateField = root.get("private");
+      return privateField != null && privateField.asBoolean(false);
+    } catch (IOException e) {
+      LOG.warning("Failed to read " + packageJson + ": " + e.getMessage());
+      return true;
     }
   }
 

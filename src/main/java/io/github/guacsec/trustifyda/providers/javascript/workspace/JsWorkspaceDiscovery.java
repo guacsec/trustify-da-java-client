@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.utils.WorkspaceUtils;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -68,7 +69,7 @@ public final class JsWorkspaceDiscovery {
     }
 
     List<Path> manifests = findManifestsByGlobs(workspaceDir, workspaceGlobs);
-    manifests = filterIgnored(workspaceDir, manifests, ignorePatterns);
+    manifests = WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
     manifests = validateManifests(manifests);
     return Collections.unmodifiableList(manifests);
   }
@@ -217,29 +218,6 @@ public final class JsWorkspaceDiscovery {
     }
 
     return manifests;
-  }
-
-  private static List<Path> filterIgnored(
-      Path workspaceDir, List<Path> manifests, Set<String> ignorePatterns) {
-    if (ignorePatterns == null || ignorePatterns.isEmpty()) {
-      return manifests;
-    }
-
-    List<PathMatcher> matchers =
-        ignorePatterns.stream()
-            .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
-            .toList();
-
-    return manifests.stream()
-        .filter(
-            manifest -> {
-              Path relative = workspaceDir.relativize(manifest);
-              Path relativeDir = relative.getParent();
-              return matchers.stream()
-                  .noneMatch(
-                      m -> m.matches(relative) || (relativeDir != null && m.matches(relativeDir)));
-            })
-        .toList();
   }
 
   private static List<Path> validateManifests(List<Path> manifests) {
