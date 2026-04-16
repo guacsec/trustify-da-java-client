@@ -1,5 +1,5 @@
 lxml==4.9.2
-Mako==1.2.3
+Mako==1.3.11
 markdown-it-py==3.0.0
 MarkupSafe==2.1.2
 mdit-py-plugins==0.4.0
