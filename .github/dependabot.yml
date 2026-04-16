@@ -1,5 +1,7 @@
+# yaml-language-server: $schema=https://www.schemastore.org/dependabot-2.0.json
 version: 2
 updates:
+  # ── Production dependencies ──────────────────────────────────────────
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
@@ -10,41 +12,68 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-  # Prevent Dependabot from scanning test fixture manifests.
-  # These contain intentionally pinned (and sometimes vulnerable)
-  # dependencies used as test data for the dependency-analysis client.
+
+  # ── Test fixture manifests (suppress all updates including security) ─
+  # These directories contain intentionally pinned dependencies used as
+  # test fixtures. They must NOT be updated by dependabot.
+  - package-ecosystem: "maven"
+    directories:
+      - "/src/test/resources/tst_manifests/maven/**"
+      - "/src/test/resources/tst_manifests/it/maven/**"
+    schedule:
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/src/test/resources/tst_manifests/npm/**"
+      - "/src/test/resources/tst_manifests/pnpm/**"
+      - "/src/test/resources/tst_manifests/yarn-berry/**"
+      - "/src/test/resources/tst_manifests/yarn-classic/**"
+      - "/src/test/resources/tst_manifests/it/npm/**"
+      - "/src/test/resources/tst_manifests/it/pnpm/**"
+      - "/src/test/resources/tst_manifests/it/yarn/**"
     schedule:
-      interval: "weekly"
-    exclude-paths:
-      - "src/test/**"
-    open-pull-requests-limit: 0
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "pip"
-    directory: "/"
+    directories:
+      - "/src/test/resources/tst_manifests/pip/**"
+      - "/src/test/resources/tst_manifests/it/pypi/**"
     schedule:
-      interval: "weekly"
-    exclude-paths:
-      - "src/test/**"
-    open-pull-requests-limit: 0
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories:
+      - "/src/test/resources/tst_manifests/golang/**"
+      - "/src/test/resources/tst_manifests/it/golang/**"
+      - "/src/test/resources/msc/golang/**"
     schedule:
-      interval: "weekly"
-    exclude-paths:
-      - "src/test/**"
-    open-pull-requests-limit: 0
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "gradle"
-    directory: "/"
+    directories:
+      - "/src/test/resources/tst_manifests/gradle-groovy/**"
+      - "/src/test/resources/tst_manifests/gradle-kotlin/**"
+      - "/src/test/resources/tst_manifests/it/gradle-groovy/**"
+      - "/src/test/resources/tst_manifests/it/gradle-kotlin/**"
     schedule:
-      interval: "weekly"
-    exclude-paths:
-      - "src/test/**"
-    open-pull-requests-limit: 0
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "cargo"
-    directory: "/"
+    directories:
+      - "/src/test/resources/tst_manifests/cargo/**"
     schedule:
-      interval: "weekly"
-    exclude-paths:
-      - "src/test/**"
-    open-pull-requests-limit: 0
+      interval: "monthly"
+    labels: []
+    ignore:
+      - dependency-name: "*"
