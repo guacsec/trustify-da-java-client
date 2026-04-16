@@ -22,9 +22,7 @@ import java.nio.file.PathMatcher;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Shared workspace utilities used by both JS and Cargo workspace discovery.
- */
+/** Shared workspace utilities used by both JS and Cargo workspace discovery. */
 public final class WorkspaceUtils {
 
   private WorkspaceUtils() {}

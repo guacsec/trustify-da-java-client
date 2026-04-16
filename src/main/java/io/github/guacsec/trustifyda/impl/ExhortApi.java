@@ -827,9 +827,7 @@ public final class ExhortApi implements Api {
     }
   }
 
-  /**
-   * Resolves batch concurrency from TRUSTIFY_DA_BATCH_CONCURRENCY. default 10, max 256.
-   */
+  /** Resolves batch concurrency from TRUSTIFY_DA_BATCH_CONCURRENCY. default 10, max 256. */
   int resolveBatchConcurrency() {
     String raw = Environment.get("TRUSTIFY_DA_BATCH_CONCURRENCY", "10");
     try {
@@ -846,9 +844,7 @@ public final class ExhortApi implements Api {
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
       Set.of("**/node_modules/**", "**/.git/**");
 
-  /**
-   * Merges default ignore patterns, env var overrides, and caller-provided patterns.
-   */
+  /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
     var merged = new java.util.LinkedHashSet<>(DEFAULT_WORKSPACE_DISCOVERY_IGNORE);
     String fromEnv = Environment.get("TRUSTIFY_DA_WORKSPACE_DISCOVERY_IGNORE", null);
