@@ -198,6 +198,40 @@ class Golang_Modules_Provider_Test extends ExhortTest {
             == 1);
   }
 
+  /**
+   * Verifies that MVS-enabled mode preserves all transitive dependencies (TC-3818).
+   *
+   * <p>When MVS is enabled (the default), {@code getFinalPackagesVersionsForModule()} uses {@code
+   * HashMap.put()} which overwrites children when two original parent versions remap to the same
+   * MVS-selected version. This causes the Java client to produce fewer components than the JS
+   * client.
+   *
+   * <p>The JS client produces 138 components for this fixture. This test is expected to FAIL until
+   * the HashMap.put() collision bug is fixed.
+   */
+  @Test
+  void Test_Golang_MvS_Enabled_Preserves_All_Transitive_Dependencies() throws IOException {
+    // Given the MVS test fixture with MVS enabled (the default — no property override)
+    String goModPath = getFileFromResource("go.mod", "msc/golang/mvs_logic/go.mod");
+    Path manifest = Path.of(goModPath);
+    GoModulesProvider goModulesProvider = new GoModulesProvider(manifest);
+
+    // When generating the SBOM with stack analysis
+    String resultSbom =
+        dropIgnoredKeepFormat(
+            goModulesProvider.getDependenciesSbom(manifest, true).getAsJsonString());
+
+    // Then the SBOM should contain exactly 138 components (matching JS client output)
+    JsonNode sbomTree = JSON_MAPPER.readTree(resultSbom);
+    int componentCount = sbomTree.path("components").size();
+    assertEquals(
+        138,
+        componentCount,
+        "MVS-enabled SBOM should contain 138 components (matching JS client). "
+            + "A lower count indicates the HashMap.put() collision bug in "
+            + "getFinalPackagesVersionsForModule() is losing transitive dependencies.");
+  }
+
   @Test
   void test_isGoToolchainEntry_filters_go_and_toolchain() {
     // go@* entries should be filtered

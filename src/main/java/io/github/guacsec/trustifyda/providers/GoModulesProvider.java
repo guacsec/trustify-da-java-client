@@ -354,7 +354,14 @@ public final class GoModulesProvider extends Provider {
           }
           List<String> packagesWithFinalVersions =
               getListOfPackagesWithFinalVersions(finalModulesVersions, value);
-          listWithModifiedVersions.put(packageWithSelectedVersion, packagesWithFinalVersions);
+          listWithModifiedVersions.merge(
+              packageWithSelectedVersion,
+              packagesWithFinalVersions,
+              (existing, incoming) -> {
+                var combined = new java.util.LinkedHashSet<>(existing);
+                combined.addAll(incoming);
+                return new ArrayList<>(combined);
+              });
         });
 
     return listWithModifiedVersions;
