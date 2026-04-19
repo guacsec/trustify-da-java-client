@@ -178,10 +178,9 @@ public abstract class JavaScriptProvider extends Provider {
         .forEachRemaining(
             e -> {
               JsonNode versionNode = e.getValue().get("version");
-              if (versionNode == null || versionNode.isNull()) {
-                return; // skip entries without a resolved version
-              }
-              var target = toPurl(e.getKey(), versionNode.asText());
+              String version =
+                  (versionNode != null && !versionNode.isNull()) ? versionNode.asText() : null;
+              var target = toPurl(e.getKey(), version);
               sbom.addDependency(manifest.root, target, null);
               addDependenciesOf(sbom, target, e.getValue());
             });

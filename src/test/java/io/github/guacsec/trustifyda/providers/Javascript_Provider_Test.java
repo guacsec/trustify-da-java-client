@@ -24,6 +24,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -191,6 +194,74 @@ class Javascript_Provider_Test extends ExhortTest {
       // verify expected SBOM is returned
       assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
       assertThat(dropIgnored(new String(content.buffer))).isEqualTo(dropIgnored(expectedSbom));
+    }
+  }
+
+  /**
+   * TC-3818 / TC-4128: Verifies that root-level dependencies without a version field (e.g., file:
+   * deps, workspace packages, linked packages) are processed correctly, including their transitive
+   * dependency subtrees.
+   *
+   * <p>Reproducer for a bug in {@code JavaScriptProvider.addDependenciesFromKey()} where a
+   * root-level dependency with {@code versionNode == null} caused an early return, skipping both
+   * the entry itself and its entire transitive dependency subtree. Fixed by treating null version
+   * as a valid case (versionless PURL) and always recursing into children.
+   *
+   * <p>This test uses a synthetic npm-ls output where a root-level dependency ("my-local-lib") has
+   * no version field but contains 3 transitive dependencies (lodash, debug, ms). All 7 components
+   * must be present in the SBOM.
+   */
+  @Test
+  void test_provideStack_includes_deps_of_root_entry_without_version() throws IOException {
+    // Given a package.json with a file: dependency that has no version in npm ls output
+    var testFolder = "deps_with_no_version_root_dep";
+    var pkgManager = Ecosystem.Type.NPM.getType();
+
+    var tmpFolder = Files.createTempDirectory("TRUSTIFY_DA_test_");
+    var tmpFile = Files.createFile(tmpFolder.resolve("package.json"));
+    var tmpLockFile = Files.createFile(tmpFolder.resolve(JavaScriptNpmProvider.LOCK_FILE));
+    try (var is =
+        getResourceAsStreamDecision(
+            this.getClass(), String.format("tst_manifests/npm/%s/package.json", testFolder))) {
+      Files.write(tmpFile, is.readAllBytes());
+    }
+    try (var is =
+        getResourceAsStreamDecision(
+            this.getClass(), String.format("tst_manifests/npm/%s/package-lock.json", testFolder))) {
+      Files.write(tmpLockFile, is.readAllBytes());
+    }
+
+    String listingStack;
+    try (var is =
+        getResourceAsStreamDecision(
+            this.getClass(), String.format("tst_manifests/npm/%s/npm-ls-stack.json", testFolder))) {
+      listingStack = new String(is.readAllBytes());
+    }
+
+    // When providing stack analysis SBOM
+    try (MockedStatic<Operations> mockedOperations =
+        mockOperations(pkgManager, listingStack, false)) {
+      var content = JavaScriptProviderFactory.create(tmpFile).provideStack();
+
+      // Then parse the SBOM and count components
+      var mapper = new ObjectMapper();
+      JsonNode sbom = mapper.readTree(new String(content.buffer));
+      JsonNode components = sbom.get("components");
+      int componentCount = (components != null) ? components.size() : 0;
+
+      // The npm-ls fixture has 7 unique dependencies:
+      //   express@4.18.2, accepts@1.3.8, content-type@1.0.5 (express subtree)
+      //   my-local-lib (no version, file: dep), lodash@4.17.21, debug@4.3.4, ms@2.1.2 (subtree)
+      assertThat(componentCount)
+          .as(
+              "Root-level deps without version (e.g., file: deps) and their transitive "
+                  + "deps must be included in the SBOM.")
+          .isEqualTo(7);
+    } finally {
+      // Cleanup
+      Files.deleteIfExists(tmpFile);
+      Files.deleteIfExists(tmpLockFile);
+      Files.deleteIfExists(tmpFolder);
     }
   }
 
