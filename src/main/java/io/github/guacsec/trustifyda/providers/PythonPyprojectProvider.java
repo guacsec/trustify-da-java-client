@@ -153,7 +153,9 @@ public final class PythonPyprojectProvider extends PythonProvider {
     }
 
     String pip = findPipBinary();
-    String[] cmd = {pip, "install", "--dry-run", "--ignore-installed", "--report", "-", "."};
+    String[] cmd = {
+      pip, "install", "--dry-run", "--ignore-installed", "--quiet", "--report", "-", "."
+    };
     Operations.ProcessExecOutput result =
         Operations.runProcessGetFullOutput(manifestDir, cmd, null);
     if (result.getExitCode() != 0) {
