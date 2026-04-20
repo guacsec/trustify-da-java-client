@@ -73,27 +73,27 @@ public final class GoModulesProvider extends Provider {
 
   @Override
   public String readLicenseFromManifest() {
-    return LicenseUtils.readLicenseFile(manifest);
+    return LicenseUtils.readLicenseFile(manifestPath);
   }
 
   @Override
   public Content provideStack() throws IOException {
     // check for custom executable
-    Sbom sbom = getDependenciesSbom(manifest, true);
+    Sbom sbom = getDependenciesSbom(manifestPath, true);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
   }
 
   @Override
   public Content provideComponent() throws IOException {
-    if (!Files.exists(manifest)) {
-      throw new IllegalArgumentException("Missing required go.mod file: " + manifest);
+    if (!Files.exists(manifestPath)) {
+      throw new IllegalArgumentException("Missing required go.mod file: " + manifestPath);
     }
-    if (!Files.isRegularFile(manifest)) {
+    if (!Files.isRegularFile(manifestPath)) {
       throw new IllegalArgumentException(
-          "The provided manifest is not a regular file: " + manifest);
+          "The provided manifest is not a regular file: " + manifestPath);
     }
-    var sbom = getDependenciesSbom(manifest, false);
+    var sbom = getDependenciesSbom(manifestPath, false);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
   }

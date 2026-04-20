@@ -47,13 +47,13 @@ public abstract class Provider {
   /** The ecosystem of this provider, i.e. maven. */
   public final Ecosystem.Type ecosystem;
 
-  public final Path manifest;
+  public final Path manifestPath;
 
   protected final ObjectMapper objectMapper = new ObjectMapper();
 
-  protected Provider(Ecosystem.Type ecosystem, Path manifest) {
+  protected Provider(Ecosystem.Type ecosystem, Path manifestPath) {
     this.ecosystem = ecosystem;
-    this.manifest = manifest;
+    this.manifestPath = manifestPath;
   }
 
   /**

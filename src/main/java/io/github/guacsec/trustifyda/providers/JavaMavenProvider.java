@@ -68,8 +68,8 @@ public final class JavaMavenProvider extends BaseJavaProvider {
 
   @Override
   public String readLicenseFromManifest() {
-    String manifestLicense = readLicenseFromPom(manifest);
-    return LicenseUtils.getLicense(manifestLicense, manifest);
+    String manifestLicense = readLicenseFromPom(manifestPath);
+    return LicenseUtils.getLicense(manifestLicense, manifestPath);
   }
 
   /**
@@ -124,10 +124,11 @@ public final class JavaMavenProvider extends BaseJavaProvider {
 
   @Override
   public Content provideStack() throws IOException {
-    var mvnCleanCmd = buildMvnCommandArgs("clean", "-f", manifest.toString(), "--batch-mode", "-q");
+    var mvnCleanCmd =
+        buildMvnCommandArgs("clean", "-f", manifestPath.toString(), "--batch-mode", "-q");
     var mvnEnvs = getMvnExecEnvs();
     // execute the clean command
-    Operations.runProcess(manifest.getParent(), mvnCleanCmd.toArray(String[]::new), mvnEnvs);
+    Operations.runProcess(manifestPath.getParent(), mvnCleanCmd.toArray(String[]::new), mvnEnvs);
     // create a temp file for storing the dependency tree in
     var tmpFile = Files.createTempFile("TRUSTIFY_DA_dot_graph_", null);
     // the tree command will build the project and create the dependency tree in the temp file
@@ -140,12 +141,12 @@ public final class JavaMavenProvider extends BaseJavaProvider {
                 "-DoutputType=text",
                 String.format("-DoutputFile=%s", tmpFile.toString()),
                 "-f",
-                manifest.toString(),
+                manifestPath.toString(),
                 "--batch-mode",
                 "-q"));
     // if we have dependencies marked as ignored, exclude them from the tree command
     var ignored =
-        getDependencies(manifest).stream()
+        getDependencies(manifestPath).stream()
             .filter(d -> d.ignored)
             .map(DependencyAggregator::toPurlWithoutVersion)
             .map(PackageURL::getCoordinates)
@@ -157,7 +158,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
 
     // execute the tree command
     var mvnTreeCmd = buildMvnCommandArgs(mvnTreeCmdArgs.toArray(String[]::new));
-    Operations.runProcess(manifest.getParent(), mvnTreeCmd.toArray(String[]::new), mvnEnvs);
+    Operations.runProcess(manifestPath.getParent(), mvnTreeCmd.toArray(String[]::new), mvnEnvs);
     if (debugLoggingIsNeeded()) {
       String stackAnalysisDependencyTree = Files.readString(tmpFile);
       log.info(
@@ -201,12 +202,12 @@ public final class JavaMavenProvider extends BaseJavaProvider {
             "help:effective-pom",
             String.format("-Doutput=%s", tmpEffPom.toString()),
             "-f",
-            manifest.toString(),
+            manifestPath.toString(),
             "--batch-mode",
             "-q");
     // execute the effective pom command
     Operations.runProcess(
-        manifest.getParent(), mvnEffPomCmd.toArray(String[]::new), getMvnExecEnvs());
+        manifestPath.getParent(), mvnEffPomCmd.toArray(String[]::new), getMvnExecEnvs());
     if (debugLoggingIsNeeded()) {
       String CaEffectivePoM = Files.readString(tmpEffPom);
       log.info(
@@ -216,7 +217,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     }
     // if we have dependencies marked as ignored grab ignored dependencies from the original pom
     // the effective-pom goal doesn't carry comments
-    List<DependencyAggregator> dependencies = getDependencies(manifest);
+    List<DependencyAggregator> dependencies = getDependencies(manifestPath);
     var ignored =
         dependencies.stream()
             .filter(d -> d.ignored)
@@ -437,7 +438,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
       if (mvnw != null) {
         try {
           // verify maven wrapper is accessible
-          Operations.runProcess(manifest.getParent(), mvnw, ARG_VERSION);
+          Operations.runProcess(manifestPath.getParent(), mvnw, ARG_VERSION);
           if (debugLoggingIsNeeded()) {
             log.info(String.format("using maven wrapper from : %s", mvnw));
           }

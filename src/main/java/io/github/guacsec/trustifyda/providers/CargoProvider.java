@@ -146,7 +146,7 @@ public final class CargoProvider extends Provider {
             handleSingleCrate(sbom, root, metadata, nodeMap, packageMap, ignoredDeps, analysisType);
       }
 
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       log.severe("Unexpected error during " + analysisType + " analysis: " + e.getMessage());
     }
   }
@@ -385,7 +385,7 @@ public final class CargoProvider extends Provider {
   }
 
   private CargoMetadata executeCargoMetadata() throws IOException, InterruptedException {
-    Path workingDir = manifest.getParent();
+    Path workingDir = manifestPath.getParent();
 
     if (debugLoggingIsNeeded()) {
       log.info("Executing cargo metadata for full dependency resolution with resolved versions");
@@ -657,20 +657,21 @@ public final class CargoProvider extends Provider {
   @Override
   public String readLicenseFromManifest() {
     String manifestLicense = readLicenseFromToml(null);
-    return LicenseUtils.getLicense(manifestLicense, manifest);
+    return LicenseUtils.getLicense(manifestLicense, manifestPath);
   }
 
   private String readLicenseFromToml(TomlParseResult existingResult) {
     try {
-      TomlParseResult tomlResult = existingResult != null ? existingResult : Toml.parse(manifest);
+      TomlParseResult tomlResult =
+          existingResult != null ? existingResult : Toml.parse(manifestPath);
       if (tomlResult.hasErrors()) {
         return null;
       }
       String license = tomlResult.getString("package.license");
-      return LicenseUtils.getLicense(license, manifest);
+      return LicenseUtils.getLicense(license, manifestPath);
     } catch (IOException e) {
       log.warning("Failed to read license from Cargo.toml: " + e.getMessage());
-      return LicenseUtils.getLicense(null, manifest);
+      return LicenseUtils.getLicense(null, manifestPath);
     }
   }
 
@@ -687,11 +688,11 @@ public final class CargoProvider extends Provider {
   }
 
   private Sbom createSbom(AnalysisType analysisType) throws IOException {
-    if (!Files.exists(manifest) || !Files.isRegularFile(manifest)) {
-      throw new IOException("Cargo.toml not found: " + manifest);
+    if (!Files.exists(manifestPath) || !Files.isRegularFile(manifestPath)) {
+      throw new IOException("Cargo.toml not found: " + manifestPath);
     }
 
-    TomlParseResult tomlResult = Toml.parse(manifest);
+    TomlParseResult tomlResult = Toml.parse(manifestPath);
     if (tomlResult.hasErrors()) {
       throw new IOException(
           "Invalid Cargo.toml format: " + tomlResult.errors().get(0).getMessage());
@@ -706,7 +707,7 @@ public final class CargoProvider extends Provider {
               Type.CARGO.getType(), null, projectInfo.name(), projectInfo.version(), null, null);
       sbom.addRoot(root, readLicenseFromToml(tomlResult));
 
-      String cargoContent = Files.readString(manifest, StandardCharsets.UTF_8);
+      String cargoContent = Files.readString(manifestPath, StandardCharsets.UTF_8);
       Set<String> ignoredDeps = getIgnoredDependencies(tomlResult, cargoContent);
       addDependencies(sbom, root, ignoredDeps, tomlResult, analysisType);
       return sbom;
@@ -744,7 +745,7 @@ public final class CargoProvider extends Provider {
     boolean hasWorkspace = result.contains("workspace");
     if (hasWorkspace) {
       String workspaceVersion = result.getString(WORKSPACE_PACKAGE_VERSION);
-      String dirName = manifest.toAbsolutePath().getParent().getFileName().toString();
+      String dirName = manifestPath.toAbsolutePath().getParent().getFileName().toString();
       if (debugLoggingIsNeeded()) {
         log.info(
             "Using workspace fallback: name="

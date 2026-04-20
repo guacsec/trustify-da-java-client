@@ -70,12 +70,12 @@ public final class GradleProvider extends BaseJavaProvider {
 
   @Override
   public String readLicenseFromManifest() {
-    return LicenseUtils.readLicenseFile(manifest);
+    return LicenseUtils.readLicenseFile(manifestPath);
   }
 
   @Override
   public Content provideStack() throws IOException {
-    Path tempFile = getDependencies(manifest);
+    Path tempFile = getDependencies(manifestPath);
     try {
       if (debugLoggingIsNeeded()) {
         String stackAnalysisDependencyTree = Files.readString(tempFile);
@@ -84,10 +84,10 @@ public final class GradleProvider extends BaseJavaProvider {
                 "Package Manager Gradle Stack Analysis Dependency Tree Output: %s %s",
                 System.lineSeparator(), stackAnalysisDependencyTree));
       }
-      Map<String, String> propertiesMap = extractProperties(manifest);
+      Map<String, String> propertiesMap = extractProperties(manifestPath);
 
       var sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.STACK);
-      var ignored = getIgnoredDeps(manifest);
+      var ignored = getIgnoredDeps(manifestPath);
 
       return new Content(
           sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
@@ -605,12 +605,12 @@ public final class GradleProvider extends BaseJavaProvider {
 
   @Override
   public Content provideComponent() throws IOException {
-    Path tempFile = getDependencies(manifest);
+    Path tempFile = getDependencies(manifestPath);
     try {
-      Map<String, String> propertiesMap = extractProperties(manifest);
+      Map<String, String> propertiesMap = extractProperties(manifestPath);
 
       Sbom sbom = buildSbomFromTextFormat(tempFile, propertiesMap, AnalysisType.COMPONENT);
-      var ignored = getIgnoredDeps(manifest);
+      var ignored = getIgnoredDeps(manifestPath);
 
       return new Content(
           sbom.filterIgnoredDeps(ignored).getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
