@@ -23,7 +23,7 @@ import io.github.guacsec.trustifyda.providers.GradleProvider;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.providers.JavaScriptProviderFactory;
 import io.github.guacsec.trustifyda.providers.PythonPipProvider;
-import io.github.guacsec.trustifyda.providers.PythonPyprojectProvider;
+import io.github.guacsec.trustifyda.providers.PythonProviderFactory;
 import java.nio.file.Path;
 
 /** Utility class used for instantiating providers. * */
@@ -86,7 +86,7 @@ public final class Ecosystem {
       case "package.json" -> JavaScriptProviderFactory.create(manifestPath);
       case "go.mod" -> new GoModulesProvider(manifestPath);
       case "requirements.txt" -> new PythonPipProvider(manifestPath);
-      case "pyproject.toml" -> new PythonPyprojectProvider(manifestPath);
+      case "pyproject.toml" -> PythonProviderFactory.create(manifestPath);
       case "build.gradle", "build.gradle.kts" -> new GradleProvider(manifestPath);
       case "Cargo.toml" -> new CargoProvider(manifestPath);
       default ->

@@ -182,7 +182,7 @@ public class TrustifyExample {
 <li><a href="https://www.java.com/">Java</a> - <a href="https://maven.apache.org/">Maven</a></li>
 <li><a href="https://www.javascript.com//">JavaScript</a> - <a href="https://www.npmjs.com//">Npm</a></li>
 <li><a href="https://go.dev//">Golang</a> - <a href="https://go.dev/blog/using-go-modules//">Go Modules</a></li>
-<li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a> (<code>requirements.txt</code>, <code>pyproject.toml</code> with PEP 621 format). <strong>Note:</strong> Poetry-style dependencies (<code>[tool.poetry.dependencies]</code>) are not supported.</li>
+<li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a> / <a href="https://docs.astral.sh/uv/">uv</a> (<code>requirements.txt</code>, <code>pyproject.toml</code> with PEP 621 format). <strong>Note:</strong> Poetry-style dependencies (<code>[tool.poetry.dependencies]</code>) are not supported.</li>
 <li><a href="https://gradle.org//">Gradle</a> - <a href="https://gradle.org/install//">Gradle Installation</a></li>
 <li><a href="https://www.rust-lang.org/">Rust</a> - <a href="https://doc.rust-lang.org/cargo/">Cargo</a></li>
 
@@ -393,6 +393,7 @@ System.setProperty("TRUSTIFY_DA_PYTHON3_PATH", "/path/to/python3");
 System.setProperty("TRUSTIFY_DA_PIP3_PATH", "/path/to/pip3");
 System.setProperty("TRUSTIFY_DA_PYTHON_PATH", "/path/to/python");
 System.setProperty("TRUSTIFY_DA_PIP_PATH", "/path/to/pip");
+System.setProperty("TRUSTIFY_DA_UV_PATH", "/path/to/custom/uv");
 // Configure proxy for all requests
 System.setProperty("TRUSTIFY_DA_PROXY_URL", "http://proxy.example.com:8080");
 // Configure Maven settings and repository
@@ -504,6 +505,11 @@ following keys for setting custom paths for the said executables.
 <td>TRUSTIFY_DA_PIP_PATH</td>
 </tr>
 <tr>
+<td><a href="https://docs.astral.sh/uv/">uv Package Manager</a></td>
+<td><em>uv</em></td>
+<td>TRUSTIFY_DA_UV_PATH</td>
+</tr>
+<tr>
 <td><a href="https://doc.rust-lang.org/cargo/">Cargo Package Manager</a></td>
 <td><em>cargo</em></td>
 <td>TRUSTIFY_DA_CARGO_PATH</td>
@@ -600,6 +606,14 @@ TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED=false
 
 Python support works with both `requirements.txt` and `pyproject.toml` manifest files. The `pyproject.toml` provider scans production dependencies from PEP 621 `[project.dependencies]` and Poetry `[tool.poetry.dependencies]` sections. Optional dependencies (`[project.optional-dependencies]`) and Poetry group dependencies (`[tool.poetry.group.*.dependencies]`) are intentionally excluded to focus on runtime dependencies.
 
+##### uv Support
+
+When a `uv.lock` file is present alongside `pyproject.toml`, the client automatically uses the [uv](https://docs.astral.sh/uv/) package manager for dependency resolution instead of pip. Dependency data is collected via `uv pip list --format=json` and `uv pip show`. No additional configuration is required — the provider is selected automatically based on lock file detection.
+
+To use a custom uv binary, set `TRUSTIFY_DA_UV_PATH` to the path of your uv executable.
+
+##### pip Support
+
 By default, Python support assumes that the package is installed using the pip/pip3 binary on the system PATH, or of the customized
 Binaries passed to environment variables. If the package is not installed , then an error will be thrown.
 
@@ -682,6 +696,12 @@ Generate a CycloneDX SBOM from the specified manifest file locally, without send
 Options:
 - `--output <path>` - Write SBOM JSON to the specified file
 - (default) - Print SBOM JSON to stdout
+
+**SBOM for uv-managed Python project**
+```shell
+# When uv.lock is present alongside pyproject.toml, the uv provider is used automatically
+java -jar trustify-da-java-client-cli.jar sbom /path/to/uv-project/pyproject.toml
+```
 
 **Image Analysis**
 ```shell

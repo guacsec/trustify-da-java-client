@@ -301,6 +301,18 @@ class PythonControllerRealEnvTest extends ExhortTest {
         PythonControllerRealEnv.getDependencyName("certifi==2023.7.22 ; python_version >= \"3\""));
   }
 
+  /** Verifies getDependencyName strips PEP 508 extras from requirements. */
+  @Test
+  void get_Dependency_Name_with_extras() {
+    assertEquals("requests", PythonControllerRealEnv.getDependencyName("requests[security]>=2.0"));
+    assertEquals("requests", PythonControllerRealEnv.getDependencyName("requests[security]"));
+    assertEquals("uvicorn", PythonControllerRealEnv.getDependencyName("uvicorn[standard]>=0.15.0"));
+    assertEquals(
+        "package",
+        PythonControllerRealEnv.getDependencyName(
+            "package[extra1]>=1.0 ; python_version >= \"3.8\""));
+  }
+
   @Test
   void automaticallyInstallPackageOnEnvironment() {
     assertFalse(pythonControllerRealEnv.automaticallyInstallPackageOnEnvironment());

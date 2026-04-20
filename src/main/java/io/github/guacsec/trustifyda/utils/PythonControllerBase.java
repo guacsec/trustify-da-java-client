@@ -380,6 +380,14 @@ public abstract class PythonControllerBase {
   public static String getDependencyName(String dep) {
     int markerSeparator = dep.indexOf(";");
     String requirement = markerSeparator == -1 ? dep : dep.substring(0, markerSeparator);
+    // Strip PEP 508 extras (e.g. "requests[security]" -> "requests")
+    int extrasStart = requirement.indexOf("[");
+    if (extrasStart != -1) {
+      int extrasEnd = requirement.indexOf("]", extrasStart);
+      if (extrasEnd != -1) {
+        requirement = requirement.substring(0, extrasStart) + requirement.substring(extrasEnd + 1);
+      }
+    }
     int rightTriangleBracket = requirement.indexOf(">");
     int leftTriangleBracket = requirement.indexOf("<");
     int equalsSign = requirement.indexOf("=");
