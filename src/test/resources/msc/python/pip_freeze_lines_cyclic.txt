@@ -109,7 +109,7 @@ pytest==7.4.3
 pytest-play==2.3.1 
 pytest-variables==3.0.0 
 python-dateutil==2.8.2 
-python-dotenv==1.0.0 
+python-dotenv==1.2.2 
 python3-xlib==0.15 
 pytweening==1.0.7 
 pytz==2023.3.post1 
