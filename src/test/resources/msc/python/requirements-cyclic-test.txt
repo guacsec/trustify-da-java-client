@@ -1,4 +1,4 @@
-lxml==4.9.2
+lxml==6.1.0
 Mako==1.2.3
 markdown-it-py==3.0.0
 MarkupSafe==2.1.2
