@@ -43,6 +43,7 @@ updates:
     directories:
       - "/src/test/resources/tst_manifests/pip/**"
       - "/src/test/resources/tst_manifests/it/pypi/**"
+      - "/src/test/resources/msc/python"
     schedule:
       interval: "monthly"
     labels: []
