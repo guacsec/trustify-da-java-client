@@ -43,7 +43,7 @@ public abstract class PythonProvider extends Provider {
 
   @Override
   public String readLicenseFromManifest() {
-    return LicenseUtils.readLicenseFile(manifest);
+    return LicenseUtils.readLicenseFile(manifestPath);
   }
 
   protected String getRootComponentName() {

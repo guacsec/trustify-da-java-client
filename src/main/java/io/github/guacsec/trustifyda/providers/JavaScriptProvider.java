@@ -38,7 +38,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -128,9 +127,7 @@ public abstract class JavaScriptProvider extends Provider {
     if (dependencies == null) {
       return;
     }
-    Iterator<Entry<String, JsonNode>> fields = dependencies.fields();
-    while (fields.hasNext()) {
-      Entry<String, JsonNode> e = fields.next();
+    for (var e : dependencies.properties()) {
       String name = e.getKey();
       JsonNode versionNode = e.getValue().get("version");
       if (versionNode == null) {
@@ -174,14 +171,13 @@ public abstract class JavaScriptProvider extends Provider {
     if (deps == null) {
       return;
     }
-    deps.fields()
-        .forEachRemaining(
+    deps.properties()
+        .forEach(
             e -> {
               JsonNode versionNode = e.getValue().get("version");
-              if (versionNode == null || versionNode.isNull()) {
-                return; // skip entries without a resolved version
-              }
-              var target = toPurl(e.getKey(), versionNode.asText());
+              String version =
+                  (versionNode != null && !versionNode.isNull()) ? versionNode.asText() : null;
+              var target = toPurl(e.getKey(), version);
               sbom.addDependency(manifest.root, target, null);
               addDependenciesOf(sbom, target, e.getValue());
             });
@@ -216,16 +212,15 @@ public abstract class JavaScriptProvider extends Provider {
     if (node == null) {
       return;
     }
-    node.fields()
-        .forEachRemaining(
+    node.properties()
+        .forEach(
             e -> {
               String name = e.getKey();
               JsonNode versionNode = e.getValue().get("version");
-              if (versionNode != null) {
-                String version = versionNode.asText();
-                PackageURL purl = toPurl(name, version);
-                direct.put(name, purl);
-              }
+              String version =
+                  (versionNode != null && !versionNode.isNull()) ? versionNode.asText() : null;
+              PackageURL purl = toPurl(name, version);
+              direct.put(name, purl);
             });
   }
 

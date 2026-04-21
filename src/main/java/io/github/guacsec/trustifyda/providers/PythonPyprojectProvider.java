@@ -79,7 +79,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
   public Content provideStack() throws IOException {
     rejectPoetryDependencies();
     collectIgnoredDeps();
-    String reportJson = getPipReportOutput(manifest.toAbsolutePath().getParent());
+    String reportJson = getPipReportOutput(manifestPath.toAbsolutePath().getParent());
     PipReportData data = parsePipReport(reportJson);
 
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
@@ -93,7 +93,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
       }
     }
 
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
@@ -103,7 +103,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
   public Content provideComponent() throws IOException {
     rejectPoetryDependencies();
     collectIgnoredDeps();
-    String reportJson = getPipReportOutput(manifest.toAbsolutePath().getParent());
+    String reportJson = getPipReportOutput(manifestPath.toAbsolutePath().getParent());
     PipReportData data = parsePipReport(reportJson);
 
     Sbom sbom = SbomFactory.newInstance();
@@ -117,7 +117,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
       }
     }
 
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
@@ -382,7 +382,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
     } catch (IOException e) {
       log.fine("Failed to parse pyproject.toml for license: " + e.getMessage());
     }
-    return LicenseUtils.readLicenseFile(manifest);
+    return LicenseUtils.readLicenseFile(manifestPath);
   }
 
   @Override

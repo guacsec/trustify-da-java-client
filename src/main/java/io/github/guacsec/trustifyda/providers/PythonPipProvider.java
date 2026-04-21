@@ -57,7 +57,8 @@ public final class PythonPipProvider extends PythonProvider {
   @Override
   public Content provideStack() throws IOException {
     PythonControllerBase controller = getPythonController();
-    List<Map<String, Object>> dependencies = controller.getDependencies(manifest.toString(), true);
+    List<Map<String, Object>> dependencies =
+        controller.getDependencies(manifestPath.toString(), true);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
     sbom.addRoot(
@@ -65,7 +66,7 @@ public final class PythonPipProvider extends PythonProvider {
     for (Map<String, Object> component : dependencies) {
       addAllDependencies(sbom.getRoot(), component, sbom);
     }
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
@@ -74,7 +75,8 @@ public final class PythonPipProvider extends PythonProvider {
   @Override
   public Content provideComponent() throws IOException {
     PythonControllerBase controller = getPythonController();
-    List<Map<String, Object>> dependencies = controller.getDependencies(manifest.toString(), false);
+    List<Map<String, Object>> dependencies =
+        controller.getDependencies(manifestPath.toString(), false);
     printDependenciesTree(dependencies);
     Sbom sbom = SbomFactory.newInstance();
     sbom.addRoot(
@@ -85,7 +87,7 @@ public final class PythonPipProvider extends PythonProvider {
                 sbom.getRoot(),
                 toPurl((String) component.get("name"), (String) component.get("version")),
                 null));
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
