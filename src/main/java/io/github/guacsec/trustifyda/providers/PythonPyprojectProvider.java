@@ -341,7 +341,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
 
   private TomlParseResult getToml() throws IOException {
     if (cachedToml == null) {
-      cachedToml = PyprojectTomlUtils.parseToml(manifest);
+      cachedToml = PyprojectTomlUtils.parseToml(manifestPath);
     }
     return cachedToml;
   }
@@ -408,7 +408,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
   }
 
   private void collectIgnoredDeps() throws IOException {
-    collectedIgnoredDeps = PyprojectTomlUtils.collectIgnoredDeps(manifest, getToml());
+    collectedIgnoredDeps = PyprojectTomlUtils.collectIgnoredDeps(manifestPath, getToml());
   }
 
   List<String> parseDependencyStrings() throws IOException {

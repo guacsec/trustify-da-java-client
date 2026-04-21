@@ -81,7 +81,7 @@ public final class PythonUvProvider extends PythonProvider {
   public Content provideStack() throws IOException {
     rejectPoetryDependencies();
     collectIgnoredDeps();
-    Path manifestDir = manifest.toAbsolutePath().getParent();
+    Path manifestDir = manifestPath.toAbsolutePath().getParent();
     String listJson = getUvPipListOutput(manifestDir);
     UvDependencyData data = buildDependencyGraph(manifestDir, listJson);
 
@@ -96,7 +96,7 @@ public final class PythonUvProvider extends PythonProvider {
       }
     }
 
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
@@ -106,7 +106,7 @@ public final class PythonUvProvider extends PythonProvider {
   public Content provideComponent() throws IOException {
     rejectPoetryDependencies();
     collectIgnoredDeps();
-    Path manifestDir = manifest.toAbsolutePath().getParent();
+    Path manifestDir = manifestPath.toAbsolutePath().getParent();
     String listJson = getUvPipListOutput(manifestDir);
     Map<String, UvPackage> packages = parseUvPipList(listJson);
 
@@ -123,7 +123,7 @@ public final class PythonUvProvider extends PythonProvider {
       }
     }
 
-    String manifestContent = Files.readString(manifest);
+    String manifestContent = Files.readString(manifestPath);
     handleIgnoredDependencies(manifestContent, sbom);
     return new Content(
         sbom.getAsJsonString().getBytes(StandardCharsets.UTF_8), Api.CYCLONEDX_MEDIA_TYPE);
@@ -314,7 +314,7 @@ public final class PythonUvProvider extends PythonProvider {
 
   private TomlParseResult getToml() throws IOException {
     if (cachedToml == null) {
-      cachedToml = PyprojectTomlUtils.parseToml(manifest);
+      cachedToml = PyprojectTomlUtils.parseToml(manifestPath);
     }
     return cachedToml;
   }
@@ -355,7 +355,7 @@ public final class PythonUvProvider extends PythonProvider {
     } catch (IOException e) {
       log.fine("Failed to parse pyproject.toml for license: " + e.getMessage());
     }
-    return LicenseUtils.readLicenseFile(manifest);
+    return LicenseUtils.readLicenseFile(manifestPath);
   }
 
   @Override
@@ -381,7 +381,7 @@ public final class PythonUvProvider extends PythonProvider {
   }
 
   private void collectIgnoredDeps() throws IOException {
-    collectedIgnoredDeps = PyprojectTomlUtils.collectIgnoredDeps(manifest, getToml());
+    collectedIgnoredDeps = PyprojectTomlUtils.collectIgnoredDeps(manifestPath, getToml());
   }
 
   static final class UvPackage {
