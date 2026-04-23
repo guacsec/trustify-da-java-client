@@ -137,10 +137,18 @@ jobs:
           # Run the phase that triggers README.md update
           mvn -B validate
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+
       - name: Create Pull Request with next version
         id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "build(release): update to next development version"
           branch: chore/bump-version
           title: "chore: bump to next development version"
