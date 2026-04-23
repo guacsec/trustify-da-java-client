@@ -92,7 +92,7 @@ jobs:
           echo "Will publish to Maven Central: ${{ steps.check_maven.outputs.maven_exists == 'false' }}"
 
       - name: Install pnpm
-        run: pnpm install -g pnpm
+        run: npm install -g pnpm
 
       - name: Compute Maven profiles
         id: compute_profiles
