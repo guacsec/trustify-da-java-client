@@ -67,11 +67,17 @@ public final class PythonUvProvider extends PythonProvider {
 
   @Override
   public void validateLockFile(Path lockFileDir) {
-    if (!Files.isRegularFile(lockFileDir.resolve(LOCK_FILE))) {
-      throw new IllegalStateException(
-          "uv.lock does not exist. Ensure the project is managed by uv"
-              + " and run 'uv lock' to generate it.");
+    // Check manifest directory first, then walk up to workspace root
+    if (Files.isRegularFile(lockFileDir.resolve(LOCK_FILE))) {
+      return;
     }
+    Path parentDir = PythonProviderFactory.findLockFileDirInParents(lockFileDir);
+    if (parentDir != null && Files.isRegularFile(parentDir.resolve(LOCK_FILE))) {
+      return;
+    }
+    throw new IllegalStateException(
+        "uv.lock does not exist. Ensure the project is managed by uv"
+            + " and run 'uv lock' to generate it.");
   }
 
   @Override

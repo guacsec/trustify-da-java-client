@@ -112,4 +112,21 @@ public final class PyprojectTomlUtils {
   public static String canonicalize(String name) {
     return name.toLowerCase().replaceAll("[-_.]+", "-");
   }
+
+  /**
+   * Returns {@code true} if the directory contains a {@code pyproject.toml} with a {@code
+   * [tool.uv.workspace]} section, indicating a uv workspace root.
+   */
+  public static boolean isUvWorkspaceRoot(Path dir) {
+    Path pyprojectPath = dir.resolve("pyproject.toml");
+    if (!Files.isRegularFile(pyprojectPath)) {
+      return false;
+    }
+    try {
+      TomlParseResult toml = Toml.parse(pyprojectPath);
+      return toml.getTable("tool.uv.workspace") != null;
+    } catch (Exception e) {
+      return false;
+    }
+  }
 }
