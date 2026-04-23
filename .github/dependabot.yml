@@ -13,6 +13,52 @@ updates:
     schedule:
       interval: "weekly"
 
+  # ── Non-production ecosystems (no real deps, suppress everything) ────
+  # The repo has no production npm/pip/go/gradle/cargo dependencies.
+  # A root-level ignore-all entry ensures security updates are also
+  # suppressed, since per-directory entries with globs don't reliably
+  # block them.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    labels: []
+    ignore:
+      - dependency-name: "*"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    labels: []
+    ignore:
+      - dependency-name: "*"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    labels: []
+    ignore:
+      - dependency-name: "*"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    labels: []
+    ignore:
+      - dependency-name: "*"
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    labels: []
+    ignore:
+      - dependency-name: "*"
+
   # ── Test fixture manifests (suppress all updates including security) ─
   # These directories contain intentionally pinned dependencies used as
   # test fixtures. They must NOT be updated by dependabot.
@@ -43,6 +89,7 @@ updates:
     directories:
       - "/src/test/resources/tst_manifests/pip/**"
       - "/src/test/resources/tst_manifests/it/pypi/**"
+      - "/src/test/resources/msc/python"
     schedule:
       interval: "monthly"
     labels: []
