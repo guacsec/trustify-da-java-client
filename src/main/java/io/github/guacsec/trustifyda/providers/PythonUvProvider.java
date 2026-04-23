@@ -16,7 +16,6 @@
  */
 package io.github.guacsec.trustifyda.providers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.license.LicenseUtils;
@@ -32,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,15 +38,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.tomlj.TomlArray;
 import org.tomlj.TomlParseResult;
 
 /**
  * Provider for Python projects using {@code pyproject.toml} with the <a
  * href="https://docs.astral.sh/uv/">uv</a> package manager.
  *
- * <p>Dependency resolution is performed via {@code uv pip list --format=json} and {@code uv pip
- * show}, which are pip-compatible output formats. The provider is selected by {@link
+ * <p>Dependency resolution is performed via {@code uv export --format requirements.txt --frozen
+ * --no-hashes --no-dev --no-emit-project}, which produces a requirements.txt with {@code # via}
+ * comments encoding the full dependency graph. The provider is selected by {@link
  * PythonProviderFactory} when {@code uv.lock} is present alongside the manifest.
  */
 public final class PythonUvProvider extends PythonProvider {
@@ -56,8 +54,7 @@ public final class PythonUvProvider extends PythonProvider {
   private static final Logger log = LoggersFactory.getLogger(PythonUvProvider.class.getName());
 
   public static final String LOCK_FILE = "uv.lock";
-  static final String PROP_TRUSTIFY_DA_UV_PIP_LIST = "TRUSTIFY_DA_UV_PIP_LIST";
-  static final String PROP_TRUSTIFY_DA_UV_PIP_SHOW = "TRUSTIFY_DA_UV_PIP_SHOW";
+  static final String PROP_TRUSTIFY_DA_UV_EXPORT = "TRUSTIFY_DA_UV_EXPORT";
 
   private final String uvExecutable;
   private Set<String> collectedIgnoredDeps;
@@ -82,17 +79,17 @@ public final class PythonUvProvider extends PythonProvider {
     rejectPoetryDependencies();
     collectIgnoredDeps();
     Path manifestDir = manifestPath.toAbsolutePath().getParent();
-    String listJson = getUvPipListOutput(manifestDir);
-    UvDependencyData data = buildDependencyGraph(manifestDir, listJson);
+    String exportOutput = getUvExportOutput(manifestDir);
+    UvDependencyData data = parseUvExport(exportOutput);
 
     Sbom sbom = SbomFactory.newInstance(Sbom.BelongingCondition.PURL, "sensitive");
     sbom.addRoot(
         toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
 
-    for (String directKey : data.directDeps) {
-      UvPackage pkg = data.graph.get(directKey);
+    for (String directKey : data.directDeps()) {
+      UvPackage pkg = data.graph().get(directKey);
       if (pkg != null) {
-        addDependencyTree(sbom.getRoot(), pkg, data.graph, sbom, new HashSet<>());
+        addDependencyTree(sbom.getRoot(), pkg, data.graph(), sbom, new HashSet<>());
       }
     }
 
@@ -107,19 +104,17 @@ public final class PythonUvProvider extends PythonProvider {
     rejectPoetryDependencies();
     collectIgnoredDeps();
     Path manifestDir = manifestPath.toAbsolutePath().getParent();
-    String listJson = getUvPipListOutput(manifestDir);
-    Map<String, UvPackage> packages = parseUvPipList(listJson);
+    String exportOutput = getUvExportOutput(manifestDir);
+    UvDependencyData data = parseUvExport(exportOutput);
 
     Sbom sbom = SbomFactory.newInstance();
     sbom.addRoot(
         toPurl(getRootComponentName(), getRootComponentVersion()), readLicenseFromManifest());
 
-    List<String> directDeps = getDirectDependencyNames();
-    for (String depName : directDeps) {
-      String key = canonicalize(depName);
-      UvPackage pkg = packages.get(key);
+    for (String key : data.directDeps()) {
+      UvPackage pkg = data.graph().get(key);
       if (pkg != null) {
-        sbom.addDependency(sbom.getRoot(), toPurl(pkg.name, pkg.version), null);
+        sbom.addDependency(sbom.getRoot(), toPurl(pkg.name(), pkg.version()), null);
       }
     }
 
@@ -135,15 +130,15 @@ public final class PythonUvProvider extends PythonProvider {
       Map<String, UvPackage> graph,
       Sbom sbom,
       Set<String> visited) {
-    PackageURL packageURL = toPurl(pkg.name, pkg.version);
+    PackageURL packageURL = toPurl(pkg.name(), pkg.version());
     sbom.addDependency(source, packageURL, null);
 
-    String key = canonicalize(pkg.name);
+    String key = PyprojectTomlUtils.canonicalize(pkg.name());
     if (!visited.add(key)) {
       return;
     }
 
-    for (String childKey : pkg.children) {
+    for (String childKey : pkg.children()) {
       UvPackage child = graph.get(childKey);
       if (child != null) {
         addDependencyTree(packageURL, child, graph, sbom, visited);
@@ -152,162 +147,124 @@ public final class PythonUvProvider extends PythonProvider {
   }
 
   /**
-   * Builds the full dependency graph by combining {@code uv pip list --format=json} (all packages
-   * with versions) and {@code uv pip show} (dependency relationships via Requires field).
+   * Parses the output of {@code uv export --format requirements.txt} into a dependency graph.
+   *
+   * <p>Each package line has the form {@code name==version} optionally followed by environment
+   * markers. Dependency relationships are encoded in {@code # via} comments that follow each
+   * package. A package whose {@code # via} parent is the project name is a direct dependency.
    */
-  UvDependencyData buildDependencyGraph(Path manifestDir, String listJson) throws IOException {
-    Map<String, UvPackage> packages = parseUvPipList(listJson);
+  UvDependencyData parseUvExport(String exportOutput) throws IOException {
+    String projectName = PyprojectTomlUtils.canonicalize(getRootComponentName());
+    Map<String, UvPackage> packages = new HashMap<>();
+    List<String> directDeps = new ArrayList<>();
+    List<String[]> parentChildPairs = new ArrayList<>();
 
-    // Get dependency relationships via uv pip show
-    if (!packages.isEmpty()) {
-      List<String> packageNames =
-          packages.values().stream().map(pkg -> pkg.name).collect(Collectors.toList());
-      String showOutput = getUvPipShowOutput(manifestDir, packageNames);
-      parseUvPipShow(showOutput, packages);
+    String currentKey = null;
+    boolean inViaBlock = false;
+
+    for (String line : exportOutput.split("\\r?\\n")) {
+      String trimmed = line.trim();
+
+      if (trimmed.isEmpty()) {
+        inViaBlock = false;
+        continue;
+      }
+
+      // Skip top-level comments (header lines)
+      if (line.startsWith("#")) {
+        continue;
+      }
+
+      // Skip editable installs (workspace members)
+      if (line.startsWith("-e ")) {
+        currentKey = null;
+        inViaBlock = false;
+        continue;
+      }
+
+      // Package line: name==version [; env-marker]
+      if (!line.startsWith(" ") && trimmed.contains("==")) {
+        inViaBlock = false;
+        String spec = trimmed.split(";")[0].trim();
+        String[] parts = spec.split("==", 2);
+        String name = parts[0].split("\\[")[0].trim(); // strip extras like [bar]
+        String version = parts[1].trim();
+        currentKey = PyprojectTomlUtils.canonicalize(name);
+        packages.put(currentKey, new UvPackage(name, version, new ArrayList<>()));
+        continue;
+      }
+
+      // Indented "# via ..." line
+      if (trimmed.startsWith("# via") && currentKey != null) {
+        inViaBlock = true;
+        String rest = trimmed.substring("# via".length()).trim();
+        if (!rest.isEmpty()) {
+          recordViaParent(rest, currentKey, projectName, directDeps, parentChildPairs);
+        }
+        continue;
+      }
+
+      // Multi-line via continuation: "#   parent-name"
+      if (inViaBlock && trimmed.startsWith("#") && currentKey != null) {
+        String parent = trimmed.substring(1).trim();
+        if (!parent.isEmpty()) {
+          recordViaParent(parent, currentKey, projectName, directDeps, parentChildPairs);
+        }
+      }
     }
 
-    List<String> directDeps =
-        getDirectDependencyNames().stream()
-            .map(PythonUvProvider::canonicalize)
-            .filter(packages::containsKey)
-            .collect(Collectors.toList());
+    // Resolve parent→child relationships
+    for (String[] pair : parentChildPairs) {
+      UvPackage parent = packages.get(pair[0]);
+      if (parent != null && !parent.children().contains(pair[1])) {
+        parent.children().add(pair[1]);
+      }
+    }
 
     return new UvDependencyData(directDeps, packages);
   }
 
-  /**
-   * Parses the JSON output of {@code uv pip list --format=json}. The output is a JSON array of
-   * objects with {@code name} and {@code version} fields:
-   *
-   * <pre>
-   * [{"name": "anyio", "version": "3.6.2"}, ...]
-   * </pre>
-   */
-  Map<String, UvPackage> parseUvPipList(String listJson) throws IOException {
-    JsonNode listArray = objectMapper.readTree(listJson);
-    Map<String, UvPackage> packages = new HashMap<>();
-    if (listArray == null || !listArray.isArray()) {
-      return packages;
-    }
-    for (JsonNode entry : listArray) {
-      String name = entry.has("name") ? entry.get("name").asText() : null;
-      String version = entry.has("version") ? entry.get("version").asText() : null;
-      if (name != null) {
-        String key = canonicalize(name);
-        packages.put(key, new UvPackage(name, version, new ArrayList<>()));
+  private static void recordViaParent(
+      String parentName,
+      String childKey,
+      String projectName,
+      List<String> directDeps,
+      List<String[]> parentChildPairs) {
+    String parentKey = PyprojectTomlUtils.canonicalize(parentName);
+    if (parentKey.equals(projectName)) {
+      if (!directDeps.contains(childKey)) {
+        directDeps.add(childKey);
       }
-    }
-    return packages;
-  }
-
-  /**
-   * Parses the text output of {@code uv pip show} to extract dependency relationships. Each package
-   * block is separated by {@code ---} and contains a {@code Requires:} field listing dependencies.
-   */
-  void parseUvPipShow(String showOutput, Map<String, UvPackage> packages) {
-    List<String> blocks = splitPipShowBlocks(showOutput);
-    for (String block : blocks) {
-      String name = extractShowField(block, "Name:");
-      if (name == null) {
-        continue;
-      }
-      String key = canonicalize(name);
-      UvPackage pkg = packages.get(key);
-      if (pkg == null) {
-        continue;
-      }
-      String requires = extractShowField(block, "Requires:");
-      if (requires != null && !requires.isBlank()) {
-        Arrays.stream(requires.split(","))
-            .map(String::trim)
-            .filter(dep -> !dep.isEmpty())
-            .forEach(
-                dep -> {
-                  String depKey = canonicalize(dep);
-                  if (packages.containsKey(depKey)) {
-                    pkg.children.add(depKey);
-                  }
-                });
-      }
+    } else {
+      parentChildPairs.add(new String[] {parentKey, childKey});
     }
   }
 
-  private List<String> splitPipShowBlocks(String showOutput) {
-    return Arrays.stream(showOutput.split("\\r?\\n---\\r?\\n"))
-        .filter(block -> !block.isBlank())
-        .collect(Collectors.toList());
-  }
-
-  private String extractShowField(String block, String fieldName) {
-    int fieldIndex = block.indexOf(fieldName);
-    if (fieldIndex == -1) {
-      return null;
-    }
-    String afterField = block.substring(fieldIndex + fieldName.length());
-    int endOfLine = afterField.indexOf('\n');
-    if (endOfLine == -1) {
-      return afterField.trim();
-    }
-    return afterField.substring(0, endOfLine).trim();
-  }
-
-  String getUvPipListOutput(Path manifestDir) {
-    String envValue = Environment.get(PROP_TRUSTIFY_DA_UV_PIP_LIST);
+  String getUvExportOutput(Path manifestDir) {
+    String envValue = Environment.get(PROP_TRUSTIFY_DA_UV_EXPORT);
     if (envValue != null && !envValue.isBlank()) {
       return envValue;
     }
 
-    String[] cmd = {uvExecutable, "pip", "list", "--format=json"};
+    String[] cmd = {
+      uvExecutable,
+      "export",
+      "--format",
+      "requirements.txt",
+      "--frozen",
+      "--no-hashes",
+      "--no-dev",
+      "--no-emit-project"
+    };
     Operations.ProcessExecOutput result =
         Operations.runProcessGetFullOutput(manifestDir, cmd, null);
     if (result.getExitCode() != 0) {
       throw new RuntimeException(
           String.format(
-              "uv pip list command failed with exit code %d: %s",
+              "uv export command failed with exit code %d: %s",
               result.getExitCode(), result.getError()));
     }
     return result.getOutput();
-  }
-
-  String getUvPipShowOutput(Path manifestDir, List<String> packageNames) {
-    String envValue = Environment.get(PROP_TRUSTIFY_DA_UV_PIP_SHOW);
-    if (envValue != null && !envValue.isBlank()) {
-      return envValue;
-    }
-
-    List<String> cmdParts = new ArrayList<>();
-    cmdParts.add(uvExecutable);
-    cmdParts.add("pip");
-    cmdParts.add("show");
-    cmdParts.addAll(packageNames);
-
-    String[] cmd = cmdParts.toArray(new String[0]);
-    Operations.ProcessExecOutput result =
-        Operations.runProcessGetFullOutput(manifestDir, cmd, null);
-    if (result.getExitCode() != 0) {
-      throw new RuntimeException(
-          String.format(
-              "uv pip show command failed with exit code %d: %s",
-              result.getExitCode(), result.getError()));
-    }
-    return result.getOutput();
-  }
-
-  private List<String> getDirectDependencyNames() throws IOException {
-    TomlParseResult toml = getToml();
-    List<String> deps = new ArrayList<>();
-    TomlArray projectDeps = toml.getArray("project.dependencies");
-    if (projectDeps != null) {
-      for (int i = 0; i < projectDeps.size(); i++) {
-        String dep = projectDeps.getString(i);
-        deps.add(PythonControllerBase.getDependencyName(dep));
-      }
-    }
-    return deps;
-  }
-
-  static String canonicalize(String name) {
-    return name.toLowerCase().replaceAll("[-_.]+", "-");
   }
 
   // --- TOML parsing (shared with PythonPyprojectProvider) ---
@@ -384,25 +341,7 @@ public final class PythonUvProvider extends PythonProvider {
     collectedIgnoredDeps = PyprojectTomlUtils.collectIgnoredDeps(manifestPath, getToml());
   }
 
-  static final class UvPackage {
-    final String name;
-    final String version;
-    final List<String> children;
+  record UvPackage(String name, String version, List<String> children) {}
 
-    UvPackage(String name, String version, List<String> children) {
-      this.name = name;
-      this.version = version;
-      this.children = children;
-    }
-  }
-
-  static final class UvDependencyData {
-    final List<String> directDeps;
-    final Map<String, UvPackage> graph;
-
-    UvDependencyData(List<String> directDeps, Map<String, UvPackage> graph) {
-      this.directDeps = directDeps;
-      this.graph = graph;
-    }
-  }
+  record UvDependencyData(List<String> directDeps, Map<String, UvPackage> graph) {}
 }

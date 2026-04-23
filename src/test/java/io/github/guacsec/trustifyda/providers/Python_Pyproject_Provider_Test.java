@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
+import io.github.guacsec.trustifyda.utils.PyprojectTomlUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -247,12 +248,11 @@ class Python_Pyproject_Provider_Test extends ExhortTest {
 
   @Test
   void test_canonicalize() {
-    assertThat(PythonPyprojectProvider.canonicalize("charset_normalizer"))
+    assertThat(PyprojectTomlUtils.canonicalize("charset_normalizer"))
         .isEqualTo("charset-normalizer");
-    assertThat(PythonPyprojectProvider.canonicalize("Jinja2")).isEqualTo("jinja2");
-    assertThat(PythonPyprojectProvider.canonicalize("MarkupSafe")).isEqualTo("markupsafe");
-    assertThat(PythonPyprojectProvider.canonicalize("my.package_name"))
-        .isEqualTo("my-package-name");
+    assertThat(PyprojectTomlUtils.canonicalize("Jinja2")).isEqualTo("jinja2");
+    assertThat(PyprojectTomlUtils.canonicalize("MarkupSafe")).isEqualTo("markupsafe");
+    assertThat(PyprojectTomlUtils.canonicalize("my.package_name")).isEqualTo("my-package-name");
   }
 
   @Test

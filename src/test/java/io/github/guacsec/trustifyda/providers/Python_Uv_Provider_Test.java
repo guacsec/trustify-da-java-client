@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.ExhortTest;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
+import io.github.guacsec.trustifyda.utils.PyprojectTomlUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,63 +107,52 @@ class Python_Uv_Provider_Test extends ExhortTest {
   }
 
   @Test
-  void test_parseUvPipList_parses_packages() throws IOException {
-    Path listPath = Path.of(UV_FIXTURE, "uv_pip_list.json");
+  void test_parseUvExport_parses_packages() throws IOException {
+    Path exportPath = Path.of(UV_FIXTURE, "uv_export.txt");
     Path pyprojectPath = Path.of(UV_FIXTURE, "pyproject.toml");
     var provider = new PythonUvProvider(pyprojectPath);
-    String listJson = Files.readString(listPath);
-    var packages = provider.parseUvPipList(listJson);
-    assertThat(packages).containsKeys("anyio", "flask", "requests", "idna", "sniffio");
-    assertThat(packages.get("anyio").version).isEqualTo("3.6.2");
-    assertThat(packages.get("flask").version).isEqualTo("2.0.3");
+    String exportOutput = Files.readString(exportPath);
+    var data = provider.parseUvExport(exportOutput);
+    assertThat(data.graph()).containsKeys("anyio", "flask", "requests", "idna", "sniffio");
+    assertThat(data.graph().get("anyio").version()).isEqualTo("3.6.2");
+    assertThat(data.graph().get("flask").version()).isEqualTo("2.0.3");
   }
 
   @Test
-  void test_parseUvPipShow_builds_children() throws IOException {
-    Path listPath = Path.of(UV_FIXTURE, "uv_pip_list.json");
-    Path showPath = Path.of(UV_FIXTURE, "uv_pip_show.txt");
+  void test_parseUvExport_builds_children() throws IOException {
+    Path exportPath = Path.of(UV_FIXTURE, "uv_export.txt");
     Path pyprojectPath = Path.of(UV_FIXTURE, "pyproject.toml");
     var provider = new PythonUvProvider(pyprojectPath);
-    String listJson = Files.readString(listPath);
-    String showOutput = Files.readString(showPath);
-    var packages = provider.parseUvPipList(listJson);
-    provider.parseUvPipShow(showOutput, packages);
+    String exportOutput = Files.readString(exportPath);
+    var data = provider.parseUvExport(exportOutput);
 
-    var requestsPkg = packages.get("requests");
+    var requestsPkg = data.graph().get("requests");
     assertThat(requestsPkg).isNotNull();
-    assertThat(requestsPkg.children)
+    assertThat(requestsPkg.children())
         .containsExactlyInAnyOrder("charset-normalizer", "idna", "urllib3", "certifi");
 
-    var anyioPkg = packages.get("anyio");
+    var anyioPkg = data.graph().get("anyio");
     assertThat(anyioPkg).isNotNull();
-    assertThat(anyioPkg.children).containsExactlyInAnyOrder("idna", "sniffio");
+    assertThat(anyioPkg.children()).containsExactlyInAnyOrder("idna", "sniffio");
 
-    var flaskPkg = packages.get("flask");
+    var flaskPkg = data.graph().get("flask");
     assertThat(flaskPkg).isNotNull();
-    assertThat(flaskPkg.children)
+    assertThat(flaskPkg.children())
         .containsExactlyInAnyOrder("werkzeug", "jinja2", "itsdangerous", "click");
 
-    var jinja2Pkg = packages.get("jinja2");
+    var jinja2Pkg = data.graph().get("jinja2");
     assertThat(jinja2Pkg).isNotNull();
-    assertThat(jinja2Pkg.children).containsExactly("markupsafe");
+    assertThat(jinja2Pkg.children()).containsExactly("markupsafe");
   }
 
   @Test
-  void test_buildDependencyGraph_identifies_direct_deps() throws IOException {
-    Path listPath = Path.of(UV_FIXTURE, "uv_pip_list.json");
-    Path showPath = Path.of(UV_FIXTURE, "uv_pip_show.txt");
+  void test_parseUvExport_identifies_direct_deps() throws IOException {
+    Path exportPath = Path.of(UV_FIXTURE, "uv_export.txt");
     Path pyprojectPath = Path.of(UV_FIXTURE, "pyproject.toml");
     var provider = new PythonUvProvider(pyprojectPath);
-    String listJson = Files.readString(listPath);
-    String showOutput = Files.readString(showPath);
-
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW, showOutput);
-    try {
-      var data = provider.buildDependencyGraph(Path.of(UV_FIXTURE), listJson);
-      assertThat(data.directDeps).containsExactlyInAnyOrder("anyio", "flask", "requests");
-    } finally {
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW);
-    }
+    String exportOutput = Files.readString(exportPath);
+    var data = provider.parseUvExport(exportOutput);
+    assertThat(data.directDeps()).containsExactlyInAnyOrder("anyio", "flask", "requests");
   }
 
   @Test
@@ -180,13 +170,11 @@ class Python_Uv_Provider_Test extends ExhortTest {
   }
 
   @Test
-  void test_provideStack_with_uv_pip() throws IOException {
+  void test_provideStack_with_uv_export() throws IOException {
     Path pyprojectPath = Path.of(UV_FIXTURE, "pyproject.toml");
-    String listJson = Files.readString(Path.of(UV_FIXTURE, "uv_pip_list.json"));
-    String showOutput = Files.readString(Path.of(UV_FIXTURE, "uv_pip_show.txt"));
+    String exportOutput = Files.readString(Path.of(UV_FIXTURE, "uv_export.txt"));
 
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST, listJson);
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW, showOutput);
+    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT, exportOutput);
     try {
       var provider = new PythonUvProvider(pyprojectPath);
       var content = provider.provideStack();
@@ -204,17 +192,16 @@ class Python_Uv_Provider_Test extends ExhortTest {
     } catch (RuntimeException | NoClassDefFoundError e) {
       Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
     } finally {
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST);
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW);
+      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT);
     }
   }
 
   @Test
-  void test_provideComponent_with_uv_pip() throws IOException {
+  void test_provideComponent_with_uv_export() throws IOException {
     Path pyprojectPath = Path.of(UV_FIXTURE, "pyproject.toml");
-    String listJson = Files.readString(Path.of(UV_FIXTURE, "uv_pip_list.json"));
+    String exportOutput = Files.readString(Path.of(UV_FIXTURE, "uv_export.txt"));
 
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST, listJson);
+    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT, exportOutput);
     try {
       var provider = new PythonUvProvider(pyprojectPath);
       var content = provider.provideComponent();
@@ -227,18 +214,16 @@ class Python_Uv_Provider_Test extends ExhortTest {
     } catch (RuntimeException | NoClassDefFoundError e) {
       Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
     } finally {
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST);
+      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT);
     }
   }
 
   @Test
   void test_ignored_dependencies_in_uv_project() throws IOException {
     Path pyprojectPath = Path.of(UV_IGNORE_FIXTURE, "pyproject.toml");
-    String listJson = Files.readString(Path.of(UV_IGNORE_FIXTURE, "uv_pip_list.json"));
-    String showOutput = Files.readString(Path.of(UV_IGNORE_FIXTURE, "uv_pip_show.txt"));
+    String exportOutput = Files.readString(Path.of(UV_IGNORE_FIXTURE, "uv_export.txt"));
 
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST, listJson);
-    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW, showOutput);
+    System.setProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT, exportOutput);
     try {
       var provider = new PythonUvProvider(pyprojectPath);
       var content = provider.provideStack();
@@ -249,15 +234,15 @@ class Python_Uv_Provider_Test extends ExhortTest {
     } catch (RuntimeException | NoClassDefFoundError e) {
       Assumptions.assumeTrue(false, "Skipping: SBOM serialization unavailable - " + e.getMessage());
     } finally {
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_LIST);
-      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_PIP_SHOW);
+      System.clearProperty(PythonUvProvider.PROP_TRUSTIFY_DA_UV_EXPORT);
     }
   }
 
   @Test
   void test_canonicalize() {
-    assertThat(PythonUvProvider.canonicalize("charset_normalizer")).isEqualTo("charset-normalizer");
-    assertThat(PythonUvProvider.canonicalize("Jinja2")).isEqualTo("jinja2");
-    assertThat(PythonUvProvider.canonicalize("MarkupSafe")).isEqualTo("markupsafe");
+    assertThat(PyprojectTomlUtils.canonicalize("charset_normalizer"))
+        .isEqualTo("charset-normalizer");
+    assertThat(PyprojectTomlUtils.canonicalize("Jinja2")).isEqualTo("jinja2");
+    assertThat(PyprojectTomlUtils.canonicalize("MarkupSafe")).isEqualTo("markupsafe");
   }
 }

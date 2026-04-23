@@ -132,7 +132,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
     PackageURL packageURL = toPurl(pkg.name, pkg.version);
     sbom.addDependency(source, packageURL, null);
 
-    String key = canonicalize(pkg.name);
+    String key = PyprojectTomlUtils.canonicalize(pkg.name);
     if (!visited.add(key)) {
       return;
     }
@@ -263,7 +263,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
             }
             String name = extractDepName(reqStr);
             if (name != null) {
-              directDepNames.add(canonicalize(name));
+              directDepNames.add(PyprojectTomlUtils.canonicalize(name));
             }
           }
         }
@@ -282,7 +282,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
       if (name == null) {
         continue;
       }
-      String key = canonicalize(name);
+      String key = PyprojectTomlUtils.canonicalize(name);
       graph.put(key, new PipPackage(name, version, new ArrayList<>()));
     }
 
@@ -296,7 +296,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
       if (name == null) {
         continue;
       }
-      String key = canonicalize(name);
+      String key = PyprojectTomlUtils.canonicalize(name);
       PipPackage pipPkg = graph.get(key);
       if (pipPkg == null) {
         continue;
@@ -314,7 +314,7 @@ public final class PythonPyprojectProvider extends PythonProvider {
         if (depName == null) {
           continue;
         }
-        String depKey = canonicalize(depName);
+        String depKey = PyprojectTomlUtils.canonicalize(depName);
         if (graph.containsKey(depKey)) {
           pipPkg.children.add(depKey);
         }
@@ -333,10 +333,6 @@ public final class PythonPyprojectProvider extends PythonProvider {
   static String extractDepName(String req) {
     Matcher m = DEP_NAME_PATTERN.matcher(req);
     return m.find() ? m.group(1) : null;
-  }
-
-  static String canonicalize(String name) {
-    return name.toLowerCase().replaceAll("[-_.]+", "-");
   }
 
   private TomlParseResult getToml() throws IOException {

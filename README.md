@@ -608,7 +608,7 @@ Python support works with both `requirements.txt` and `pyproject.toml` manifest 
 
 ##### uv Support
 
-When a `uv.lock` file is present alongside `pyproject.toml`, the client automatically uses the [uv](https://docs.astral.sh/uv/) package manager for dependency resolution instead of pip. Dependency data is collected via `uv pip list --format=json` and `uv pip show`. No additional configuration is required — the provider is selected automatically based on lock file detection.
+When a `uv.lock` file is present alongside `pyproject.toml`, the client automatically uses the [uv](https://docs.astral.sh/uv/) package manager for dependency resolution instead of pip. Dependency data is collected via `uv export --format requirements.txt --frozen --no-hashes --no-dev`. No additional configuration is required — the provider is selected automatically based on lock file detection.
 
 To use a custom uv binary, set `TRUSTIFY_DA_UV_PATH` to the path of your uv executable.
 

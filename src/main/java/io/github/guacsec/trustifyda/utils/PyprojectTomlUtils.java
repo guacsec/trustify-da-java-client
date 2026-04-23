@@ -104,4 +104,12 @@ public final class PyprojectTomlUtils {
   public static boolean hasPoetryDependencies(TomlParseResult toml) {
     return toml.getTable("tool.poetry.dependencies") != null;
   }
+
+  /**
+   * Canonicalizes a Python package name by lower-casing it and collapsing runs of hyphens,
+   * underscores, and dots into a single hyphen, per PEP 503.
+   */
+  public static String canonicalize(String name) {
+    return name.toLowerCase().replaceAll("[-_.]+", "-");
+  }
 }
