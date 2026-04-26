@@ -105,6 +105,18 @@ public final class PyprojectTomlUtils {
     return toml.getTable("tool.poetry.dependencies") != null;
   }
 
+  /** Reads {@code tool.poetry.name} from a parsed pyproject.toml, or {@code null} if absent. */
+  public static String getPoetryProjectName(TomlParseResult toml) {
+    String name = toml.getString("tool.poetry.name");
+    return (name != null && !name.isBlank()) ? name : null;
+  }
+
+  /** Reads {@code tool.poetry.version} from a parsed pyproject.toml, or {@code null} if absent. */
+  public static String getPoetryProjectVersion(TomlParseResult toml) {
+    String version = toml.getString("tool.poetry.version");
+    return (version != null && !version.isBlank()) ? version : null;
+  }
+
   /**
    * Canonicalizes a Python package name by lower-casing it and collapsing runs of hyphens,
    * underscores, and dots into a single hyphen, per PEP 503.

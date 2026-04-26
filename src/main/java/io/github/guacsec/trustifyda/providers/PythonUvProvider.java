@@ -27,6 +27,7 @@ import io.github.guacsec.trustifyda.utils.Environment;
 import io.github.guacsec.trustifyda.utils.PyprojectTomlUtils;
 import io.github.guacsec.trustifyda.utils.PythonControllerBase;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.tomlj.TomlParseResult;
 
@@ -181,16 +183,19 @@ public final class PythonUvProvider extends PythonProvider {
         continue;
       }
 
-      // Skip editable installs (workspace members)
+      // Editable installs are workspace members — resolve name/version from their pyproject.toml
       if (line.startsWith("-e ")) {
-        currentKey = null;
         inViaBlock = false;
+        currentKey = parseEditableInstall(line, packages, projectName);
         continue;
       }
 
       // Package line: name==version [; env-marker]
-      if (!line.startsWith(" ") && trimmed.contains("==")) {
+      if (!line.startsWith(" ") && !trimmed.startsWith("#")) {
         inViaBlock = false;
+        if (!trimmed.contains("==")) {
+          throw new IOException("uv export: package '" + trimmed + "' has no pinned version");
+        }
         String spec = trimmed.split(";")[0].trim();
         String[] parts = spec.split("==", 2);
         String name = parts[0].split("\\[")[0].trim(); // strip extras like [bar]
@@ -230,12 +235,66 @@ public final class PythonUvProvider extends PythonProvider {
     return new UvDependencyData(directDeps, packages);
   }
 
+  /**
+   * Parses an editable install line ({@code -e file:///path/to/member}) by reading the member's
+   * {@code pyproject.toml} to extract name and version. Skips the root project itself and packages
+   * missing either name or version, matching the JS client behavior.
+   *
+   * @return the canonicalized package key, or {@code null} if the member could not be resolved
+   */
+  private static String parseEditableInstall(
+      String line, Map<String, UvPackage> packages, String projectName) {
+    String uri = line.substring("-e ".length()).trim();
+    try {
+      Path memberDir = Path.of(URI.create(uri));
+      Path memberToml = memberDir.resolve("pyproject.toml");
+      if (!Files.isRegularFile(memberToml)) {
+        log.fine("Editable install pyproject.toml not found: " + memberToml);
+        return null;
+      }
+      TomlParseResult toml = PyprojectTomlUtils.parseToml(memberToml);
+      String name = PyprojectTomlUtils.getProjectName(toml);
+      if (name == null) {
+        // Fall back to Poetry name
+        name = PyprojectTomlUtils.getPoetryProjectName(toml);
+      }
+      if (name == null) {
+        log.fine("Editable install has no project.name: " + memberToml);
+        return null;
+      }
+      String version = PyprojectTomlUtils.getProjectVersion(toml);
+      if (version == null) {
+        // Fall back to Poetry version
+        version = PyprojectTomlUtils.getPoetryProjectVersion(toml);
+      }
+      if (version == null) {
+        log.fine("Editable install has no project.version: " + memberToml);
+        return null;
+      }
+      String key = PyprojectTomlUtils.canonicalize(name);
+      // Skip the root project itself
+      if (key.equals(projectName)) {
+        return null;
+      }
+      packages.put(key, new UvPackage(name, version, new ArrayList<>()));
+      return key;
+    } catch (Exception e) {
+      log.fine("Failed to resolve editable install '" + uri + "': " + e.getMessage());
+      return null;
+    }
+  }
+
+  private static final Pattern BARE_PACKAGE_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]*");
+
   private static void recordViaParent(
       String parentName,
       String childKey,
       String projectName,
       List<String> directDeps,
       List<String[]> parentChildPairs) {
+    if (!BARE_PACKAGE_NAME.matcher(parentName).matches()) {
+      return;
+    }
     String parentKey = PyprojectTomlUtils.canonicalize(parentName);
     if (parentKey.equals(projectName)) {
       if (!directDeps.contains(childKey)) {

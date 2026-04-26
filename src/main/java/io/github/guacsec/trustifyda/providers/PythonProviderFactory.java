@@ -87,6 +87,12 @@ public final class PythonProviderFactory {
       return null;
     }
 
+    // If startDir itself is a workspace root, don't walk up to avoid escaping into a parent
+    // workspace
+    if (PyprojectTomlUtils.isUvWorkspaceRoot(startDir)) {
+      return null;
+    }
+
     String gitRoot = Operations.getGitRootDir(startDir.toString()).orElse(null);
     Path boundary = gitRoot != null ? Path.of(gitRoot) : startDir.toAbsolutePath().getRoot();
 

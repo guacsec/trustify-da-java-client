@@ -116,6 +116,29 @@ class PythonProviderFactoryLockFileTest {
     assertThat(provider).isInstanceOf(PythonPyprojectProvider.class);
   }
 
+  /** When manifestDir itself is a workspace root without uv.lock, don't walk up to parent. */
+  @Test
+  void testStartDirIsWorkspaceRootDoesNotWalkUp(@TempDir Path tempDir) throws IOException {
+    // Parent has uv.lock (unrelated workspace)
+    Files.writeString(tempDir.resolve("uv.lock"), "version = 1");
+    Files.writeString(
+        tempDir.resolve("pyproject.toml"),
+        "[project]\nname = \"parent-ws\"\nversion = \"1.0.0\"\n\n"
+            + "[tool.uv.workspace]\nmembers = [\"child-ws\"]\n");
+
+    // Child is itself a workspace root, but has no uv.lock
+    Path childWs = tempDir.resolve("child-ws");
+    Files.createDirectories(childWs);
+    Files.writeString(
+        childWs.resolve("pyproject.toml"),
+        "[project]\nname = \"child-ws\"\nversion = \"1.0.0\"\n\n"
+            + "[tool.uv.workspace]\nmembers = [\"packages/*\"]\n");
+
+    // Should NOT pick up the parent's uv.lock — should fall back to pip
+    var provider = PythonProviderFactory.create(childWs.resolve("pyproject.toml"));
+    assertThat(provider).isInstanceOf(PythonPyprojectProvider.class);
+  }
+
   /** validateLockFile passes for workspace member when uv.lock is in parent directory. */
   @Test
   void testValidateLockFilePassesWithLockInParent(@TempDir Path tempDir) throws IOException {
