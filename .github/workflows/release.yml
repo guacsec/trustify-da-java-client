@@ -91,6 +91,9 @@ jobs:
           echo "Maven artifact exists: ${{ steps.check_maven.outputs.maven_exists }}"
           echo "Will publish to Maven Central: ${{ steps.check_maven.outputs.maven_exists == 'false' }}"
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - name: Compute Maven profiles
         id: compute_profiles
         run: |
