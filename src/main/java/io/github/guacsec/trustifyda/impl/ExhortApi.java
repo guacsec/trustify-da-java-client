@@ -30,6 +30,7 @@ import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
@@ -842,7 +843,7 @@ public final class ExhortApi implements Api {
   }
 
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
-      Set.of("**/node_modules/**", "**/.git/**");
+      Set.of("**/node_modules/**", "**/.git/**", "**/target/**", "**/build/**", "**/.gradle/**");
 
   /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
@@ -873,6 +874,14 @@ public final class ExhortApi implements Api {
     Path cargoLock = workspaceDir.resolve("Cargo.lock");
     if (Files.isRegularFile(cargoToml) && Files.isRegularFile(cargoLock)) {
       return discoverCargoManifests(workspaceDir, ignorePatterns);
+    }
+
+    // Gradle multi-project: settings.gradle or settings.gradle.kts
+    boolean hasGradleSettings =
+        Files.isRegularFile(workspaceDir.resolve("settings.gradle"))
+            || Files.isRegularFile(workspaceDir.resolve("settings.gradle.kts"));
+    if (hasGradleSettings) {
+      return discoverGradleSubprojects(workspaceDir, ignorePatterns);
     }
 
     // JS workspace: require package.json + a lock file
@@ -928,6 +937,126 @@ public final class ExhortApi implements Api {
       LOG.warning("Failed to discover Cargo workspace manifests: " + e.getMessage());
       return Collections.emptyList();
     }
+  }
+
+  private static final String GRADLE_INIT_SCRIPT =
+      "allprojects {\n"
+          + "    task daListProjects {\n"
+          + "        doLast {\n"
+          + "            println \"::DA_PROJECT::${project.path}::${project.projectDir}\"\n"
+          + "        }\n"
+          + "    }\n"
+          + "}\n";
+
+  /**
+   * Resolve the Gradle binary, preferring gradlew wrapper when available and configured.
+   *
+   * @param startDir directory from which to start the wrapper search
+   * @return path to the Gradle binary
+   */
+  private static String resolveGradleBinary(Path startDir) {
+    if (Operations.getWrapperPreference("gradle")) {
+      String wrapperName = Operations.isWindows() ? "gradlew.bat" : "gradlew";
+      String wrapper =
+          JavaMavenProvider.traverseForMvnw(
+              wrapperName, startDir.resolve("build.gradle").toString());
+      if (wrapper != null) {
+        return wrapper;
+      }
+    }
+    return Operations.getCustomPathOrElse("gradle");
+  }
+
+  /**
+   * Discover all build.gradle[.kts] manifest paths in a Gradle multi-project build. Uses a custom
+   * init script to get a structured project listing.
+   */
+  private List<Path> discoverGradleSubprojects(Path workspaceDir, Set<String> ignorePatterns) {
+    Path rootBuildKts = workspaceDir.resolve("build.gradle.kts");
+    Path rootBuild = workspaceDir.resolve("build.gradle");
+
+    List<Path> manifestPaths = new ArrayList<>();
+    if (Files.isRegularFile(rootBuildKts)) {
+      manifestPaths.add(rootBuildKts);
+    } else if (Files.isRegularFile(rootBuild)) {
+      manifestPaths.add(rootBuild);
+    }
+
+    String gradleBin = resolveGradleBinary(workspaceDir);
+    Path initScriptPath = null;
+    try {
+      initScriptPath = Files.createTempFile("da-list-projects-", ".gradle");
+      Files.writeString(initScriptPath, GRADLE_INIT_SCRIPT);
+
+      Operations.ProcessExecOutput output =
+          Operations.runProcessGetFullOutput(
+              workspaceDir,
+              new String[] {
+                gradleBin,
+                "-q",
+                "--no-daemon",
+                "--init-script",
+                initScriptPath.toString(),
+                "daListProjects"
+              },
+              null);
+
+      if (output.getExitCode() != 0) {
+        LOG.warning("gradle daListProjects failed with exit code " + output.getExitCode());
+        return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifestPaths, ignorePatterns);
+      }
+
+      for (var proj : parseGradleInitScriptOutput(output.getOutput())) {
+        if (":".equals(proj.path())) {
+          continue;
+        }
+        Path projDir = Path.of(proj.dir()).toAbsolutePath().normalize();
+        Path buildKts = projDir.resolve("build.gradle.kts");
+        Path buildGroovy = projDir.resolve("build.gradle");
+        if (Files.isRegularFile(buildKts)) {
+          manifestPaths.add(buildKts);
+        } else if (Files.isRegularFile(buildGroovy)) {
+          manifestPaths.add(buildGroovy);
+        }
+      }
+    } catch (Exception e) {
+      LOG.warning("Failed to discover Gradle subprojects: " + e.getMessage());
+      return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifestPaths, ignorePatterns);
+    } finally {
+      if (initScriptPath != null) {
+        try {
+          Files.deleteIfExists(initScriptPath);
+        } catch (IOException ignored) {
+        }
+      }
+    }
+
+    return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifestPaths, ignorePatterns);
+  }
+
+  record GradleProject(String path, String dir) {}
+
+  static List<GradleProject> parseGradleInitScriptOutput(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return List.of();
+    }
+    List<GradleProject> projects = new ArrayList<>();
+    for (String line : raw.split("\n")) {
+      if (!line.startsWith("::DA_PROJECT::")) {
+        continue;
+      }
+      String[] parts = line.split("::");
+      List<String> nonEmpty = new ArrayList<>();
+      for (String part : parts) {
+        if (!part.isEmpty()) {
+          nonEmpty.add(part);
+        }
+      }
+      if (nonEmpty.size() >= 3) {
+        projects.add(new GradleProject(nonEmpty.get(1), nonEmpty.get(2)));
+      }
+    }
+    return projects;
   }
 
   /**
