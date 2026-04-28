@@ -30,6 +30,7 @@ import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.providers.golang.model.GoWorkspace;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
@@ -875,6 +876,14 @@ public final class ExhortApi implements Api {
       return discoverCargoManifests(workspaceDir, ignorePatterns);
     }
 
+    // Go workspace: go.work
+    if (Files.isRegularFile(workspaceDir.resolve("go.work"))) {
+      List<Path> goManifests = discoverGoWorkspaceModules(workspaceDir, ignorePatterns);
+      if (!goManifests.isEmpty()) {
+        return goManifests;
+      }
+    }
+
     // JS workspace: require package.json + a lock file
     Path packageJson = workspaceDir.resolve("package.json");
     boolean hasJsLock =
@@ -926,6 +935,43 @@ public final class ExhortApi implements Api {
       return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
     } catch (Exception e) {
       LOG.warning("Failed to discover Cargo workspace manifests: " + e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Discover all go.mod manifest paths in a Go workspace. Uses {@code go work edit -json} to get
+   * workspace members.
+   */
+  private List<Path> discoverGoWorkspaceModules(Path workspaceDir, Set<String> ignorePatterns) {
+    try {
+      String goBin = Operations.getCustomPathOrElse("go");
+      Path goWork = workspaceDir.resolve("go.work");
+      Operations.ProcessExecOutput output =
+          Operations.runProcessGetFullOutput(
+              workspaceDir, new String[] {goBin, "work", "edit", "-json", goWork.toString()}, null);
+      if (output.getExitCode() != 0) {
+        LOG.warning("go work edit -json failed with exit code " + output.getExitCode());
+        return Collections.emptyList();
+      }
+      GoWorkspace workspace = mapper.readValue(output.getOutput(), GoWorkspace.class);
+      if (workspace.use() == null || workspace.use().isEmpty()) {
+        return Collections.emptyList();
+      }
+      List<Path> manifests = new ArrayList<>();
+      for (var entry : workspace.use()) {
+        if (entry.diskPath() == null || entry.diskPath().isBlank()) {
+          continue;
+        }
+        Path moduleDir = workspaceDir.resolve(entry.diskPath()).normalize();
+        Path goMod = moduleDir.resolve("go.mod");
+        if (Files.isRegularFile(goMod)) {
+          manifests.add(goMod);
+        }
+      }
+      return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
+    } catch (Exception e) {
+      LOG.warning("Failed to discover Go workspace modules: " + e.getMessage());
       return Collections.emptyList();
     }
   }
