@@ -37,6 +37,7 @@ import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.PyprojectTomlUtils;
 import io.github.guacsec.trustifyda.utils.WorkspaceUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
@@ -51,8 +52,10 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
@@ -70,6 +73,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlParseResult;
+import org.tomlj.TomlTable;
 
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
@@ -844,7 +850,14 @@ public final class ExhortApi implements Api {
   }
 
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
-      Set.of("**/node_modules/**", "**/.git/**", "**/target/**", "**/build/**", "**/.gradle/**");
+      Set.of(
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/target/**",
+          "**/build/**",
+          "**/.gradle/**",
+          "**/__pycache__/**",
+          "**/.venv/**");
 
   /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
@@ -890,6 +903,15 @@ public final class ExhortApi implements Api {
       List<Path> goManifests = discoverGoWorkspaceModules(workspaceDir, ignorePatterns);
       if (!goManifests.isEmpty()) {
         return goManifests;
+      }
+    }
+
+    // uv workspace: pyproject.toml with [tool.uv.workspace] + uv.lock
+    if (Files.isRegularFile(workspaceDir.resolve("pyproject.toml"))
+        && Files.isRegularFile(workspaceDir.resolve("uv.lock"))) {
+      List<Path> uvManifests = discoverUvWorkspaceMembers(workspaceDir, ignorePatterns);
+      if (!uvManifests.isEmpty()) {
+        return uvManifests;
       }
     }
 
@@ -981,6 +1003,87 @@ public final class ExhortApi implements Api {
       return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
     } catch (Exception e) {
       LOG.warning("Failed to discover Go workspace modules: " + e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Discover all pyproject.toml manifest paths in a uv workspace. Parses the root pyproject.toml
+   * for {@code [tool.uv.workspace]} member and exclude globs, then walks the filesystem to find
+   * matching member directories.
+   */
+  private List<Path> discoverUvWorkspaceMembers(Path workspaceDir, Set<String> ignorePatterns) {
+    try {
+      Path rootPyproject = workspaceDir.resolve("pyproject.toml");
+      TomlParseResult toml = PyprojectTomlUtils.parseToml(rootPyproject);
+
+      TomlTable workspaceConfig = toml.getTable("tool.uv.workspace");
+      if (workspaceConfig == null) {
+        return Collections.emptyList();
+      }
+
+      TomlArray membersArray = workspaceConfig.getArray("members");
+      if (membersArray == null || membersArray.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      List<String> memberPatterns = new ArrayList<>();
+      for (int i = 0; i < membersArray.size(); i++) {
+        String pattern = membersArray.getString(i);
+        if (pattern != null && !pattern.isBlank()) {
+          memberPatterns.add(pattern.trim());
+        }
+      }
+      if (memberPatterns.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      Set<String> excludePatterns = new java.util.HashSet<>();
+      TomlArray excludeArray = workspaceConfig.getArray("exclude");
+      if (excludeArray != null) {
+        for (int i = 0; i < excludeArray.size(); i++) {
+          String pattern = excludeArray.getString(i);
+          if (pattern != null && !pattern.isBlank()) {
+            excludePatterns.add(pattern.trim());
+          }
+        }
+      }
+
+      List<PathMatcher> memberMatchers =
+          memberPatterns.stream()
+              .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+              .toList();
+
+      List<PathMatcher> excludeMatchers =
+          excludePatterns.stream()
+              .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+              .toList();
+
+      List<Path> manifests = new ArrayList<>();
+      try (var stream = Files.walk(workspaceDir)) {
+        stream
+            .filter(p -> p.getFileName().toString().equals("pyproject.toml"))
+            .filter(p -> !p.equals(rootPyproject))
+            .forEach(
+                p -> {
+                  Path relative = workspaceDir.relativize(p.getParent());
+                  boolean matchesMember =
+                      memberMatchers.stream().anyMatch(m -> m.matches(relative));
+                  boolean matchesExclude =
+                      excludeMatchers.stream().anyMatch(m -> m.matches(relative));
+                  if (matchesMember && !matchesExclude) {
+                    manifests.add(p);
+                  }
+                });
+      }
+
+      if (PyprojectTomlUtils.getProjectName(toml) != null) {
+        manifests.addFirst(rootPyproject);
+      }
+
+      return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
+    } catch (Exception e) {
+      LOG.warning("Failed to discover uv workspace members: " + e.getMessage());
       return Collections.emptyList();
     }
   }
