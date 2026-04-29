@@ -388,29 +388,22 @@ public abstract class PythonControllerBase {
         requirement = requirement.substring(0, extrasStart) + requirement.substring(extrasEnd + 1);
       }
     }
-    int rightTriangleBracket = requirement.indexOf(">");
-    int leftTriangleBracket = requirement.indexOf("<");
-    int equalsSign = requirement.indexOf("=");
-    int minimumIndex = getFirstSign(rightTriangleBracket, leftTriangleBracket, equalsSign);
+    // Find the first PEP 508 version operator character (~=, !=, ==, >=, <=, >, <, ===)
+    int firstOperatorChar = -1;
+    for (int i = 0; i < requirement.length(); i++) {
+      char c = requirement.charAt(i);
+      if (c == '>' || c == '<' || c == '=' || c == '~' || c == '!') {
+        firstOperatorChar = i;
+        break;
+      }
+    }
     String depName;
-    if (rightTriangleBracket == -1 && leftTriangleBracket == -1 && equalsSign == -1) {
+    if (firstOperatorChar == -1) {
       depName = requirement;
     } else {
-      depName = requirement.substring(0, minimumIndex);
+      depName = requirement.substring(0, firstOperatorChar);
     }
     return depName.trim();
-  }
-
-  private static int getFirstSign(
-      int rightTriangleBracket, int leftTriangleBracket, int equalsSign) {
-    rightTriangleBracket = rightTriangleBracket == -1 ? 999 : rightTriangleBracket;
-    leftTriangleBracket = leftTriangleBracket == -1 ? 999 : leftTriangleBracket;
-    equalsSign = equalsSign == -1 ? 999 : equalsSign;
-    return equalsSign < leftTriangleBracket && equalsSign < rightTriangleBracket
-        ? equalsSign
-        : (leftTriangleBracket < equalsSign && leftTriangleBracket < rightTriangleBracket
-            ? leftTriangleBracket
-            : rightTriangleBracket);
   }
 
   static List<String> splitPipShowLines(String pipShowOutput) {

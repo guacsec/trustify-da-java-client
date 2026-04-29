@@ -301,6 +301,16 @@ class PythonControllerRealEnvTest extends ExhortTest {
         PythonControllerRealEnv.getDependencyName("certifi==2023.7.22 ; python_version >= \"3\""));
   }
 
+  /** Verifies getDependencyName handles compatibility (~=) and exclusion (!=) operators. */
+  @Test
+  void get_Dependency_Name_with_compatibility_and_exclusion_operators() {
+    assertEquals("urllib3", PythonControllerRealEnv.getDependencyName("urllib3~=1.26.0"));
+    assertEquals("click", PythonControllerRealEnv.getDependencyName("click!=7.1.1"));
+    assertEquals("certifi", PythonControllerRealEnv.getDependencyName("certifi>=2021.0.0"));
+    assertEquals("package", PythonControllerRealEnv.getDependencyName("package~=2.0"));
+    assertEquals("package", PythonControllerRealEnv.getDependencyName("package!=1.0.0"));
+  }
+
   /** Verifies getDependencyName strips PEP 508 extras from requirements. */
   @Test
   void get_Dependency_Name_with_extras() {
@@ -311,6 +321,17 @@ class PythonControllerRealEnvTest extends ExhortTest {
         "package",
         PythonControllerRealEnv.getDependencyName(
             "package[extra1]>=1.0 ; python_version >= \"3.8\""));
+  }
+
+  /** Verifies getDependencyName handles extras combined with special version operators. */
+  @Test
+  void get_Dependency_Name_with_extras_and_special_operators() {
+    assertEquals(
+        "requests", PythonControllerRealEnv.getDependencyName("requests[security,socks]==2.25.1"));
+    assertEquals("httpx", PythonControllerRealEnv.getDependencyName("httpx [http2] >=0.23.0"));
+    assertEquals(
+        "package",
+        PythonControllerRealEnv.getDependencyName("package[extra]~=1.0 ; python_version >= \"3\""));
   }
 
   @Test
