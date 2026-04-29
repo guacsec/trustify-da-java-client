@@ -18,6 +18,9 @@ package io.github.guacsec.trustifyda.providers;
 
 import static io.github.guacsec.trustifyda.impl.ExhortApi.debugLoggingIsNeeded;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.Api;
@@ -40,9 +43,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -136,6 +141,7 @@ public final class GoModulesProvider extends Provider {
     determineMainModuleVersion(manifestPath.getParent());
     Sbom sbom;
     List<PackageURL> ignoredDeps = getIgnoredDeps(manifestPath);
+    Set<String> directDepPaths = getDirectDependencyPaths(manifestPath);
     boolean matchManifestVersions =
         Environment.getBoolean(Provider.PROP_MATCH_MANIFEST_VERSIONS, false);
     if (matchManifestVersions) {
@@ -143,9 +149,9 @@ public final class GoModulesProvider extends Provider {
       performManifestVersionsCheck(goModGraphLines, manifestPath);
     }
     if (!buildTree) {
-      sbom = buildSbomFromList(goModulesResult, ignoredDeps);
+      sbom = buildSbomFromList(goModulesResult, ignoredDeps, directDepPaths);
     } else {
-      sbom = buildSbomFromGraph(goModulesResult, ignoredDeps, manifestPath);
+      sbom = buildSbomFromGraph(goModulesResult, ignoredDeps, manifestPath, directDepPaths);
     }
     return sbom;
   }
@@ -264,7 +270,10 @@ public final class GoModulesProvider extends Provider {
   }
 
   private Sbom buildSbomFromGraph(
-      String goModulesResult, List<PackageURL> ignoredDeps, Path manifestPath) {
+      String goModulesResult,
+      List<PackageURL> ignoredDeps,
+      Path manifestPath,
+      Set<String> directDepPaths) {
     // Each entry contains a key of the module, and the list represents the module direct
     // dependencies , so
     // pairing of the key with each of the dependencies in a list is basically an edge in the graph.
@@ -300,6 +309,17 @@ public final class GoModulesProvider extends Provider {
           PackageURL source = toPurl(key, "@");
           value.stream()
               .filter(dep -> !isGoToolchainEntry(dep))
+              .filter(
+                  dep -> {
+                    // When processing root-level edges, skip indirect dependencies.
+                    // In Go 1.17+, go mod graph emits edges for all modules in go.mod,
+                    // including those marked // indirect. Only keep edges whose child
+                    // module path is in the direct dependency set.
+                    if (getModulePath(key).equals(getModulePath(rootPackage))) {
+                      return directDepPaths.contains(getModulePath(dep));
+                    }
+                    return true;
+                  })
               .forEach(
                   dep -> {
                     PackageURL targetPurl = toPurl(dep, "@");
@@ -422,7 +442,58 @@ public final class GoModulesProvider extends Provider {
     return goModulesOutput;
   }
 
-  private Sbom buildSbomFromList(String golangDeps, List<PackageURL> ignoredDeps) {
+  /**
+   * Runs {@code go mod edit -json} and returns the set of module paths that are direct dependencies
+   * (i.e., entries in the Require array where {@code Indirect} is false or absent). This
+   * distinguishes direct from indirect dependencies in Go 1.17+ modules, where {@code go mod tidy}
+   * records all transitively-imported modules in go.mod with an {@code // indirect} marker.
+   */
+  private Set<String> getDirectDependencyPaths(Path manifestPath) {
+    String[] goModEditCmd = new String[] {goExecutable, "mod", "edit", "-json"};
+    String goModEditOutput = Operations.runProcessGetOutput(manifestPath.getParent(), goModEditCmd);
+    if (debugLoggingIsNeeded()) {
+      log.info(
+          String.format(
+              "Package Manager Go Mod Edit -json output : %s%s",
+              System.lineSeparator(), goModEditOutput));
+    }
+    Set<String> directDepPaths = new HashSet<>();
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode root = mapper.readTree(goModEditOutput);
+      JsonNode requireArray = root.get("Require");
+      if (requireArray != null && requireArray.isArray()) {
+        for (JsonNode req : requireArray) {
+          JsonNode indirectNode = req.get("Indirect");
+          if (indirectNode == null || !indirectNode.asBoolean()) {
+            directDepPaths.add(req.get("Path").asText());
+          }
+        }
+      }
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException(
+          "Failed to parse go mod edit -json output: " + e.getMessage(), e);
+    }
+    if (debugLoggingIsNeeded()) {
+      log.info(String.format("Direct dependency paths from go mod edit -json: %s", directDepPaths));
+    }
+    return directDepPaths;
+  }
+
+  /**
+   * Extracts the module path from a go mod graph entry by stripping the version suffix. For
+   * example, {@code "github.com/foo/bar@v1.2.3"} returns {@code "github.com/foo/bar"}.
+   */
+  private static String getModulePath(String graphEntry) {
+    int atIndex = graphEntry.indexOf("@");
+    if (atIndex == -1) {
+      return graphEntry;
+    }
+    return graphEntry.substring(0, atIndex);
+  }
+
+  private Sbom buildSbomFromList(
+      String golangDeps, List<PackageURL> ignoredDeps, Set<String> directDepPaths) {
     String[] allModulesFlat = golangDeps.split(Operations.GENERIC_LINE_SEPARATOR);
     String parentVertex = getParentVertex(allModulesFlat[0]);
     PackageURL root = toPurl(parentVertex, "@");
@@ -433,6 +504,7 @@ public final class GoModulesProvider extends Provider {
     sbom.addRoot(root, readLicenseFromManifest());
     deps.stream()
         .filter(dep -> !isGoToolchainEntry(dep))
+        .filter(dep -> directDepPaths.contains(getModulePath(dep)))
         .forEach(
             dep -> {
               PackageURL targetPurl = toPurl(dep, "@");
