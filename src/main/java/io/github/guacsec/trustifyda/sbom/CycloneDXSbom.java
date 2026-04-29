@@ -230,6 +230,9 @@ public class CycloneDXSbom implements Sbom {
                 d.setDependencies(filteredDeps);
               }
             });
+    if (bom.getComponents().isEmpty()) {
+      bom.setDependencies(new ArrayList<>());
+    }
     return this;
   }
 
@@ -302,12 +305,26 @@ public class CycloneDXSbom implements Sbom {
   public String getAsJsonString() {
     try {
       var jsonString = BomGeneratorFactory.createJson(VERSION, bom).toJsonString();
+      jsonString = ensureComponentsField(jsonString);
       if (debugLoggingIsNeeded()) {
         log.info("Generated Sbom Json:" + System.lineSeparator() + jsonString);
       }
       return jsonString;
     } catch (GeneratorException e) {
-      throw new RuntimeException("Unable to genenerate JSON from SBOM", e);
+      throw new RuntimeException("Unable to generate JSON from SBOM", e);
+    }
+  }
+
+  private String ensureComponentsField(String json) {
+    try {
+      var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      var root = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(json);
+      if (!root.has("components")) {
+        root.set("components", mapper.createArrayNode());
+      }
+      return mapper.writeValueAsString(root);
+    } catch (Exception e) {
+      return json;
     }
   }
 
