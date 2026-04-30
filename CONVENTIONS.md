@@ -1,6 +1,6 @@
 # Coding Conventions
 
-<!-- This file documents project-specific coding standards for exhort-java-api. -->
+<!-- This file documents project-specific coding standards for trustify-da-java-client. -->
 
 ## Language and Framework
 
@@ -84,10 +84,6 @@ src/main/java/io/github/guacsec/trustifyda/
 ## Test Fixtures
 
 - **Dependabot suppression**: Test fixture directories contain intentionally pinned (sometimes vulnerable) dependencies. When adding a new test fixture directory with a manifest file, review `.github/dependabot.yml` to ensure the new path is covered. Non-maven ecosystems are suppressed via root-level `ignore: [{dependency-name: "*"}]` entries. Maven fixtures use per-directory entries with `/**` globs since maven is the production ecosystem; add the parent directory if a new maven fixture tree is introduced.
-
-## Test Fixtures
-
-- **Dependabot suppression**: Test fixture directories contain intentionally pinned (sometimes vulnerable) dependencies. When adding a new test fixture directory with a manifest file, review `.github/dependabot.yml` to ensure the new path is covered. Non-maven ecosystems are suppressed via root-level `ignore: [{dependency-name: "*"}]` entries. Maven fixtures use explicit per-directory entries since maven is the production ecosystem; add the directory path if a new maven fixture is introduced.
 
 ## Dependencies
 
