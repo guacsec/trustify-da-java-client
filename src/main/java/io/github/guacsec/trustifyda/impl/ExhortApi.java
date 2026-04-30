@@ -880,7 +880,10 @@ public final class ExhortApi implements Api {
     // Maven multi-module: pom.xml
     Path pomXml = workspaceDir.resolve("pom.xml");
     if (Files.isRegularFile(pomXml)) {
-      return discoverMavenModules(workspaceDir, ignorePatterns);
+      List<Path> mavenManifests = discoverMavenModules(workspaceDir, ignorePatterns);
+      if (mavenManifests.size() > 1) {
+        return mavenManifests;
+      }
     }
 
     // JS workspace: require package.json + a lock file
@@ -1076,10 +1079,15 @@ public final class ExhortApi implements Api {
         String mvnw =
             JavaMavenProvider.traverseForMvnw(wrapperName, startDir.resolve("pom.xml").toString());
         if (mvnw != null) {
-          return mvnw;
+          try {
+            Operations.runProcess(startDir, mvnw, "-v");
+            return mvnw;
+          } catch (Exception e) {
+            LOG.warning("Maven wrapper found but not accessible: " + e.getMessage());
+          }
         }
       }
-      return Operations.getCustomPathOrElse(mvn);
+      return Operations.getExecutable(mvn, "-v");
     } catch (Exception e) {
       LOG.warning("Failed to resolve Maven binary: " + e.getMessage());
       return null;
