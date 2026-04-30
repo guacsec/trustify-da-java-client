@@ -96,7 +96,7 @@ jobs:
 
       - name: Install uv
         # Pin setup-uv to a specific version; update as needed when upgrading uv or CI tooling
-        uses: astral-sh/setup-uv@v6.0.0
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Compute Maven profiles
         id: compute_profiles
