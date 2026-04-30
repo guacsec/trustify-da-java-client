@@ -41,7 +41,7 @@ class GradleWorkspaceDiscoveryTest {
   @Test
   void parseGradleInitScriptOutput_standardOutput() {
     String raw =
-        "::DA_PROJECT::::/home/project\n"
+        "::DA_PROJECT:::::/home/project\n"
             + "::DA_PROJECT:::app::/home/project/app\n"
             + "::DA_PROJECT:::lib::/home/project/lib\n";
 
@@ -57,7 +57,7 @@ class GradleWorkspaceDiscoveryTest {
   @Test
   void parseGradleInitScriptOutput_nestedProjects() {
     String raw =
-        "::DA_PROJECT::::/home/project\n"
+        "::DA_PROJECT:::::/home/project\n"
             + "::DA_PROJECT:::libs:core::/home/project/libs/core\n"
             + "::DA_PROJECT:::libs:util::/home/project/libs/util\n";
 
@@ -96,7 +96,7 @@ class GradleWorkspaceDiscoveryTest {
         GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
 
     String initScriptOutput =
-        "::DA_PROJECT::::"
+        "::DA_PROJECT:::::"
             + workspaceDir
             + "\n"
             + "::DA_PROJECT:::app::"
@@ -136,7 +136,7 @@ class GradleWorkspaceDiscoveryTest {
         GRADLE_FIXTURES.resolve("gradle_nested_subprojects").toAbsolutePath().normalize();
 
     String initScriptOutput =
-        "::DA_PROJECT::::"
+        "::DA_PROJECT:::::"
             + workspaceDir
             + "\n"
             + "::DA_PROJECT:::libs:core::"
@@ -184,7 +184,7 @@ class GradleWorkspaceDiscoveryTest {
         GRADLE_FIXTURES.resolve("gradle_mixed_variants").toAbsolutePath().normalize();
 
     String initScriptOutput =
-        "::DA_PROJECT::::"
+        "::DA_PROJECT:::::"
             + workspaceDir
             + "\n"
             + "::DA_PROJECT:::app::"
@@ -223,7 +223,7 @@ class GradleWorkspaceDiscoveryTest {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_no_subprojects").toAbsolutePath().normalize();
 
-    String initScriptOutput = "::DA_PROJECT::::" + workspaceDir + "\n";
+    String initScriptOutput = "::DA_PROJECT:::::" + workspaceDir + "\n";
 
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("gradle")).thenReturn(false);
@@ -276,7 +276,7 @@ class GradleWorkspaceDiscoveryTest {
         GRADLE_FIXTURES.resolve("gradle_missing_subproject").toAbsolutePath().normalize();
 
     String initScriptOutput =
-        "::DA_PROJECT::::"
+        "::DA_PROJECT:::::"
             + workspaceDir
             + "\n"
             + "::DA_PROJECT:::app::"
@@ -314,7 +314,7 @@ class GradleWorkspaceDiscoveryTest {
         GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
 
     String initScriptOutput =
-        "::DA_PROJECT::::"
+        "::DA_PROJECT:::::"
             + workspaceDir
             + "\n"
             + "::DA_PROJECT:::app::"

@@ -1040,20 +1040,21 @@ public final class ExhortApi implements Api {
     if (raw == null || raw.isBlank()) {
       return List.of();
     }
+    String prefix = "::DA_PROJECT::";
     List<GradleProject> projects = new ArrayList<>();
     for (String line : raw.split("\n")) {
-      if (!line.startsWith("::DA_PROJECT::")) {
+      if (!line.startsWith(prefix)) {
         continue;
       }
-      String[] parts = line.split("::");
-      List<String> nonEmpty = new ArrayList<>();
-      for (String part : parts) {
-        if (!part.isEmpty()) {
-          nonEmpty.add(part);
-        }
+      String remainder = line.substring(prefix.length());
+      int lastSep = remainder.lastIndexOf("::");
+      if (lastSep < 0) {
+        continue;
       }
-      if (nonEmpty.size() >= 3) {
-        projects.add(new GradleProject(nonEmpty.get(1), nonEmpty.get(2)));
+      String path = remainder.substring(0, lastSep);
+      String dir = remainder.substring(lastSep + 2);
+      if (!path.isEmpty() && !dir.isEmpty()) {
+        projects.add(new GradleProject(path, dir));
       }
     }
     return projects;
