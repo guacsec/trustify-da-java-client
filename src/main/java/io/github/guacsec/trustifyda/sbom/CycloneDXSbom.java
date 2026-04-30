@@ -18,6 +18,9 @@ package io.github.guacsec.trustifyda.sbom;
 
 import static io.github.guacsec.trustifyda.impl.ExhortApi.debugLoggingIsNeeded;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
@@ -67,8 +70,8 @@ public class CycloneDXSbom implements Sbom {
     Metadata metadata = new Metadata();
     metadata.setTimestamp(new Date());
     bom.setMetadata(metadata);
-    bom.setComponents(new ArrayList<>());
     bom.setDependencies(new ArrayList<>());
+    bom.setComponents(new ArrayList<>());
     belongingCriteriaBinaryAlgorithm = getBelongingConditionByName();
     this.exhortIgnoreMethod = "insensitive";
   }
@@ -315,16 +318,26 @@ public class CycloneDXSbom implements Sbom {
     }
   }
 
-  private String ensureComponentsField(String json) {
+  private String ensureComponentsField(String json) throws GeneratorException {
     try {
-      var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-      var root = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(json);
-      if (!root.has("components")) {
-        root.set("components", mapper.createArrayNode());
+      var mapper = new ObjectMapper();
+      var rootNode = (ObjectNode) mapper.readTree(json);
+      if (!rootNode.has("components")) {
+        var ordered = mapper.createObjectNode();
+        rootNode
+            .properties()
+            .forEach(
+                field -> {
+                  ordered.set(field.getKey(), field.getValue());
+                  if (field.getKey().equals("metadata")) {
+                    ordered.set("components", mapper.createArrayNode());
+                  }
+                });
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ordered);
       }
-      return mapper.writeValueAsString(root);
-    } catch (Exception e) {
       return json;
+    } catch (JsonProcessingException e) {
+      throw new GeneratorException("Unable to ensure components field in JSON", e);
     }
   }
 

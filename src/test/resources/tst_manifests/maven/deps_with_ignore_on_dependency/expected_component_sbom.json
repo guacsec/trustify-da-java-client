@@ -1,22 +1,23 @@
 {
-  "bomFormat" : "CycloneDX",
-  "specVersion" : "1.4",
-  "version" : 1,
-  "metadata" : {
-    "timestamp" : "2025-04-09T12:15:45Z",
-    "component" : {
-      "type" : "application",
-      "bom-ref" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
-      "group" : "pom-with-deps-and-ignore",
-      "name" : "pom-with-dependency-not-ignored-for-tests",
-      "version" : "0.0.1",
-      "purl" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1"
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-04-09T12:15:45Z",
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
+      "group": "pom-with-deps-and-ignore",
+      "name": "pom-with-dependency-not-ignored-for-tests",
+      "version": "0.0.1",
+      "purl": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1"
     }
   },
-  "dependencies" : [
+  "components": [],
+  "dependencies": [
     {
-      "ref" : "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
-      "dependsOn" : [ ]
+      "ref": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
+      "dependsOn": []
     }
   ]
 }

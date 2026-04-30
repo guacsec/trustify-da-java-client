@@ -466,13 +466,14 @@ public final class GoModulesProvider extends Provider {
         for (JsonNode req : requireArray) {
           JsonNode indirectNode = req.get("Indirect");
           if (indirectNode == null || !indirectNode.asBoolean()) {
-            directDepPaths.add(req.get("Path").asText());
+            if (req.get("Path") != null) {
+              directDepPaths.add(req.get("Path").asText());
+            }
           }
         }
       }
     } catch (JsonProcessingException e) {
-      throw new IllegalStateException(
-          "Failed to parse go mod edit -json output: " + e.getMessage(), e);
+      throw new IllegalStateException("Failed to parse go mod edit -json output", e);
     }
     if (debugLoggingIsNeeded()) {
       log.info(String.format("Direct dependency paths from go mod edit -json: %s", directDepPaths));
