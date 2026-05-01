@@ -881,7 +881,7 @@ public final class ExhortApi implements Api {
     Path pomXml = workspaceDir.resolve("pom.xml");
     if (Files.isRegularFile(pomXml)) {
       List<Path> mavenManifests = discoverMavenModules(workspaceDir, ignorePatterns);
-      if (mavenManifests.size() > 1) {
+      if (!mavenManifests.isEmpty()) {
         return mavenManifests;
       }
     }
@@ -1070,29 +1070,17 @@ public final class ExhortApi implements Api {
    * @param startDir the directory from which to start searching for mvnw
    * @return the resolved Maven binary path, or null if Maven is not available
    */
-  private String resolveMavenBinary(Path startDir) {
-    try {
-      boolean preferWrapper = Operations.getWrapperPreference("mvn");
-      String mvn = Operations.isWindows() ? "mvn.cmd" : "mvn";
-      if (preferWrapper) {
-        String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
-        String mvnw =
-            JavaMavenProvider.traverseForMvnw(
-                wrapperName, startDir.resolve("pom.xml").toString(), null);
-        if (mvnw != null) {
-          try {
-            Operations.runProcess(startDir, mvnw, "-v");
-            return mvnw;
-          } catch (Exception e) {
-            LOG.warning("Maven wrapper found but not accessible: " + e.getMessage());
-          }
-        }
+  private static String resolveMavenBinary(Path startDir) {
+    if (Operations.getWrapperPreference("mvn")) {
+      String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
+      String wrapper =
+          JavaMavenProvider.traverseForMvnw(
+              wrapperName, startDir.resolve("pom.xml").toString(), null);
+      if (wrapper != null) {
+        return wrapper;
       }
-      return Operations.getExecutable(mvn, "-v");
-    } catch (Exception e) {
-      LOG.warning("Failed to resolve Maven binary: " + e.getMessage());
-      return null;
     }
+    return Operations.getCustomPathOrElse("mvn");
   }
 
   /**
