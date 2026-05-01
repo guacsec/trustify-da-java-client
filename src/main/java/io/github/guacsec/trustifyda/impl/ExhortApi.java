@@ -959,7 +959,7 @@ public final class ExhortApi implements Api {
       String wrapperName = Operations.isWindows() ? "gradlew.bat" : "gradlew";
       String wrapper =
           JavaMavenProvider.traverseForMvnw(
-              wrapperName, startDir.resolve("build.gradle").toString());
+              wrapperName, startDir.resolve("build.gradle").toString(), null);
       if (wrapper != null) {
         return wrapper;
       }
