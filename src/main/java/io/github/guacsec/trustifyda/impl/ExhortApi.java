@@ -1077,7 +1077,8 @@ public final class ExhortApi implements Api {
       if (preferWrapper) {
         String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
         String mvnw =
-            JavaMavenProvider.traverseForMvnw(wrapperName, startDir.resolve("pom.xml").toString());
+            JavaMavenProvider.traverseForMvnw(
+                wrapperName, startDir.resolve("pom.xml").toString(), null);
         if (mvnw != null) {
           try {
             Operations.runProcess(startDir, mvnw, "-v");
