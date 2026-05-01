@@ -30,6 +30,7 @@ import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
+import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
@@ -842,7 +843,7 @@ public final class ExhortApi implements Api {
   }
 
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
-      Set.of("**/node_modules/**", "**/.git/**");
+      Set.of("**/node_modules/**", "**/.git/**", "**/target/**");
 
   /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
@@ -864,7 +865,8 @@ public final class ExhortApi implements Api {
 
   /**
    * Detects the workspace ecosystem and discovers manifest paths. Checks for Cargo workspace first
-   * (Cargo.toml + Cargo.lock), then falls back to JS workspace discovery.
+   * (Cargo.toml + Cargo.lock), then Maven multi-module (pom.xml), then falls back to JS workspace
+   * discovery.
    */
   List<Path> discoverWorkspaceManifests(Path workspaceDir, Set<String> ignorePatterns)
       throws IOException {
@@ -873,6 +875,15 @@ public final class ExhortApi implements Api {
     Path cargoLock = workspaceDir.resolve("Cargo.lock");
     if (Files.isRegularFile(cargoToml) && Files.isRegularFile(cargoLock)) {
       return discoverCargoManifests(workspaceDir, ignorePatterns);
+    }
+
+    // Maven multi-module: pom.xml
+    Path pomXml = workspaceDir.resolve("pom.xml");
+    if (Files.isRegularFile(pomXml)) {
+      List<Path> mavenManifests = discoverMavenModules(workspaceDir, ignorePatterns);
+      if (!mavenManifests.isEmpty()) {
+        return mavenManifests;
+      }
     }
 
     // JS workspace: require package.json + a lock file
@@ -928,6 +939,148 @@ public final class ExhortApi implements Api {
       LOG.warning("Failed to discover Cargo workspace manifests: " + e.getMessage());
       return Collections.emptyList();
     }
+  }
+
+  /**
+   * Discovers Maven multi-module workspace manifests by invoking {@code mvn help:evaluate} to list
+   * declared modules, then recursively checking each module for nested aggregators.
+   *
+   * <p>Uses the same Maven binary selection as {@link
+   * io.github.guacsec.trustifyda.providers.JavaMavenProvider}, including wrapper support via {@code
+   * selectMvnRuntime}. Always includes the root {@code pom.xml}. Uses a visited set to prevent
+   * cycles in the module graph.
+   *
+   * @param workspaceDir the root directory containing the aggregator pom.xml
+   * @param ignorePatterns glob patterns for paths to exclude from results
+   * @return list of discovered pom.xml paths, or empty list if Maven is unavailable
+   */
+  private List<Path> discoverMavenModules(Path workspaceDir, Set<String> ignorePatterns) {
+    Path rootPom = workspaceDir.resolve("pom.xml");
+    String mvnBin = resolveMavenBinary(workspaceDir);
+    if (mvnBin == null) {
+      LOG.warning("Maven binary not available; returning root pom.xml only");
+      return List.of(rootPom);
+    }
+
+    var visited = new java.util.HashSet<Path>();
+    var manifestPaths = new ArrayList<Path>();
+    manifestPaths.add(rootPom);
+
+    collectMavenModules(workspaceDir, mvnBin, visited, manifestPaths);
+
+    return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifestPaths, ignorePatterns);
+  }
+
+  /**
+   * Recursively collects Maven module pom.xml paths by invoking {@code mvn help:evaluate} on each
+   * directory and descending into sub-modules.
+   *
+   * @param dir the directory to evaluate for modules
+   * @param mvnBin the resolved Maven binary path
+   * @param visited set of already-visited directories to prevent cycles
+   * @param manifestPaths accumulator list for discovered pom.xml paths
+   */
+  private void collectMavenModules(
+      Path dir, String mvnBin, java.util.HashSet<Path> visited, List<Path> manifestPaths) {
+    Path resolvedDir = dir.toAbsolutePath().normalize();
+    if (!visited.add(resolvedDir)) {
+      return;
+    }
+
+    List<String> modules = listMavenModules(resolvedDir, mvnBin);
+    for (String mod : modules) {
+      Path moduleDir = resolvedDir.resolve(mod);
+      Path modulePom = moduleDir.resolve("pom.xml");
+      if (Files.isRegularFile(modulePom)) {
+        manifestPaths.add(modulePom);
+        collectMavenModules(moduleDir, mvnBin, visited, manifestPaths);
+      }
+    }
+  }
+
+  /**
+   * Invokes {@code mvn help:evaluate -Dexpression=project.modules} on the given directory and
+   * parses the output to extract module names.
+   *
+   * @param dir the directory containing a pom.xml to evaluate
+   * @param mvnBin the resolved Maven binary path
+   * @return list of module names, or empty list on failure
+   */
+  private List<String> listMavenModules(Path dir, String mvnBin) {
+    try {
+      Path pomFile = dir.resolve("pom.xml");
+      Operations.ProcessExecOutput output =
+          Operations.runProcessGetFullOutput(
+              dir,
+              new String[] {
+                mvnBin,
+                "help:evaluate",
+                "-Dexpression=project.modules",
+                "-q",
+                "-DforceStdout",
+                "-f",
+                pomFile.toString(),
+                "--batch-mode"
+              },
+              null);
+      if (output.getExitCode() != 0) {
+        LOG.warning(
+            "mvn help:evaluate failed with exit code " + output.getExitCode() + " in " + dir);
+        return Collections.emptyList();
+      }
+      String raw = output.getOutput().trim();
+      if (raw.isEmpty() || "null".equals(raw)) {
+        return Collections.emptyList();
+      }
+      return parseMavenModuleList(raw);
+    } catch (Exception e) {
+      LOG.warning("Failed to list Maven modules in " + dir + ": " + e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Parses the output of {@code mvn help:evaluate -Dexpression=project.modules} which returns a
+   * string like {@code [module-a, module-b]}.
+   *
+   * @param raw the raw output string
+   * @return list of module name strings
+   */
+  static List<String> parseMavenModuleList(String raw) {
+    if (raw == null || raw.isEmpty()) {
+      return Collections.emptyList();
+    }
+    // Expected format: [module-a, module-b, ...]
+    java.util.regex.Matcher matcher =
+        java.util.regex.Pattern.compile("^\\[(.+)]$").matcher(raw.trim());
+    if (!matcher.matches()) {
+      return Collections.emptyList();
+    }
+    String inner = matcher.group(1);
+    return java.util.Arrays.stream(inner.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList();
+  }
+
+  /**
+   * Resolves the Maven binary to use, following the same wrapper preference logic as {@link
+   * io.github.guacsec.trustifyda.providers.JavaMavenProvider#selectMvnRuntime}.
+   *
+   * @param startDir the directory from which to start searching for mvnw
+   * @return the resolved Maven binary path, or null if Maven is not available
+   */
+  private static String resolveMavenBinary(Path startDir) {
+    if (Operations.getWrapperPreference("mvn")) {
+      String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
+      String wrapper =
+          JavaMavenProvider.traverseForMvnw(
+              wrapperName, startDir.resolve("pom.xml").toString(), null);
+      if (wrapper != null) {
+        return wrapper;
+      }
+    }
+    return Operations.getCustomPathOrElse("mvn");
   }
 
   /**
