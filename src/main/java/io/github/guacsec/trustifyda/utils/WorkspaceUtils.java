@@ -43,7 +43,17 @@ public final class WorkspaceUtils {
 
     List<PathMatcher> matchers =
         ignorePatterns.stream()
-            .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+            .flatMap(
+                p -> {
+                  var fs = FileSystems.getDefault();
+                  java.util.stream.Stream.Builder<PathMatcher> b =
+                      java.util.stream.Stream.builder();
+                  b.add(fs.getPathMatcher("glob:" + p));
+                  if (p.startsWith("**/")) {
+                    b.add(fs.getPathMatcher("glob:" + p.substring(3)));
+                  }
+                  return b.build();
+                })
             .toList();
 
     return manifests.stream()
