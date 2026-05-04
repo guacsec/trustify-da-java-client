@@ -267,6 +267,39 @@ class Python_Provider_Test extends ExhortTest {
         .isThrownBy(() -> new PythonPipProvider(Path.of(".")).provideComponent());
   }
 
+  @Test
+  void getIgnoredDependencies_strips_environment_markers() throws IOException {
+    Path tempFile = Files.createTempFile("requirements", ".txt");
+    try {
+      Files.writeString(
+          tempFile,
+          String.join(
+              System.lineSeparator(),
+              "requests==2.25.1 ; python_version >= \"3.6\" #trustify-da-ignore",
+              "idna==2.10 ; python_version >= \"3.6\" # trustify-da-ignore",
+              "six==1.16.0 ; python_version < \"3.0\" or python_version >= \"3.3\""
+                  + " #trustify-da-ignore",
+              "chardet==4.0.0 ; python_version >= \"3.6\" and sys_platform == \"linux\""
+                  + " #trustify-da-ignore",
+              "flask==2.0.3"));
+      var provider = new PythonPipProvider(tempFile);
+      var ignored = provider.getIgnoredDependencies(Files.readString(tempFile));
+      var ignoredMap =
+          ignored.stream()
+              .collect(
+                  java.util.stream.Collectors.toMap(
+                      com.github.packageurl.PackageURL::getName,
+                      com.github.packageurl.PackageURL::getVersion));
+      assertThat(ignoredMap).containsEntry("requests", "2.25.1");
+      assertThat(ignoredMap).containsEntry("idna", "2.10");
+      assertThat(ignoredMap).containsEntry("six", "1.16.0");
+      assertThat(ignoredMap).containsEntry("chardet", "4.0.0");
+      assertThat(ignoredMap).doesNotContainKey("flask");
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
+  }
+
   private String dropIgnored(String s) {
     return s.replaceAll("\\s+", "").replaceAll("\"timestamp\":\"[a-zA-Z0-9\\-\\:]+\"", "");
   }

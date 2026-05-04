@@ -210,6 +210,11 @@ public final class PythonPipProvider extends PythonProvider {
   }
 
   private String[] splitToNameVersion(String nameVersion) {
+    // Strip PEP 508 environment markers (everything after ";")
+    int markerIndex = nameVersion.indexOf(';');
+    if (markerIndex != -1) {
+      nameVersion = nameVersion.substring(0, markerIndex).trim();
+    }
     String[] result;
     if (nameVersion.matches(
         "[a-zA-Z0-9-_()]+={2}[0-9]{1,4}[.][0-9]{1,4}(([.][0-9]{1,4})|([.][a-zA-Z0-9]+)|([a-zA-Z0-9]+)|([.][a-zA-Z0-9]+[.][a-z-A-Z0-9]+))?")) {
