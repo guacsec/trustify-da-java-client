@@ -17,7 +17,7 @@ pathspec==0.11.2
 pexpect==4.8.0
 pid==2.2.3
 pikepdf==8.6.0
-Pillow==10.1.0
+Pillow==12.2.0
 pipdeptree==2.13.0
 platformdirs==3.11.0
 play-requests==0.0.5
