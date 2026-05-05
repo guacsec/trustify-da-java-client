@@ -1042,7 +1042,7 @@ public final class ExhortApi implements Api {
             "gradle daListProjects failed with exit code "
                 + output.getExitCode()
                 + ": "
-                + output.getErrorOutput());
+                + output.getError());
         return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifestPaths, ignorePatterns);
       }
 
