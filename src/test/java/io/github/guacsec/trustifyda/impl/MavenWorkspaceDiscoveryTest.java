@@ -113,7 +113,7 @@ class MavenWorkspaceDiscoveryTest {
       // Mock Maven binary resolution
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Mock mvn help:evaluate for root pom -> returns [module-a, module-b]
       mockOps
@@ -162,7 +162,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Root -> [parent]
       mockOps
@@ -228,7 +228,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Root -> null (no modules)
       mockOps
@@ -257,7 +257,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Root -> [module-a, module-missing]
       mockOps
@@ -298,7 +298,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // mvn command fails with non-zero exit code
       mockOps
@@ -327,7 +327,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Root -> [module-a, module-b]
       mockOps
@@ -377,7 +377,7 @@ class MavenWorkspaceDiscoveryTest {
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
       mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getCustomPathOrElse("mvn")).thenReturn("mvn");
+      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
       // Root -> [module-a]
       mockOps

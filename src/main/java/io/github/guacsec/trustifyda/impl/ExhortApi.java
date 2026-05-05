@@ -30,8 +30,8 @@ import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
-import io.github.guacsec.trustifyda.providers.golang.model.GoWorkspace;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
+import io.github.guacsec.trustifyda.providers.golang.model.GoWorkspace;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
@@ -986,6 +986,7 @@ public final class ExhortApi implements Api {
       return Collections.emptyList();
     }
   }
+
   /**
    * Discovers Maven multi-module workspace manifests by invoking {@code mvn help:evaluate} to list
    * declared modules, then recursively checking each module for nested aggregators.
