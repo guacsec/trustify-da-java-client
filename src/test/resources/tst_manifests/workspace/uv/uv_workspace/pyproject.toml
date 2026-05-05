@@ -1,0 +1,13 @@
+[project]
+name = "uv-mono"
+version = "0.1.0"
+dependencies = [
+	"mid-pkg",
+	"flask==2.0.3"
+]
+
+[tool.uv.sources]
+mid-pkg = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
