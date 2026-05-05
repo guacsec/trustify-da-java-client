@@ -1078,7 +1078,7 @@ public final class ExhortApi implements Api {
     }
     String prefix = "::DA_PROJECT::";
     List<GradleProject> projects = new ArrayList<>();
-    for (String line : raw.split("\n")) {
+    for (String line : raw.lines().toList()) {
       if (!line.startsWith(prefix)) {
         continue;
       }
