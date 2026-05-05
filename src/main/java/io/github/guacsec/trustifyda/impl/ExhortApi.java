@@ -990,18 +990,18 @@ public final class ExhortApi implements Api {
    * Discovers Maven multi-module workspace manifests by invoking {@code mvn help:evaluate} to list
    * declared modules, then recursively checking each module for nested aggregators.
    *
-   * <p>Uses the same Maven binary selection as {@link
-   * io.github.guacsec.trustifyda.providers.JavaMavenProvider}, including wrapper support via {@code
-   * selectMvnRuntime}. Always includes the root {@code pom.xml}. Uses a visited set to prevent
-   * cycles in the module graph.
+   * <p>Uses {@link JavaMavenProvider#resolveVerifiedMavenBinary} for Maven binary resolution,
+   * including wrapper support. Always includes the root {@code pom.xml}. Uses a visited set to
+   * prevent cycles in the module graph.
    *
    * @param workspaceDir the root directory containing the aggregator pom.xml
    * @param ignorePatterns glob patterns for paths to exclude from results
-   * @return list of discovered pom.xml paths, or empty list if Maven is unavailable
+   * @return list of discovered pom.xml paths; always includes the root pom.xml even if Maven is
+   *     unavailable
    */
   private List<Path> discoverMavenModules(Path workspaceDir, Set<String> ignorePatterns) {
     Path rootPom = workspaceDir.resolve("pom.xml");
-    String mvnBin = resolveMavenBinary(workspaceDir);
+    String mvnBin = JavaMavenProvider.resolveVerifiedMavenBinary(workspaceDir).orElse(null);
     if (mvnBin == null) {
       LOG.warning("Maven binary not available; returning root pom.xml only");
       return List.of(rootPom);
@@ -1106,26 +1106,6 @@ public final class ExhortApi implements Api {
         .map(String::trim)
         .filter(s -> !s.isEmpty())
         .toList();
-  }
-
-  /**
-   * Resolves the Maven binary to use, following the same wrapper preference logic as {@link
-   * io.github.guacsec.trustifyda.providers.JavaMavenProvider#selectMvnRuntime}.
-   *
-   * @param startDir the directory from which to start searching for mvnw
-   * @return the resolved Maven binary path, or null if Maven is not available
-   */
-  private static String resolveMavenBinary(Path startDir) {
-    if (Operations.getWrapperPreference("mvn")) {
-      String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
-      String wrapper =
-          JavaMavenProvider.traverseForMvnw(
-              wrapperName, startDir.resolve("pom.xml").toString(), null);
-      if (wrapper != null) {
-        return wrapper;
-      }
-    }
-    return Operations.getCustomPathOrElse("mvn");
   }
 
   /**

@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLInputFactory;
@@ -431,27 +431,16 @@ public final class JavaMavenProvider extends BaseJavaProvider {
   }
 
   private String selectMvnRuntime(final Path manifestPath) {
-    boolean preferWrapper = Operations.getWrapperPreference(MVN);
-    if (preferWrapper && manifestPath != null) {
-      String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
-      String mvnw = traverseForMvnw(wrapperName, manifestPath.toString());
-      if (mvnw != null) {
-        try {
-          // verify maven wrapper is accessible
-          Operations.runProcess(manifestPath.getParent(), mvnw, ARG_VERSION);
-          if (debugLoggingIsNeeded()) {
-            log.info(String.format("using maven wrapper from : %s", mvnw));
-          }
-          return mvnw;
-        } catch (Exception e) {
-          log.log(
-              Level.WARNING,
-              "Failed to check for mvnw due to: {0} Fall back to use mvn",
-              e.getMessage());
+    Path dir = (manifestPath != null) ? manifestPath.getParent() : null;
+    if (dir != null) {
+      Optional<String> resolved = resolveVerifiedMavenBinary(dir);
+      if (resolved.isPresent()) {
+        if (debugLoggingIsNeeded()) {
+          log.info(String.format("using maven binary: %s", resolved.get()));
         }
+        return resolved.get();
       }
     }
-    // If maven wrapper is not requested or not accessible, fall back to use mvn
     String mvn = Operations.getExecutable(MVN, ARG_VERSION);
     if (debugLoggingIsNeeded()) {
       log.info(String.format("using mvn executable from : %s", mvn));
@@ -459,7 +448,28 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     return mvn;
   }
 
-  private String traverseForMvnw(String wrapperName, String startingManifest) {
+  public static Optional<String> resolveVerifiedMavenBinary(Path workspaceDir) {
+    if (Operations.getWrapperPreference(MVN)) {
+      String wrapperName = Operations.isWindows() ? "mvnw.cmd" : "mvnw";
+      String mvnw = traverseForMvnw(wrapperName, workspaceDir.resolve("pom.xml").toString());
+      if (mvnw != null) {
+        try {
+          Operations.runProcess(workspaceDir, mvnw, ARG_VERSION);
+          return Optional.of(mvnw);
+        } catch (Exception e) {
+          // wrapper found but not functional — fall through to system mvn
+        }
+      }
+    }
+    try {
+      String mvn = Operations.getExecutable(MVN, ARG_VERSION);
+      return Optional.of(mvn);
+    } catch (RuntimeException e) {
+      return Optional.empty();
+    }
+  }
+
+  private static String traverseForMvnw(String wrapperName, String startingManifest) {
     return traverseForMvnw(wrapperName, startingManifest, null);
   }
 
