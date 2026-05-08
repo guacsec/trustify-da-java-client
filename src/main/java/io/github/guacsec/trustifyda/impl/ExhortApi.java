@@ -851,7 +851,8 @@ public final class ExhortApi implements Api {
   }
 
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
-      Set.of("**/node_modules/**", "**/.git/**", "**/target/**", "**/__pycache__/**", "**/.venv/**");
+      Set.of(
+          "**/node_modules/**", "**/.git/**", "**/target/**", "**/__pycache__/**", "**/.venv/**");
 
   /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
@@ -1023,27 +1024,12 @@ public final class ExhortApi implements Api {
         return Collections.emptyList();
       }
 
-      List<String> memberPatterns = new ArrayList<>();
-      for (int i = 0; i < membersArray.size(); i++) {
-        String pattern = membersArray.getString(i);
-        if (pattern != null && !pattern.isBlank()) {
-          memberPatterns.add(pattern.trim());
-        }
-      }
+      List<String> memberPatterns = toStringList(membersArray);
       if (memberPatterns.isEmpty()) {
         return Collections.emptyList();
       }
 
-      Set<String> excludePatterns = new java.util.HashSet<>();
-      TomlArray excludeArray = workspaceConfig.getArray("exclude");
-      if (excludeArray != null) {
-        for (int i = 0; i < excludeArray.size(); i++) {
-          String pattern = excludeArray.getString(i);
-          if (pattern != null && !pattern.isBlank()) {
-            excludePatterns.add(pattern.trim());
-          }
-        }
-      }
+      List<String> excludePatterns = toStringList(workspaceConfig.getArray("exclude"));
 
       List<PathMatcher> memberMatchers =
           memberPatterns.stream()
@@ -1082,6 +1068,20 @@ public final class ExhortApi implements Api {
       LOG.log(Level.WARNING, "Failed to discover uv workspace members", e);
       return Collections.emptyList();
     }
+  }
+
+  static List<String> toStringList(TomlArray array) {
+    if (array == null) {
+      return List.of();
+    }
+    List<String> result = new ArrayList<>();
+    for (int i = 0; i < array.size(); i++) {
+      String s = array.getString(i);
+      if (s != null && !s.isBlank()) {
+        result.add(s.trim());
+      }
+    }
+    return result;
   }
 
   /**
