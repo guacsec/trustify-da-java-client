@@ -35,6 +35,7 @@ module io.github.guacsec.trustifyda {
 
   exports io.github.guacsec.trustifyda.providers;
   exports io.github.guacsec.trustifyda.providers.javascript.model;
+  exports io.github.guacsec.trustifyda.providers.gradle.workspace;
   exports io.github.guacsec.trustifyda.providers.javascript.workspace;
   exports io.github.guacsec.trustifyda.providers.rust.model;
   exports io.github.guacsec.trustifyda.providers.golang.model;

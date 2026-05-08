@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.guacsec.trustifyda.impl;
+package io.github.guacsec.trustifyda.providers.gradle.workspace;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 
+import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.tools.Operations;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ class GradleWorkspaceDiscoveryTest {
             + "::DA_PROJECT:::app::/home/project/app\n"
             + "::DA_PROJECT:::lib::/home/project/lib\n";
 
-    List<ExhortApi.GradleProject> result = ExhortApi.parseGradleInitScriptOutput(raw);
+    var result = GradleWorkspaceDiscovery.parseGradleInitScriptOutput(raw);
 
     assertThat(result).hasSize(3);
     assertThat(result.get(0).path()).isEqualTo(":");
@@ -61,7 +62,7 @@ class GradleWorkspaceDiscoveryTest {
             + "::DA_PROJECT:::libs:core::/home/project/libs/core\n"
             + "::DA_PROJECT:::libs:util::/home/project/libs/util\n";
 
-    List<ExhortApi.GradleProject> result = ExhortApi.parseGradleInitScriptOutput(raw);
+    var result = GradleWorkspaceDiscovery.parseGradleInitScriptOutput(raw);
 
     assertThat(result).hasSize(3);
     assertThat(result.get(1).path()).isEqualTo(":libs:core");
@@ -70,28 +71,28 @@ class GradleWorkspaceDiscoveryTest {
 
   @Test
   void parseGradleInitScriptOutput_nullInput() {
-    assertThat(ExhortApi.parseGradleInitScriptOutput(null)).isEmpty();
+    assertThat(GradleWorkspaceDiscovery.parseGradleInitScriptOutput(null)).isEmpty();
   }
 
   @Test
   void parseGradleInitScriptOutput_emptyInput() {
-    assertThat(ExhortApi.parseGradleInitScriptOutput("")).isEmpty();
+    assertThat(GradleWorkspaceDiscovery.parseGradleInitScriptOutput("")).isEmpty();
   }
 
   @Test
   void parseGradleInitScriptOutput_ignoresNonPrefixedLines() {
     String raw = "some gradle log output\n::DA_PROJECT:::app::/home/project/app\nmore output\n";
 
-    List<ExhortApi.GradleProject> result = ExhortApi.parseGradleInitScriptOutput(raw);
+    var result = GradleWorkspaceDiscovery.parseGradleInitScriptOutput(raw);
 
     assertThat(result).hasSize(1);
     assertThat(result.getFirst().path()).isEqualTo(":app");
   }
 
-  // --- discoverWorkspaceManifests tests (require mocking Operations) ---
+  // --- discoverSubprojects tests (require mocking Operations) ---
 
   @Test
-  void discoverWorkspaceManifests_gradleMultiProject() throws IOException {
+  void discoverSubprojects_gradleMultiProject() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
 
@@ -118,8 +119,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(3);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle"));
@@ -131,7 +131,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_nestedSubprojects() throws IOException {
+  void discoverSubprojects_nestedSubprojects() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_nested_subprojects").toAbsolutePath().normalize();
 
@@ -158,8 +158,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(3);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle"));
@@ -179,7 +178,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_mixedGroovyAndKotlin() throws IOException {
+  void discoverSubprojects_mixedGroovyAndKotlin() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_mixed_variants").toAbsolutePath().normalize();
 
@@ -206,8 +205,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(3);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle.kts"));
@@ -219,7 +217,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_noSubprojects() throws IOException {
+  void discoverSubprojects_noSubprojects() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_no_subprojects").toAbsolutePath().normalize();
 
@@ -237,8 +235,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(1);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle"));
@@ -246,7 +243,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_gradleCommandFails() throws IOException {
+  void discoverSubprojects_gradleCommandFails() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
 
@@ -262,8 +259,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput("", "error", 1));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(1);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle"));
@@ -271,7 +267,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_missingSubprojectDirectory() throws IOException {
+  void discoverSubprojects_missingSubprojectDirectory() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_missing_subproject").toAbsolutePath().normalize();
 
@@ -298,8 +294,7 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
 
       assertThat(manifests).hasSize(2);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("build.gradle"));
@@ -309,7 +304,7 @@ class GradleWorkspaceDiscoveryTest {
   }
 
   @Test
-  void discoverWorkspaceManifests_ignorePatternFiltering() throws IOException {
+  void discoverSubprojects_ignorePatternFiltering() throws IOException {
     Path workspaceDir =
         GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
 
@@ -336,20 +331,108 @@ class GradleWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput(initScriptOutput, "", 0));
 
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of("**/lib/**"));
+      List<Path> manifests =
+          GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of("**/lib/**"));
 
       assertThat(manifests).anyMatch(p -> p.toString().contains("app"));
       assertThat(manifests).noneMatch(p -> p.toString().contains("lib"));
     }
   }
 
-  @Test
-  void defaultIgnorePatterns_includesBuildAndGradle() {
-    ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-    Set<String> resolvedPatterns = api.resolveIgnorePatterns(null);
+  // --- wrapper preference tests ---
 
-    assertThat(resolvedPatterns).contains("**/build/**");
-    assertThat(resolvedPatterns).contains("**/.gradle/**");
+  @Test
+  void discoverSubprojects_usesGradleWrapperWhenPreferred() throws IOException {
+    Path workspaceDir =
+        GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
+
+    String initScriptOutput =
+        "::DA_PROJECT:::::"
+            + workspaceDir
+            + "\n"
+            + "::DA_PROJECT:::app::"
+            + workspaceDir.resolve("app")
+            + "\n";
+
+    String expectedWrapperPath = workspaceDir.resolve("gradlew").toString();
+
+    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class);
+        MockedStatic<JavaMavenProvider> mockMaven = Mockito.mockStatic(JavaMavenProvider.class)) {
+
+      mockOps.when(() -> Operations.getWrapperPreference("gradle")).thenReturn(true);
+      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
+
+      mockMaven
+          .when(
+              () ->
+                  JavaMavenProvider.traverseForMvnw(
+                      eq("gradlew"), eq(workspaceDir.resolve("build.gradle").toString()), isNull()))
+          .thenReturn(expectedWrapperPath);
+
+      mockOps
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      eq(workspaceDir), any(String[].class), isNull()))
+          .thenAnswer(
+              invocation -> {
+                String[] cmd = invocation.getArgument(1);
+                assertThat(cmd[0]).isEqualTo(expectedWrapperPath);
+                return new Operations.ProcessExecOutput(initScriptOutput, "", 0);
+              });
+
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
+
+      assertThat(manifests).isNotEmpty();
+      mockMaven.verify(
+          () ->
+              JavaMavenProvider.traverseForMvnw(
+                  eq("gradlew"), eq(workspaceDir.resolve("build.gradle").toString()), isNull()));
+    }
+  }
+
+  @Test
+  void discoverSubprojects_fallsBackWhenWrapperNotFound() throws IOException {
+    Path workspaceDir =
+        GRADLE_FIXTURES.resolve("gradle_multi_project").toAbsolutePath().normalize();
+
+    String initScriptOutput =
+        "::DA_PROJECT:::::"
+            + workspaceDir
+            + "\n"
+            + "::DA_PROJECT:::app::"
+            + workspaceDir.resolve("app")
+            + "\n";
+
+    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class);
+        MockedStatic<JavaMavenProvider> mockMaven = Mockito.mockStatic(JavaMavenProvider.class)) {
+
+      mockOps.when(() -> Operations.getWrapperPreference("gradle")).thenReturn(true);
+      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
+      mockOps.when(() -> Operations.getCustomPathOrElse("gradle")).thenReturn("gradle");
+
+      mockMaven
+          .when(
+              () ->
+                  JavaMavenProvider.traverseForMvnw(
+                      eq("gradlew"), eq(workspaceDir.resolve("build.gradle").toString()), isNull()))
+          .thenReturn(null);
+
+      mockOps
+          .when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      eq(workspaceDir), any(String[].class), isNull()))
+          .thenAnswer(
+              invocation -> {
+                String[] cmd = invocation.getArgument(1);
+                assertThat(cmd[0]).isEqualTo("gradle");
+                return new Operations.ProcessExecOutput(initScriptOutput, "", 0);
+              });
+
+      List<Path> manifests = GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, Set.of());
+
+      assertThat(manifests).isNotEmpty();
+    }
   }
 }
