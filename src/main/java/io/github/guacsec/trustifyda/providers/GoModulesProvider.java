@@ -390,7 +390,8 @@ public final class GoModulesProvider extends Provider {
   static Map<String, String> parseModuleVersions(String goListOutput) {
     return Arrays.stream(goListOutput.split(Operations.GENERIC_LINE_SEPARATOR))
         .map(String::trim)
-        .map(line -> line.split(" "))
+        .filter(line -> !line.isEmpty())
+        .map(line -> line.split("\\s+"))
         .filter(parts -> parts.length == 2 || (parts.length >= 4 && parts[2].equals("=>")))
         .collect(
             Collectors.toMap(
