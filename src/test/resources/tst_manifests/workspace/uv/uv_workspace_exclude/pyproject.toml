@@ -1,0 +1,8 @@
+[project]
+name = "exclude-workspace"
+version = "0.1.0"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["packages/*"]
+exclude = ["packages/internal"]

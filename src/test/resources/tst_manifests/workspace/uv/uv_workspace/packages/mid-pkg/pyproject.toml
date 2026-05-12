@@ -1,0 +1,9 @@
+[project]
+name = "mid-pkg"
+version = "0.1.0"
+dependencies = [
+	"sub-pkg",
+]
+
+[tool.uv.sources]
+sub-pkg = { workspace = true }

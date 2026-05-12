@@ -32,11 +32,13 @@ import io.github.guacsec.trustifyda.license.LicenseCheck;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
 import io.github.guacsec.trustifyda.providers.golang.model.GoWorkspace;
+import io.github.guacsec.trustifyda.providers.gradle.workspace.GradleWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.javascript.workspace.JsWorkspaceDiscovery;
 import io.github.guacsec.trustifyda.providers.rust.model.CargoMetadata;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
+import io.github.guacsec.trustifyda.utils.PyprojectTomlUtils;
 import io.github.guacsec.trustifyda.utils.WorkspaceUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
@@ -51,8 +53,10 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
@@ -68,8 +72,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlParseResult;
+import org.tomlj.TomlTable;
 
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
@@ -844,7 +852,14 @@ public final class ExhortApi implements Api {
   }
 
   private static final Set<String> DEFAULT_WORKSPACE_DISCOVERY_IGNORE =
-      Set.of("**/node_modules/**", "**/.git/**", "**/target/**");
+      Set.of(
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/target/**",
+          "**/__pycache__/**",
+          "**/.venv/**",
+          "**/build/**",
+          "**/.gradle/**");
 
   /** Merges default ignore patterns, env var overrides, and caller-provided patterns. */
   Set<String> resolveIgnorePatterns(Set<String> callerPatterns) {
@@ -893,6 +908,23 @@ public final class ExhortApi implements Api {
       if (!mavenManifests.isEmpty()) {
         return mavenManifests;
       }
+    }
+
+    // uv workspace: pyproject.toml with [tool.uv.workspace] + uv.lock
+    if (Files.isRegularFile(workspaceDir.resolve("pyproject.toml"))
+        && Files.isRegularFile(workspaceDir.resolve("uv.lock"))) {
+      List<Path> uvManifests = discoverUvWorkspaceMembers(workspaceDir, ignorePatterns);
+      if (!uvManifests.isEmpty()) {
+        return uvManifests;
+      }
+    }
+
+    // Gradle multi-project: settings.gradle or settings.gradle.kts
+    boolean hasGradleSettings =
+        Files.isRegularFile(workspaceDir.resolve("settings.gradle"))
+            || Files.isRegularFile(workspaceDir.resolve("settings.gradle.kts"));
+    if (hasGradleSettings) {
+      return GradleWorkspaceDiscovery.discoverSubprojects(workspaceDir, ignorePatterns);
     }
 
     // JS workspace: require package.json + a lock file
@@ -985,6 +1017,86 @@ public final class ExhortApi implements Api {
       LOG.warning("Failed to discover Go workspace modules: " + e.getMessage());
       return Collections.emptyList();
     }
+  }
+
+  /**
+   * Discover all pyproject.toml manifest paths in a uv workspace. Parses the root pyproject.toml
+   * for {@code [tool.uv.workspace]} member and exclude globs, then walks the filesystem to find
+   * matching member directories.
+   */
+  private List<Path> discoverUvWorkspaceMembers(Path workspaceDir, Set<String> ignorePatterns) {
+    try {
+      Path rootPyproject = workspaceDir.resolve("pyproject.toml");
+      TomlParseResult toml = PyprojectTomlUtils.parseToml(rootPyproject);
+
+      TomlTable workspaceConfig = toml.getTable("tool.uv.workspace");
+      if (workspaceConfig == null) {
+        return Collections.emptyList();
+      }
+
+      TomlArray membersArray = workspaceConfig.getArray("members");
+      if (membersArray == null || membersArray.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      List<String> memberPatterns = toStringList(membersArray);
+      if (memberPatterns.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      List<String> excludePatterns = toStringList(workspaceConfig.getArray("exclude"));
+
+      List<PathMatcher> memberMatchers =
+          memberPatterns.stream()
+              .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+              .toList();
+
+      List<PathMatcher> excludeMatchers =
+          excludePatterns.stream()
+              .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+              .toList();
+
+      List<Path> manifests = new ArrayList<>();
+      try (var stream = Files.walk(workspaceDir)) {
+        stream
+            .filter(p -> p.getFileName().toString().equals("pyproject.toml"))
+            .filter(p -> !p.equals(rootPyproject))
+            .forEach(
+                p -> {
+                  Path relative = workspaceDir.relativize(p.getParent());
+                  boolean matchesMember =
+                      memberMatchers.stream().anyMatch(m -> m.matches(relative));
+                  boolean matchesExclude =
+                      excludeMatchers.stream().anyMatch(m -> m.matches(relative));
+                  if (matchesMember && !matchesExclude) {
+                    manifests.add(p);
+                  }
+                });
+      }
+
+      if (PyprojectTomlUtils.getProjectName(toml) != null) {
+        manifests.addFirst(rootPyproject);
+      }
+
+      return WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
+    } catch (Exception e) {
+      LOG.log(Level.WARNING, "Failed to discover uv workspace members", e);
+      return Collections.emptyList();
+    }
+  }
+
+  static List<String> toStringList(TomlArray array) {
+    if (array == null) {
+      return List.of();
+    }
+    List<String> result = new ArrayList<>();
+    for (int i = 0; i < array.size(); i++) {
+      String s = array.getString(i);
+      if (s != null && !s.isBlank()) {
+        result.add(s.trim());
+      }
+    }
+    return result;
   }
 
   /**
