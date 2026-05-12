@@ -347,12 +347,7 @@ public final class GoModulesProvider extends Provider {
     Operations.runProcessGetOutput(manifestPath.getParent(), goExecutable, "mod", "download");
     String finalVersionsForAllModules =
         Operations.runProcessGetOutput(manifestPath.getParent(), goExecutable, "list", "-m", "all");
-    Map<String, String> finalModulesVersions =
-        Arrays.stream(finalVersionsForAllModules.split(Operations.GENERIC_LINE_SEPARATOR))
-            .filter(string -> string.trim().split(" ").length == 2)
-            .collect(
-                Collectors.toMap(
-                    t -> t.split(" ")[0], t -> t.split(" ")[1], (first, second) -> second));
+    Map<String, String> finalModulesVersions = parseModuleVersions(finalVersionsForAllModules);
     Map<String, List<String>> listWithModifiedVersions = new HashMap<>();
     // Process all entries, including those without versions (like the root module)
     edges.forEach(
@@ -385,6 +380,25 @@ public final class GoModulesProvider extends Provider {
         });
 
     return listWithModifiedVersions;
+  }
+
+  /**
+   * Parses {@code go list -m all} output into a map of module names to their final resolved
+   * versions. Handles both standard lines ({@code name version}) and replace directive lines
+   * ({@code name v1 => replacement v2}).
+   */
+  static Map<String, String> parseModuleVersions(String goListOutput) {
+    return Arrays.stream(goListOutput.split(Operations.GENERIC_LINE_SEPARATOR))
+        .map(String::trim)
+        .filter(line -> !line.isEmpty())
+        .map(line -> line.split("\\s+"))
+        .filter(parts -> parts.length == 2 || (parts.length >= 4 && parts[2].equals("=>")))
+        .collect(
+            Collectors.toMap(
+                parts -> parts[0],
+                parts ->
+                    parts.length >= 4 && parts[2].equals("=>") ? parts[parts.length - 1] : parts[1],
+                (first, second) -> second));
   }
 
   private List<String> getListOfPackagesWithFinalVersions(
