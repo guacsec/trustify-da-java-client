@@ -566,7 +566,8 @@ public final class GoModulesProvider extends Provider {
       // comment ( e.g // indirect  //exhort)
       // then this line is to be checked if it's a comment after a package name.
       if (Pattern.matches(".+//\\s*(exhortignore|trustify-da-ignore)", line)
-          || Pattern.matches(".+//\\sindirect (//)?\\s*(exhortignore|trustify-da-ignore)", line)) {
+          || Pattern.matches(
+              ".+//\\s*indirect\\s*;?\\s*(//)?\\s*(exhortignore|trustify-da-ignore)", line)) {
         String trimmedRow = line.trim();
         // filter out lines where exhortignore or trustify-da-ignore has no meaning
         if (!trimmedRow.startsWith("module ")
