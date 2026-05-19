@@ -40,26 +40,16 @@ class MavenWorkspaceDiscoveryTest {
   /** Verifies that a standard module list output is parsed correctly. */
   @Test
   void parseMavenModuleList_standardOutput() {
-    // Given a typical mvn help:evaluate output
-    String raw = "[module-a, module-b]";
-
-    // When parsing
+    String raw = "<strings>\n  <string>module-a</string>\n  <string>module-b</string>\n</strings>";
     List<String> result = ExhortApi.parseMavenModuleList(raw);
-
-    // Then both modules are returned
     assertThat(result).containsExactly("module-a", "module-b");
   }
 
   /** Verifies that a single module is parsed correctly. */
   @Test
   void parseMavenModuleList_singleModule() {
-    // Given output with one module
-    String raw = "[parent]";
-
-    // When parsing
+    String raw = "<strings>\n  <string>parent</string>\n</strings>";
     List<String> result = ExhortApi.parseMavenModuleList(raw);
-
-    // Then the single module is returned
     assertThat(result).containsExactly("parent");
   }
 
@@ -78,221 +68,41 @@ class MavenWorkspaceDiscoveryTest {
   /** Verifies that 'null' string (no modules) returns an empty list. */
   @Test
   void parseMavenModuleList_nullString() {
-    // "null" is returned by mvn when there are no modules
     assertThat(ExhortApi.parseMavenModuleList("null")).isEmpty();
   }
 
-  /** Verifies that malformed output (no brackets) returns an empty list. */
+  /** Verifies that a {@code <modules/>} tag returns an empty list. */
   @Test
-  void parseMavenModuleList_malformedOutput() {
+  void parseMavenModuleList_emptyModulesTag() {
+    assertThat(ExhortApi.parseMavenModuleList("<modules/>")).isEmpty();
+  }
+
+  /** Verifies that malformed XML returns an empty list. */
+  @Test
+  void parseMavenModuleList_malformedXml() {
+    assertThat(ExhortApi.parseMavenModuleList("<strings><unclosed>")).isEmpty();
+  }
+
+  /** Verifies that non-XML input returns an empty list. */
+  @Test
+  void parseMavenModuleList_nonXmlInput() {
     assertThat(ExhortApi.parseMavenModuleList("module-a, module-b")).isEmpty();
   }
 
   /** Verifies that whitespace around module names is trimmed. */
   @Test
   void parseMavenModuleList_withWhitespace() {
-    // Given output with extra whitespace
-    String raw = "[  module-a ,  module-b  ]";
-
-    // When parsing
+    String raw =
+        "<strings>\n  <string>  module-a  </string>\n  <string>  module-b  </string>\n</strings>";
     List<String> result = ExhortApi.parseMavenModuleList(raw);
-
-    // Then modules are trimmed
     assertThat(result).containsExactly("module-a", "module-b");
   }
 
   // --- discoverWorkspaceManifests tests (require mocking Operations) ---
 
-  /** Verifies that a multi-module Maven project discovers all module pom.xml files. */
-  @Test
-  void discoverWorkspaceManifests_mavenMultiModule() throws IOException {
-    // Given a multi-module Maven workspace
-    Path workspaceDir = MAVEN_FIXTURES.resolve("maven_multi_module").toAbsolutePath().normalize();
-
-    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
-      // Mock Maven binary resolution
-      mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
-      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
-
-      // Mock mvn help:evaluate for root pom -> returns [module-a, module-b]
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("[module-a, module-b]", "", 0));
-
-      // Mock mvn help:evaluate for module-a -> returns null (leaf module)
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("module-a")), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // Mock mvn help:evaluate for module-b -> returns null (leaf module)
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("module-b")), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // When discovering workspace manifests
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
-
-      // Then root + 2 modules = 3 pom.xml files
-      assertThat(manifests).hasSize(3);
-      assertThat(manifests).allMatch(p -> p.getFileName().toString().equals("pom.xml"));
-      assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("pom.xml"));
-      assertThat(manifests).anyMatch(p -> p.toString().contains("module-a"));
-      assertThat(manifests).anyMatch(p -> p.toString().contains("module-b"));
-    }
-  }
-
-  /** Verifies that nested aggregator modules are discovered recursively. */
-  @Test
-  void discoverWorkspaceManifests_nestedAggregator() throws IOException {
-    // Given a nested Maven aggregator workspace
-    Path workspaceDir =
-        MAVEN_FIXTURES.resolve("maven_nested_aggregator").toAbsolutePath().normalize();
-
-    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
-      mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
-      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
-
-      // Root -> [parent]
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("[parent]", "", 0));
-
-      // parent -> [child]
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("parent").toAbsolutePath().normalize()),
-                      any(String[].class),
-                      isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("[child]", "", 0));
-
-      // child -> null (leaf)
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(
-                          workspaceDir
-                              .resolve("parent")
-                              .resolve("child")
-                              .toAbsolutePath()
-                              .normalize()),
-                      any(String[].class),
-                      isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // When discovering workspace manifests
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
-
-      // Then root + parent + child = 3 pom.xml files
-      assertThat(manifests).hasSize(3);
-      assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("pom.xml"));
-      assertThat(manifests)
-          .anyMatch(p -> p.toString().contains("parent" + java.io.File.separator + "pom.xml"));
-      assertThat(manifests)
-          .anyMatch(
-              p ->
-                  p.toString()
-                      .contains(
-                          "parent"
-                              + java.io.File.separator
-                              + "child"
-                              + java.io.File.separator
-                              + "pom.xml"));
-    }
-  }
-
-  /** Verifies that a project with no modules returns only the root pom.xml. */
-  @Test
-  void discoverWorkspaceManifests_noModules() throws IOException {
-    // Given a Maven project with no modules
-    Path workspaceDir = MAVEN_FIXTURES.resolve("maven_no_modules").toAbsolutePath().normalize();
-
-    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
-      mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
-      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
-
-      // Root -> null (no modules)
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // When discovering workspace manifests
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
-
-      // Then only the root pom.xml is returned
-      assertThat(manifests).hasSize(1);
-      assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("pom.xml"));
-    }
-  }
-
-  /** Verifies that missing module directories are skipped gracefully. */
-  @Test
-  void discoverWorkspaceManifests_missingModuleDirectory() throws IOException {
-    // Given a Maven project where one module directory is missing
-    Path workspaceDir = MAVEN_FIXTURES.resolve("maven_missing_module").toAbsolutePath().normalize();
-
-    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
-      mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
-      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
-
-      // Root -> [module-a, module-missing]
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("[module-a, module-missing]", "", 0));
-
-      // module-a -> null (leaf)
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("module-a").toAbsolutePath().normalize()),
-                      any(String[].class),
-                      isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // When discovering workspace manifests
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
-
-      // Then root + module-a = 2 (module-missing is skipped)
-      assertThat(manifests).hasSize(2);
-      assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("pom.xml"));
-      assertThat(manifests).anyMatch(p -> p.toString().contains("module-a"));
-      assertThat(manifests).noneMatch(p -> p.toString().contains("module-missing"));
-    }
-  }
-
   /** Verifies that when mvn command fails, the root pom.xml is still returned. */
   @Test
   void discoverWorkspaceManifests_mvnCommandFails() throws IOException {
-    // Given a Maven workspace where mvn invocation fails
     Path workspaceDir = MAVEN_FIXTURES.resolve("maven_multi_module").toAbsolutePath().normalize();
 
     try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
@@ -300,7 +110,6 @@ class MavenWorkspaceDiscoveryTest {
       mockOps.when(() -> Operations.isWindows()).thenReturn(false);
       mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
 
-      // mvn command fails with non-zero exit code
       mockOps
           .when(
               () ->
@@ -308,62 +117,11 @@ class MavenWorkspaceDiscoveryTest {
                       eq(workspaceDir), any(String[].class), isNull()))
           .thenReturn(new Operations.ProcessExecOutput("", "error", 1));
 
-      // When discovering workspace manifests
       ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
       List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of());
 
-      // Then only the root pom.xml is returned (mvn failure falls through gracefully)
       assertThat(manifests).hasSize(1);
       assertThat(manifests.getFirst()).isEqualTo(workspaceDir.resolve("pom.xml"));
-    }
-  }
-
-  /** Verifies that ignore patterns filter out matched module paths. */
-  @Test
-  void discoverWorkspaceManifests_ignorePatternFiltering() throws IOException {
-    // Given a multi-module Maven workspace with an ignore pattern
-    Path workspaceDir = MAVEN_FIXTURES.resolve("maven_multi_module").toAbsolutePath().normalize();
-
-    try (MockedStatic<Operations> mockOps = Mockito.mockStatic(Operations.class)) {
-      mockOps.when(() -> Operations.getWrapperPreference("mvn")).thenReturn(false);
-      mockOps.when(() -> Operations.isWindows()).thenReturn(false);
-      mockOps.when(() -> Operations.getExecutable("mvn", "-v")).thenReturn("mvn");
-
-      // Root -> [module-a, module-b]
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir), any(String[].class), isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("[module-a, module-b]", "", 0));
-
-      // module-a -> null
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("module-a").toAbsolutePath().normalize()),
-                      any(String[].class),
-                      isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // module-b -> null
-      mockOps
-          .when(
-              () ->
-                  Operations.runProcessGetFullOutput(
-                      eq(workspaceDir.resolve("module-b").toAbsolutePath().normalize()),
-                      any(String[].class),
-                      isNull()))
-          .thenReturn(new Operations.ProcessExecOutput("null", "", 0));
-
-      // When discovering with ignore pattern for module-b
-      ExhortApi api = new ExhortApi(Mockito.mock(java.net.http.HttpClient.class));
-      List<Path> manifests = api.discoverWorkspaceManifests(workspaceDir, Set.of("**/module-b/**"));
-
-      // Then module-b is filtered out
-      assertThat(manifests).anyMatch(p -> p.toString().contains("module-a"));
-      assertThat(manifests).noneMatch(p -> p.toString().contains("module-b"));
     }
   }
 

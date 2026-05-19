@@ -44,6 +44,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -75,9 +76,11 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
+import org.xml.sax.InputSource;
 
 /** Concrete implementation of the Exhort {@link Api} Service. */
 public final class ExhortApi implements Api {
@@ -1198,27 +1201,43 @@ public final class ExhortApi implements Api {
   }
 
   /**
-   * Parses the output of {@code mvn help:evaluate -Dexpression=project.modules} which returns a
-   * string like {@code [module-a, module-b]}.
+   * Parses the XML output of {@code mvn help:evaluate -Dexpression=project.modules}. The output
+   * format is {@code <strings><string>module-a</string><string>module-b</string></strings>}.
    *
    * @param raw the raw output string
    * @return list of module name strings
    */
   static List<String> parseMavenModuleList(String raw) {
-    if (raw == null || raw.isEmpty()) {
+    if (raw == null || raw.isEmpty() || "null".equals(raw.trim())) {
       return Collections.emptyList();
     }
-    // Expected format: [module-a, module-b, ...]
-    java.util.regex.Matcher matcher =
-        java.util.regex.Pattern.compile("^\\[(.+)]$").matcher(raw.trim());
-    if (!matcher.matches()) {
+    String trimmed = raw.trim();
+    if (!trimmed.startsWith("<strings")) {
       return Collections.emptyList();
     }
-    String inner = matcher.group(1);
-    return java.util.Arrays.stream(inner.split(","))
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .toList();
+    try {
+      var factory = DocumentBuilderFactory.newInstance();
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+      factory.setXIncludeAware(false);
+      factory.setExpandEntityReferences(false);
+      var builder = factory.newDocumentBuilder();
+      var doc = builder.parse(new InputSource(new StringReader(trimmed)));
+      var nodes = doc.getElementsByTagName("string");
+      List<String> modules = new ArrayList<>(nodes.getLength());
+      for (int i = 0; i < nodes.getLength(); i++) {
+        String text = nodes.item(i).getTextContent().trim();
+        if (!text.isEmpty()) {
+          modules.add(text);
+        }
+      }
+      return modules;
+    } catch (Exception e) {
+      LOG.log(Level.WARNING, "Failed to parse Maven module list XML", e);
+      return Collections.emptyList();
+    }
   }
 
   /**
