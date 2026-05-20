@@ -112,10 +112,9 @@ public abstract class PythonControllerBase {
 
   private void installingRequirementsOneByOne(String pathToRequirements) {
     try {
-      List<String> requirementsRows = Files.readAllLines(Path.of(pathToRequirements));
+      List<String> requirementsRows =
+          preprocessRequirementsLines(Files.readAllLines(Path.of(pathToRequirements)));
       requirementsRows.stream()
-          .filter((line) -> !line.trim().startsWith("#"))
-          .filter((line) -> !line.trim().isEmpty())
           .forEach(
               (dependency) -> {
                 String dependencyName = getDependencyName(dependency);
@@ -151,11 +150,7 @@ public abstract class PythonControllerBase {
     }
     List<String> linesOfRequirements;
     try {
-      linesOfRequirements =
-          Files.readAllLines(requirementsPath).stream()
-              .filter((line) -> !line.trim().startsWith("#") && !line.trim().isEmpty())
-              .map(String::trim)
-              .collect(Collectors.toList());
+      linesOfRequirements = preprocessRequirementsLines(Files.readAllLines(requirementsPath));
     } catch (IOException e) {
       log.warning(
           "Error while trying to read the requirements.txt file, will not be able to install"
@@ -375,6 +370,63 @@ public abstract class PythonControllerBase {
     String versionToken = pipShowOutput.substring(versionKeyIndex + 5);
     int endOfLine = versionToken.indexOf(System.lineSeparator());
     return versionToken.substring(0, endOfLine).trim();
+  }
+
+  /**
+   * Preprocesses raw requirements.txt lines by joining line continuations, stripping inline
+   * options, and filtering out pip option lines, URLs, local paths, and empty/comment lines.
+   */
+  public static List<String> preprocessRequirementsLines(List<String> rawLines) {
+    // Join line continuations (trailing backslash, possibly followed by whitespace)
+    List<String> joined = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+    for (String line : rawLines) {
+      String stripped = line.stripTrailing();
+      if (stripped.endsWith("\\")) {
+        current.append(stripped, 0, stripped.length() - 1);
+      } else {
+        current.append(line);
+        joined.add(current.toString());
+        current = new StringBuilder();
+      }
+    }
+    if (current.length() > 0) {
+      joined.add(current.toString());
+    }
+
+    List<String> result = new ArrayList<>();
+    for (String raw : joined) {
+      String line = raw.trim();
+      if (line.isEmpty() || line.startsWith("#")) {
+        continue;
+      }
+      // Filter out pip options (lines starting with -)
+      if (line.startsWith("-")) {
+        continue;
+      }
+      // Filter out local path requirements (./path, ../path, /abs/path)
+      if (line.startsWith("./") || line.startsWith("../") || line.startsWith("/")) {
+        continue;
+      }
+      // Strip PEP 508 direct references (name @ url -> name) before URL check
+      int atIndex = line.indexOf(" @ ");
+      if (atIndex != -1) {
+        line = line.substring(0, atIndex).trim();
+      }
+      // Strip inline pip options (--hash=..., --config-settings=..., etc.)
+      int optionIndex = line.indexOf(" --");
+      if (optionIndex != -1) {
+        line = line.substring(0, optionIndex).trim();
+      }
+      // Filter out bare URLs and VCS URLs (any line containing :// is not a package name)
+      if (line.contains("://")) {
+        continue;
+      }
+      if (!line.isEmpty()) {
+        result.add(line);
+      }
+    }
+    return result;
   }
 
   public static String getDependencyName(String dep) {
