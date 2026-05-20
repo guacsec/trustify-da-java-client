@@ -54,4 +54,20 @@ class CargoProviderLicenseTest extends ExhortTest {
     String license = provider.readLicenseFromManifest();
     assertThat(license).isNull();
   }
+
+  /** Verifies that workspace-inherited license resolves from [workspace.package]. */
+  @Test
+  void readLicenseFromManifest_returns_license_from_workspace_inheritance() {
+    var provider = createProvider("cargo_workspace_license_inheritance");
+    String license = provider.readLicenseFromManifest();
+    assertThat(license).isEqualTo("Apache-2.0");
+  }
+
+  /** Verifies graceful fallback when workspace inheritance has no license in workspace section. */
+  @Test
+  void readLicenseFromManifest_returns_null_when_workspace_inheritance_but_no_workspace_license() {
+    var provider = createProvider("cargo_workspace_license_inheritance_no_license");
+    String license = provider.readLicenseFromManifest();
+    assertThat(license).isNull();
+  }
 }

@@ -71,6 +71,9 @@ public final class CargoProvider extends Provider {
   private static final String PACKAGE_VERSION = "package.version";
   private static final String PACKAGE_VERSION_WORKSPACE = "package.version.workspace";
   private static final String WORKSPACE_PACKAGE_VERSION = "workspace.package.version";
+  private static final String PACKAGE_LICENSE = "package.license";
+  private static final String PACKAGE_LICENSE_WORKSPACE = "package.license.workspace";
+  private static final String WORKSPACE_PACKAGE_LICENSE = "workspace.package.license";
   private static final long TIMEOUT =
       Long.parseLong(System.getProperty("trustify.cargo.timeout.seconds", "5"));
   private final String cargoExecutable;
@@ -671,7 +674,16 @@ public final class CargoProvider extends Provider {
       if (tomlResult.hasErrors()) {
         return null;
       }
-      String license = tomlResult.getString("package.license");
+      String license = null;
+      Object licenseValue = tomlResult.get(PACKAGE_LICENSE);
+      if (licenseValue instanceof String) {
+        license = (String) licenseValue;
+      } else if (licenseValue != null) {
+        Boolean isWorkspaceLicense = tomlResult.getBoolean(PACKAGE_LICENSE_WORKSPACE);
+        if (Boolean.TRUE.equals(isWorkspaceLicense)) {
+          license = tomlResult.getString(WORKSPACE_PACKAGE_LICENSE);
+        }
+      }
       return LicenseUtils.getLicense(license, manifestPath);
     } catch (IOException e) {
       log.warning("Failed to read license from Cargo.toml: " + e.getMessage());
