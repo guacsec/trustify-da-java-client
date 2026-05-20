@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -372,6 +374,9 @@ public abstract class PythonControllerBase {
     return versionToken.substring(0, endOfLine).trim();
   }
 
+  private static final Pattern INLINE_OPTION_PATTERN = Pattern.compile("\\s--");
+  private static final Pattern WINDOWS_DRIVE_PATH_PATTERN = Pattern.compile("^[a-zA-Z]:[/\\\\]");
+
   /**
    * Preprocesses raw requirements.txt lines by joining line continuations, stripping inline
    * options, and filtering out pip option lines, URLs, local paths, and empty/comment lines.
@@ -404,8 +409,11 @@ public abstract class PythonControllerBase {
       if (line.startsWith("-")) {
         continue;
       }
-      // Filter out local path requirements (./path, ../path, /abs/path)
-      if (line.startsWith("./") || line.startsWith("../") || line.startsWith("/")) {
+      // Filter out local path requirements (./path, ../path, /abs/path, C:\path, C:/path)
+      if (line.startsWith("./")
+          || line.startsWith("../")
+          || line.startsWith("/")
+          || WINDOWS_DRIVE_PATH_PATTERN.matcher(line).find()) {
         continue;
       }
       // Strip PEP 508 direct references (name @ url -> name) before URL check
@@ -414,12 +422,14 @@ public abstract class PythonControllerBase {
         line = line.substring(0, atIndex).trim();
       }
       // Strip inline pip options (--hash=..., --config-settings=..., etc.)
-      int optionIndex = line.indexOf(" --");
-      if (optionIndex != -1) {
-        line = line.substring(0, optionIndex).trim();
+      Matcher optionMatcher = INLINE_OPTION_PATTERN.matcher(line);
+      if (optionMatcher.find()) {
+        line = line.substring(0, optionMatcher.start()).trim();
       }
-      // Filter out bare URLs and VCS URLs (any line containing :// is not a package name)
-      if (line.contains("://")) {
+      // Filter out bare URLs and VCS URLs — check the requirement part (before any marker)
+      // to avoid false positives from marker strings
+      String requirementPart = line.contains(";") ? line.substring(0, line.indexOf(";")) : line;
+      if (requirementPart.contains("://")) {
         continue;
       }
       if (!line.isEmpty()) {

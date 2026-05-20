@@ -2165,6 +2165,25 @@ class PythonControllerBaseTest extends ExhortTest {
   }
 
   @Test
+  void preprocessRequirementsLines_filters_windows_paths() {
+    List<String> input =
+        List.of(
+            "C:\\Users\\dev\\my-package",
+            "c:/projects/my-lib",
+            "D:\\packages\\MyPackage-1.0.tar.gz",
+            "requests==2.28.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_handles_final_line_ending_with_backslash() {
+    List<String> input = List.of("flask==2.0.3", "requests==2.28.0 \\");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("flask==2.0.3", "requests==2.28.0"), result);
+  }
+
+  @Test
   void preprocessRequirementsLines_combined_scenario() {
     List<String> input =
         List.of(

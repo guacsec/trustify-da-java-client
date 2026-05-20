@@ -95,9 +95,8 @@ public final class PythonPipProvider extends PythonProvider {
 
   @Override
   protected Set<PackageURL> getIgnoredDependencies(String manifestContent) {
-    List<String> rawLines = Arrays.asList(manifestContent.split("\\R"));
-    List<String> preprocessed = PythonControllerBase.preprocessRequirementsLines(rawLines);
-    return preprocessed.stream()
+    String[] lines = manifestContent.split("\\R");
+    return Arrays.stream(lines)
         .filter(this::containsIgnorePattern)
         .map(PythonPipProvider::extractDepFull)
         .map(this::splitToNameVersion)
