@@ -195,14 +195,14 @@ public final class PythonUvProvider extends PythonProvider {
         inViaBlock = false;
 
         // PEP 440 direct references (name @ url) — skip, no pinned version available
-        if (trimmed.contains(" @ ")) {
+        if (isDirectReference(trimmed)) {
           log.fine("Skipping PEP 440 direct reference: " + trimmed);
           currentKey = null;
           continue;
         }
 
-        // Path dependencies (./local, ../local, /absolute) — skip, no pinned version available
-        if (trimmed.startsWith("./") || trimmed.startsWith("../") || trimmed.startsWith("/")) {
+        // Path dependencies (./local, ../local, /absolute, ~/home, C:\win) — skip
+        if (isPathDependency(trimmed)) {
           log.fine("Skipping path dependency: " + trimmed);
           currentKey = null;
           continue;
@@ -297,6 +297,22 @@ public final class PythonUvProvider extends PythonProvider {
       log.fine("Failed to resolve editable install '" + uri + "': " + e.getMessage());
       return null;
     }
+  }
+
+  private static final Pattern WINDOWS_DRIVE_PATH = Pattern.compile("^[a-zA-Z]:[/\\\\]");
+
+  /** Returns {@code true} if the line is a PEP 440 direct reference ({@code name @ url}). */
+  static boolean isDirectReference(String trimmedLine) {
+    return trimmedLine.contains(" @ ");
+  }
+
+  /** Returns {@code true} if the line is a local or absolute path dependency. */
+  static boolean isPathDependency(String trimmedLine) {
+    return trimmedLine.startsWith("./")
+        || trimmedLine.startsWith("../")
+        || trimmedLine.startsWith("/")
+        || trimmedLine.startsWith("~/")
+        || WINDOWS_DRIVE_PATH.matcher(trimmedLine).find();
   }
 
   private static final Pattern BARE_PACKAGE_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]*");
