@@ -2043,4 +2043,163 @@ class PythonControllerBaseTest extends ExhortTest {
             + "Requires: \n"
             + "Required-by: cycler, gensim, gTTS, python-dateutil, tweepy\n");
   }
+
+  @Test
+  void preprocessRequirementsLines_filters_extra_index_url() {
+    List<String> input =
+        List.of(
+            "--extra-index-url https://pypi.example.com/simple",
+            "requests==2.28.0",
+            "--index-url https://pypi.org/simple",
+            "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_filters_short_pip_options() {
+    List<String> input =
+        List.of("-r other-requirements.txt", "-c constraints.txt", "numpy==1.24.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("numpy==1.24.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_strips_hashes() {
+    List<String> input =
+        List.of("requests==2.28.0 --hash=sha256:abc123 --hash=sha256:def456", "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_strips_config_settings() {
+    List<String> input =
+        List.of(
+            "aiohappyeyeballs==2.6.1 --config-settings=KEY=VALUE --config-settings=OTHER=VAL",
+            "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("aiohappyeyeballs==2.6.1", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_joins_line_continuations() {
+    List<String> input =
+        List.of(
+            "requests==2.28.0 \\",
+            "    --hash=sha256:abc123 \\",
+            "    --hash=sha256:def456",
+            "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_joins_continuations_with_config_settings() {
+    List<String> input =
+        List.of(
+            "aiohappyeyeballs==2.6.1 \\",
+            "    --config-settings=SAMPLE_TEXT=TEST_VALUE \\",
+            "    --config-settings=ANOTHER_KEY=ANOTHER_VALUE",
+            "async-timeout==5.0.1 ; python_full_version < '3.11'");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(
+        List.of("aiohappyeyeballs==2.6.1", "async-timeout==5.0.1 ; python_full_version < '3.11'"),
+        result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_filters_comments_and_empty_lines() {
+    List<String> input = List.of("# this is a comment", "", "  ", "requests==2.28.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_strips_direct_references() {
+    List<String> input =
+        List.of(
+            "pip @ https://github.com/pypa/pip/archive/22.0.2.zip",
+            "requests[security] @ https://github.com/psf/requests/archive/main.zip",
+            "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("pip", "requests[security]", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_handles_trailing_whitespace_after_backslash() {
+    List<String> input =
+        List.of("requests==2.28.0 \\   ", "    --hash=sha256:abc123", "flask==2.0.3");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0", "flask==2.0.3"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_filters_bare_urls() {
+    List<String> input =
+        List.of(
+            "https://example.com/packages/MyPackage-1.0.tar.gz",
+            "http://example.com/packages/other.whl",
+            "git+https://git.example.com/MyProject.git@v1.0",
+            "git+git://git.example.com/repo.git",
+            "hg+http://hg.example.com/repo",
+            "hg+ssh://hg.example.com/repo",
+            "svn+svn://svn.example.com/project/trunk",
+            "bzr+ftp://bzr.example.com/repo",
+            "requests==2.28.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_filters_local_paths() {
+    List<String> input =
+        List.of(
+            "./local-package",
+            "../parent-package",
+            "./downloads/MyPackage-1.0.tar.gz",
+            "/absolute/path/to/package",
+            "requests==2.28.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_filters_windows_paths() {
+    List<String> input =
+        List.of(
+            "C:\\Users\\dev\\my-package",
+            "c:/projects/my-lib",
+            "D:\\packages\\MyPackage-1.0.tar.gz",
+            "requests==2.28.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_handles_final_line_ending_with_backslash() {
+    List<String> input = List.of("flask==2.0.3", "requests==2.28.0 \\");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("flask==2.0.3", "requests==2.28.0"), result);
+  }
+
+  @Test
+  void preprocessRequirementsLines_combined_scenario() {
+    List<String> input =
+        List.of(
+            "--extra-index-url https://pypi.example.com/simple",
+            "# A comment",
+            "requests==2.28.0 \\   ",
+            "    --hash=sha256:abc123",
+            "",
+            "--trusted-host pypi.example.com",
+            "flask==2.0.3 --hash=sha256:xyz789",
+            "pip @ https://github.com/pypa/pip/archive/22.0.2.zip",
+            "https://example.com/packages/other.tar.gz",
+            "git+git://git.example.com/repo.git",
+            "./local-package",
+            "numpy>=1.24.0");
+    List<String> result = PythonControllerBase.preprocessRequirementsLines(input);
+    assertEquals(List.of("requests==2.28.0", "flask==2.0.3", "pip", "numpy>=1.24.0"), result);
+  }
 }
