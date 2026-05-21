@@ -56,7 +56,8 @@ public class Java_Maven_Provider_Test extends ExhortTest {
         "deps_with_ignore_on_version",
         "deps_with_ignore_on_wrong",
         "deps_with_no_ignore",
-        "pom_deps_with_no_ignore_common_paths");
+        "pom_deps_with_no_ignore_common_paths",
+        "deps_with_version_range");
   }
 
   @ParameterizedTest
@@ -143,12 +144,29 @@ public class Java_Maven_Provider_Test extends ExhortTest {
             getClass(), String.format("tst_manifests/maven/%s/effectivePom.xml", testFolder))) {
       effectivePom = new String(is.readAllBytes());
     }
+
+    String depTree;
+    try (var is =
+        getResourceAsStreamDecision(
+            getClass(), String.format("tst_manifests/maven/%s/depTree.txt", testFolder))) {
+      depTree = new String(is.readAllBytes());
+    }
+
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
       mockedOperations
           .when(() -> Operations.runProcess(any(), any(), any()))
           .thenAnswer(
-              invocationOnMock ->
-                  getOutputFileAndOverwriteItWithMock(effectivePom, invocationOnMock, "-Doutput"));
+              invocationOnMock -> {
+                String result =
+                    getOutputFileAndOverwriteItWithMock(
+                        effectivePom, invocationOnMock, "-Doutput=");
+                if (result == null) {
+                  result =
+                      getOutputFileAndOverwriteItWithMock(
+                          depTree, invocationOnMock, "-DoutputFile");
+                }
+                return result;
+              });
       // Mock Operations.getCustomPathOrElse to return "mvn"
       mockedOperations.when(() -> Operations.getCustomPathOrElse(anyString())).thenReturn("mvn");
       mockedOperations
@@ -189,12 +207,29 @@ public class Java_Maven_Provider_Test extends ExhortTest {
             getClass(), String.format("tst_manifests/maven/%s/effectivePom.xml", testFolder))) {
       effectivePom = new String(is.readAllBytes());
     }
+
+    String depTree;
+    try (var is =
+        getResourceAsStreamDecision(
+            getClass(), String.format("tst_manifests/maven/%s/depTree.txt", testFolder))) {
+      depTree = new String(is.readAllBytes());
+    }
+
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
       mockedOperations
           .when(() -> Operations.runProcess(any(), any(), any()))
           .thenAnswer(
-              invocationOnMock ->
-                  getOutputFileAndOverwriteItWithMock(effectivePom, invocationOnMock, "-Doutput"));
+              invocationOnMock -> {
+                String result =
+                    getOutputFileAndOverwriteItWithMock(
+                        effectivePom, invocationOnMock, "-Doutput=");
+                if (result == null) {
+                  result =
+                      getOutputFileAndOverwriteItWithMock(
+                          depTree, invocationOnMock, "-DoutputFile");
+                }
+                return result;
+              });
       // Mock Operations.getCustomPathOrElse to return "mvn"
       mockedOperations.when(() -> Operations.getCustomPathOrElse(anyString())).thenReturn("mvn");
       mockedOperations

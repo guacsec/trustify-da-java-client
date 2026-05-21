@@ -1,0 +1,3 @@
+pom-with-deps-version-range:pom-with-version-range-for-tests:jar:0.0.1
++- log4j:log4j:jar:1.2.17:compile
+\- org.xerial.snappy:snappy-java:jar:1.1.10.0:compile
