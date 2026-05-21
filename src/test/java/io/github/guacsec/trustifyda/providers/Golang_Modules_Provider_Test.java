@@ -230,6 +230,32 @@ class Golang_Modules_Provider_Test extends ExhortTest {
   }
 
   @Test
+  void test_IgnoredLine_rejects_old_space_separated_indirect_format() {
+    var provider = new GoModulesProvider(Path.of("go.mod"));
+    // Old format (space-separated, no semicolon) should NOT be recognized
+    assertThat(
+            provider.IgnoredLine(
+                "        github.com/foo/bar v1.0.0 // indirect trustify-da-ignore"))
+        .isFalse();
+    assertThat(provider.IgnoredLine("        github.com/foo/bar v1.0.0 // indirect exhortignore"))
+        .isFalse();
+    // New semicolon format should still be recognized
+    assertThat(
+            provider.IgnoredLine(
+                "        github.com/foo/bar v1.0.0 // indirect; trustify-da-ignore"))
+        .isTrue();
+    assertThat(provider.IgnoredLine("        github.com/foo/bar v1.0.0 // indirect; exhortignore"))
+        .isTrue();
+    assertThat(
+            provider.IgnoredLine(
+                "        github.com/foo/bar v1.0.0 // indirect; //trustify-da-ignore"))
+        .isTrue();
+    assertThat(
+            provider.IgnoredLine("        github.com/foo/bar v1.0.0 // indirect; //exhortignore"))
+        .isTrue();
+  }
+
+  @Test
   void test_isGoToolchainEntry_filters_go_and_toolchain() {
     // go@* entries should be filtered
     assertThat(GoModulesProvider.isGoToolchainEntry("go@1.18")).isTrue();

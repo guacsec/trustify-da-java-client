@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,10 +114,9 @@ public abstract class PythonControllerBase {
 
   private void installingRequirementsOneByOne(String pathToRequirements) {
     try {
-      List<String> requirementsRows = Files.readAllLines(Path.of(pathToRequirements));
+      List<String> requirementsRows =
+          preprocessRequirementsLines(Files.readAllLines(Path.of(pathToRequirements)));
       requirementsRows.stream()
-          .filter((line) -> !line.trim().startsWith("#"))
-          .filter((line) -> !line.trim().isEmpty())
           .forEach(
               (dependency) -> {
                 String dependencyName = getDependencyName(dependency);
@@ -151,11 +152,7 @@ public abstract class PythonControllerBase {
     }
     List<String> linesOfRequirements;
     try {
-      linesOfRequirements =
-          Files.readAllLines(requirementsPath).stream()
-              .filter((line) -> !line.trim().startsWith("#") && !line.trim().isEmpty())
-              .map(String::trim)
-              .collect(Collectors.toList());
+      linesOfRequirements = preprocessRequirementsLines(Files.readAllLines(requirementsPath));
     } catch (IOException e) {
       log.warning(
           "Error while trying to read the requirements.txt file, will not be able to install"
@@ -375,6 +372,71 @@ public abstract class PythonControllerBase {
     String versionToken = pipShowOutput.substring(versionKeyIndex + 5);
     int endOfLine = versionToken.indexOf(System.lineSeparator());
     return versionToken.substring(0, endOfLine).trim();
+  }
+
+  private static final Pattern INLINE_OPTION_PATTERN = Pattern.compile("\\s--");
+  private static final Pattern WINDOWS_DRIVE_PATH_PATTERN = Pattern.compile("^[a-zA-Z]:[/\\\\]");
+
+  /**
+   * Preprocesses raw requirements.txt lines by joining line continuations, stripping inline
+   * options, and filtering out pip option lines, URLs, local paths, and empty/comment lines.
+   */
+  public static List<String> preprocessRequirementsLines(List<String> rawLines) {
+    // Join line continuations (trailing backslash, possibly followed by whitespace)
+    List<String> joined = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+    for (String line : rawLines) {
+      String stripped = line.stripTrailing();
+      if (stripped.endsWith("\\")) {
+        current.append(stripped, 0, stripped.length() - 1);
+      } else {
+        current.append(line);
+        joined.add(current.toString());
+        current = new StringBuilder();
+      }
+    }
+    if (current.length() > 0) {
+      joined.add(current.toString());
+    }
+
+    List<String> result = new ArrayList<>();
+    for (String raw : joined) {
+      String line = raw.trim();
+      if (line.isEmpty() || line.startsWith("#")) {
+        continue;
+      }
+      // Filter out pip options (lines starting with -)
+      if (line.startsWith("-")) {
+        continue;
+      }
+      // Filter out local path requirements (./path, ../path, /abs/path, C:\path, C:/path)
+      if (line.startsWith("./")
+          || line.startsWith("../")
+          || line.startsWith("/")
+          || WINDOWS_DRIVE_PATH_PATTERN.matcher(line).find()) {
+        continue;
+      }
+      // Strip PEP 508 direct references (name @ url -> name) before URL check
+      int atIndex = line.indexOf(" @ ");
+      if (atIndex != -1) {
+        line = line.substring(0, atIndex).trim();
+      }
+      // Strip inline pip options (--hash=..., --config-settings=..., etc.)
+      Matcher optionMatcher = INLINE_OPTION_PATTERN.matcher(line);
+      if (optionMatcher.find()) {
+        line = line.substring(0, optionMatcher.start()).trim();
+      }
+      // Filter out bare URLs and VCS URLs — check the requirement part (before any marker)
+      // to avoid false positives from marker strings
+      String requirementPart = line.contains(";") ? line.substring(0, line.indexOf(";")) : line;
+      if (requirementPart.contains("://")) {
+        continue;
+      }
+      if (!line.isEmpty()) {
+        result.add(line);
+      }
+    }
+    return result;
   }
 
   public static String getDependencyName(String dep) {
