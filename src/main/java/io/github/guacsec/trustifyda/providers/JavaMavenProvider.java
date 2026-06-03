@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLInputFactory;
@@ -60,6 +61,8 @@ public final class JavaMavenProvider extends BaseJavaProvider {
   private final String mvnExecutable;
   private static final String MVN = Operations.isWindows() ? "mvn.cmd" : "mvn";
   private static final String ARG_VERSION = "-v";
+  private static final String DEP_TREE_PLUGIN =
+      "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree";
 
   public JavaMavenProvider(Path manifest) {
     super(Type.MAVEN, manifest);
@@ -136,7 +139,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     var mvnTreeCmdArgs =
         new ArrayList<>(
             List.of(
-                "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree",
+                DEP_TREE_PLUGIN,
                 "-Dscope=compile",
                 "-Dverbose",
                 "-DoutputType=text",
@@ -268,7 +271,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     try {
       var cmd =
           buildMvnCommandArgs(
-              "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree",
+              DEP_TREE_PLUGIN,
               "-Dscope=compile",
               "-DoutputType=text",
               String.format("-DoutputFile=%s", tmpFile.toString()),
@@ -304,14 +307,19 @@ public final class JavaMavenProvider extends BaseJavaProvider {
         }
       }
     } catch (Exception e) {
-      log.warning(
+      log.log(
+          Level.WARNING,
           String.format(
               "Failed to resolve version ranges via dependency tree, "
                   + "using original versions: %s",
-              e.getMessage()));
+              e.getMessage()),
+          e);
       return deps;
     } finally {
-      Files.deleteIfExists(tmpFile);
+      try {
+        Files.deleteIfExists(tmpFile);
+      } catch (IOException ignored) {
+      }
     }
 
     return deps;
