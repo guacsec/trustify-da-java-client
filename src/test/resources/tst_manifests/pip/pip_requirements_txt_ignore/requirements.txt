@@ -19,7 +19,7 @@ requests==2.25.1
 six==1.16.0 
 sniffio==1.2.0
 soupsieve==2.3.2.post1
-starlette==0.17.1
+starlette==1.0.1
 typing_extensions==4.1.1
 urllib3==1.26.16
 uvicorn==0.17.0
