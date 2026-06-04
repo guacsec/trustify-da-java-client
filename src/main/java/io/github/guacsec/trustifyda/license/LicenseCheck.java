@@ -145,12 +145,15 @@ public final class LicenseCheck {
                   Compatibility status =
                       LicenseUtils.getCompatibility(projectCategory, entry.category());
                   if (status == Compatibility.INCOMPATIBLE) {
+                    String reason =
+                        entry.category() == LicenseCategory.UNKNOWN
+                            ? "License not recognized as a standard SPDX identifier."
+                                + " Manual review recommended to verify compatibility."
+                            : "Dependency license(s) are incompatible with the project"
+                                + " license.";
                     incompatible.add(
                         new IncompatibleDependency(
-                            purl,
-                            entry.licenses(),
-                            entry.category(),
-                            "Dependency license(s) are incompatible with the project license."));
+                            purl, entry.licenses(), entry.category(), reason));
                   }
                 }
 

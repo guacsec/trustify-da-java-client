@@ -191,9 +191,11 @@ public final class LicenseUtils {
     if (projectCategory == null || dependencyCategory == null) {
       return Compatibility.UNKNOWN;
     }
-    if (projectCategory == LicenseCategory.UNKNOWN
-        || dependencyCategory == LicenseCategory.UNKNOWN) {
+    if (projectCategory == LicenseCategory.UNKNOWN) {
       return Compatibility.UNKNOWN;
+    }
+    if (dependencyCategory == LicenseCategory.UNKNOWN) {
+      return Compatibility.INCOMPATIBLE;
     }
     int projLevel = restrictiveness(projectCategory);
     int depLevel = restrictiveness(dependencyCategory);
