@@ -230,5 +230,53 @@
       "remediations": {},
       "recommendation": null
     }
-  ]
+  ],
+  "providers": {
+    "snyk": {
+      "status": {
+        "ok": true,
+        "name": "snyk",
+        "code": 200,
+        "message": "OK"
+      },
+      "sources": {
+        "snyk": {
+          "summary": {
+            "direct": 1,
+            "transitive": 0,
+            "total": 7,
+            "dependencies": 1,
+            "critical": 1,
+            "high": 3,
+            "medium": 2,
+            "low": 1,
+            "remediations": 0,
+            "recommendations": 1,
+            "unscanned": 0
+          },
+          "dependencies": [
+            {
+              "ref": "pkg:maven/log4j/log4j@1.2.17",
+              "issues": [],
+              "recommendation": null
+            }
+          ]
+        }
+      },
+      "recommendations": {
+        "trusted-content": {
+          "status": "ok",
+          "summary": {
+            "total": 1
+          },
+          "dependencies": [
+            {
+              "ref": "pkg:maven/log4j/log4j@1.2.17",
+              "recommendation": "pkg:maven/log4j/log4j@1.2.17-redhat-00001?repository_url=https%3A%2F%2Fmaven.repository.redhat.com%2Fga%2F"
+            }
+          ]
+        }
+      }
+    }
+  }
 }
