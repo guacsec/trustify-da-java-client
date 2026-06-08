@@ -19,7 +19,7 @@ coverage:
         informational: true
 
 flags:
-  unit-tests:
+  integration-tests:
     paths:
       - src/main/java/
     carryforward: true

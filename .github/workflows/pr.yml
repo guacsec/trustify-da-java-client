@@ -72,6 +72,5 @@ jobs:
       uses: codecov/codecov-action@v5
       with:
         use_oidc: true
-        flags: unit-tests
+        flags: integration-tests
         files: ./target/site/jacoco/jacoco.xml
-        slug: guacsec/trustify-da-java-client
