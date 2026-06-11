@@ -177,6 +177,24 @@
               }
             ]
           }
+        },
+        "recommendations": {
+          "trusted-content": {
+            "status": "ok",
+            "summary": {
+              "total": 2
+            },
+            "dependencies": [
+              {
+                "ref": "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.5.Final?type=jar",
+                "recommendation": "pkg:maven/io.quarkus/quarkus-hibernate-orm@2.13.8.Final-redhat-00006?repository_url=https%3A%2F%2Fmaven.repository.redhat.com%2Fga%2F&type=jar"
+              },
+              {
+                "ref": "pkg:oci/ubi@sha256:f5983f7c7878cc9b26a3962be7756e3c810e9831b0b9f9613e6f6b445f884e74?repository_url=registry.access.redhat.com/ubi9/ubi&tag=9.3-1552&arch=amd64",
+                "recommendation": "pkg:maven/io.quarkus/quarkus-jdbc-postgresql@2.13.8.Final-redhat-00006?repository_url=https%3A%2F%2Fmaven.repository.redhat.com%2Fga%2F&type=jar"
+              }
+            ]
+          }
         }
       },
       "trusted-content": {
