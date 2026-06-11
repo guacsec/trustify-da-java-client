@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -56,7 +57,8 @@ public class Java_Maven_Provider_Test extends ExhortTest {
         "deps_with_ignore_on_version",
         "deps_with_ignore_on_wrong",
         "deps_with_no_ignore",
-        "pom_deps_with_no_ignore_common_paths");
+        "pom_deps_with_no_ignore_common_paths",
+        "deps_with_version_range");
   }
 
   @ParameterizedTest
@@ -143,12 +145,29 @@ public class Java_Maven_Provider_Test extends ExhortTest {
             getClass(), String.format("tst_manifests/maven/%s/effectivePom.xml", testFolder))) {
       effectivePom = new String(is.readAllBytes());
     }
+
+    String depTree;
+    try (var is =
+        getResourceAsStreamDecision(
+            getClass(), String.format("tst_manifests/maven/%s/depTree.txt", testFolder))) {
+      depTree = new String(is.readAllBytes());
+    }
+
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
       mockedOperations
           .when(() -> Operations.runProcess(any(), any(), any()))
           .thenAnswer(
-              invocationOnMock ->
-                  getOutputFileAndOverwriteItWithMock(effectivePom, invocationOnMock, "-Doutput"));
+              invocationOnMock -> {
+                String result =
+                    getOutputFileAndOverwriteItWithMock(
+                        effectivePom, invocationOnMock, "-Doutput=");
+                if (result == null) {
+                  result =
+                      getOutputFileAndOverwriteItWithMock(
+                          depTree, invocationOnMock, "-DoutputFile");
+                }
+                return result;
+              });
       // Mock Operations.getCustomPathOrElse to return "mvn"
       mockedOperations.when(() -> Operations.getCustomPathOrElse(anyString())).thenReturn("mvn");
       mockedOperations
@@ -189,12 +208,29 @@ public class Java_Maven_Provider_Test extends ExhortTest {
             getClass(), String.format("tst_manifests/maven/%s/effectivePom.xml", testFolder))) {
       effectivePom = new String(is.readAllBytes());
     }
+
+    String depTree;
+    try (var is =
+        getResourceAsStreamDecision(
+            getClass(), String.format("tst_manifests/maven/%s/depTree.txt", testFolder))) {
+      depTree = new String(is.readAllBytes());
+    }
+
     try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
       mockedOperations
           .when(() -> Operations.runProcess(any(), any(), any()))
           .thenAnswer(
-              invocationOnMock ->
-                  getOutputFileAndOverwriteItWithMock(effectivePom, invocationOnMock, "-Doutput"));
+              invocationOnMock -> {
+                String result =
+                    getOutputFileAndOverwriteItWithMock(
+                        effectivePom, invocationOnMock, "-Doutput=");
+                if (result == null) {
+                  result =
+                      getOutputFileAndOverwriteItWithMock(
+                          depTree, invocationOnMock, "-DoutputFile");
+                }
+                return result;
+              });
       // Mock Operations.getCustomPathOrElse to return "mvn"
       mockedOperations.when(() -> Operations.getCustomPathOrElse(anyString())).thenReturn("mvn");
       mockedOperations
@@ -206,6 +242,48 @@ public class Java_Maven_Provider_Test extends ExhortTest {
       // verify expected SBOM is returned
       assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
       assertThat(dropIgnored(new String(content.buffer))).isEqualTo(dropIgnored(expectedSbom));
+    }
+  }
+
+  @Test
+  void test_provideComponent_fallsBack_when_depTree_fails() throws IOException {
+    String testFolder = "deps_with_version_range";
+
+    var targetPom = resolveFile(String.format("tst_manifests/maven/%s/pom.xml", testFolder));
+
+    String effectivePom;
+    try (var is =
+        getResourceAsStreamDecision(
+            getClass(), String.format("tst_manifests/maven/%s/effectivePom.xml", testFolder))) {
+      effectivePom = new String(is.readAllBytes());
+    }
+
+    try (MockedStatic<Operations> mockedOperations = mockStatic(Operations.class)) {
+      mockedOperations
+          .when(() -> Operations.runProcess(any(), any(), any()))
+          .thenAnswer(
+              invocationOnMock -> {
+                String result =
+                    getOutputFileAndOverwriteItWithMock(
+                        effectivePom, invocationOnMock, "-Doutput=");
+                if (result == null) {
+                  throw new IOException("Simulated dependency:tree failure");
+                }
+                return result;
+              });
+      mockedOperations.when(() -> Operations.getCustomPathOrElse(anyString())).thenReturn("mvn");
+      mockedOperations
+          .when(() -> Operations.getExecutable(anyString(), anyString()))
+          .thenReturn("mvn");
+
+      var content = new JavaMavenProvider(targetPom).provideComponent();
+
+      assertThat(content.type).isEqualTo(Api.CYCLONEDX_MEDIA_TYPE);
+      String sbom = new String(content.buffer);
+      assertThat(sbom).contains("log4j");
+      assertThat(sbom).contains("snappy-java");
+      // Version range should remain unresolved since dep tree failed
+      assertThat(sbom).contains("[1.2.17,1.3.0)");
     }
   }
 
