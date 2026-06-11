@@ -45,7 +45,7 @@ jobs:
     - name: Install pnpm
       run: npm install -g pnpm
     - name: Install uv
-      uses: astral-sh/setup-uv@v8.1.0
+      uses: astral-sh/setup-uv@v8.2.0
     - name: get Python location
       id: python-location
       run: |
