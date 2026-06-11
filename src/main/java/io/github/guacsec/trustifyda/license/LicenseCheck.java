@@ -147,7 +147,7 @@ public final class LicenseCheck {
                   if (status == Compatibility.INCOMPATIBLE) {
                     String reason =
                         entry.category() == LicenseCategory.UNKNOWN
-                            ? "License not recognized as a standard SPDX identifier."
+                            ? "License category could not be determined."
                                 + " Manual review recommended to verify compatibility."
                             : "Dependency license(s) are incompatible with the project"
                                 + " license.";
