@@ -36,10 +36,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLInputFactory;
@@ -59,6 +61,8 @@ public final class JavaMavenProvider extends BaseJavaProvider {
   private final String mvnExecutable;
   private static final String MVN = Operations.isWindows() ? "mvn.cmd" : "mvn";
   private static final String ARG_VERSION = "-v";
+  private static final String DEP_TREE_PLUGIN =
+      "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree";
 
   public JavaMavenProvider(Path manifest) {
     super(Type.MAVEN, manifest);
@@ -135,7 +139,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
     var mvnTreeCmdArgs =
         new ArrayList<>(
             List.of(
-                "org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree",
+                DEP_TREE_PLUGIN,
                 "-Dscope=compile",
                 "-Dverbose",
                 "-DoutputType=text",
@@ -228,6 +232,7 @@ public final class JavaMavenProvider extends BaseJavaProvider {
             .filter(DependencyAggregator::isTestDependency)
             .collect(Collectors.toSet());
     var deps = getDependencies(tmpEffPom);
+    deps = resolveVersionRanges(deps);
     var sbom = SbomFactory.newInstance().addRoot(getRoot(tmpEffPom), readLicenseFromManifest());
     deps.stream()
         .filter(dep -> !testsDeps.contains(dep))
@@ -237,6 +242,87 @@ public final class JavaMavenProvider extends BaseJavaProvider {
 
     // build and return content for constructing request to the backend
     return new Content(sbom.getAsJsonString().getBytes(), Api.CYCLONEDX_MEDIA_TYPE);
+  }
+
+  /**
+   * Checks whether the given version string is a Maven version range expression (starts with '[' or
+   * '(').
+   */
+  private static boolean isVersionRange(String version) {
+    if (version == null || version.isEmpty()) return false;
+    char first = version.charAt(0);
+    return first == '[' || first == '(';
+  }
+
+  /**
+   * Resolves Maven version ranges by running the dependency tree plugin and replacing range
+   * expressions with concrete resolved versions. If no version ranges are present, the original
+   * list is returned unchanged. On failure, the original list is returned with a warning logged.
+   */
+  private List<DependencyAggregator> resolveVersionRanges(List<DependencyAggregator> deps)
+      throws IOException {
+    // Short-circuit: if no dep has a version range, return unchanged
+    boolean hasRanges = deps.stream().anyMatch(d -> isVersionRange(d.version));
+    if (!hasRanges) {
+      return deps;
+    }
+
+    Path tmpFile = Files.createTempFile("TRUSTIFY_DA_range_tree_", ".txt");
+    try {
+      var cmd =
+          buildMvnCommandArgs(
+              DEP_TREE_PLUGIN,
+              "-Dscope=compile",
+              "-DoutputType=text",
+              String.format("-DoutputFile=%s", tmpFile.toString()),
+              "-f",
+              manifestPath.toString(),
+              "--batch-mode",
+              "-q");
+      Operations.runProcess(manifestPath.getParent(), cmd.toArray(String[]::new), getMvnExecEnvs());
+
+      // Read the dependency tree output and build a lookup map of resolved versions
+      List<String> lines = Files.readAllLines(tmpFile);
+      Map<String, String> resolvedVersions = new HashMap<>();
+      for (String line : lines) {
+        if (getDepth(line) == 1) {
+          DependencyAggregator resolved = parseDep(line);
+          resolvedVersions.put(resolved.groupId + ":" + resolved.artifactId, resolved.version);
+        }
+      }
+
+      // Replace version ranges with resolved concrete versions
+      for (DependencyAggregator dep : deps) {
+        if (isVersionRange(dep.version)) {
+          String key = dep.groupId + ":" + dep.artifactId;
+          String resolved = resolvedVersions.get(key);
+          if (resolved != null) {
+            if (debugLoggingIsNeeded()) {
+              log.info(
+                  String.format(
+                      "Resolved version range for %s: %s -> %s", key, dep.version, resolved));
+            }
+            dep.version = resolved;
+          }
+        }
+      }
+    } catch (Exception e) {
+      log.log(
+          Level.WARNING,
+          String.format(
+              "Failed to resolve version ranges via dependency tree, "
+                  + "using original versions: %s",
+              e.getMessage()),
+          e);
+      return deps;
+    } finally {
+      try {
+        Files.deleteIfExists(tmpFile);
+      } catch (IOException ignored) {
+      }
+    }
+
+    return deps;
   }
 
   private PackageURL getRoot(final Path manifestPath) throws IOException {
