@@ -239,6 +239,13 @@ class Golang_Modules_Provider_Test extends ExhortTest {
         .isFalse();
     assertThat(provider.IgnoredLine("        github.com/foo/bar v1.0.0 // indirect exhortignore"))
         .isFalse();
+    // Double-slash without semicolon should NOT be recognized (TC-4345)
+    assertThat(
+            provider.IgnoredLine(
+                "        github.com/foo/bar v1.0.0 // indirect //trustify-da-ignore"))
+        .isFalse();
+    assertThat(provider.IgnoredLine("        github.com/foo/bar v1.0.0 // indirect //exhortignore"))
+        .isFalse();
     // New semicolon format should still be recognized
     assertThat(
             provider.IgnoredLine(
