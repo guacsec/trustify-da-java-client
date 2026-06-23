@@ -62,6 +62,14 @@ public final class GoModulesProvider extends Provider {
       "TRUSTIFY_DA_GO_MVS_LOGIC_ENABLED";
   private static final Logger log = LoggersFactory.getLogger(GoModulesProvider.class.getName());
   public static final String DEFAULT_MAIN_VERSION = "v0.0.0";
+
+  private static final Pattern STANDALONE_IGNORE_PATTERN =
+      Pattern.compile("(exhortignore|trustify-da-ignore)");
+  private static final Pattern INDIRECT_IGNORE_PATTERN =
+      Pattern.compile("indirect\\s*;\\s*(//)?\\s*(exhortignore|trustify-da-ignore)");
+  private static final Pattern DEPENDENCY_LINE_PATTERN =
+      Pattern.compile("^[a-z.0-9/-]+\\s{1,2}[vV][0-9]\\.[0-9](\\.[0-9]){0,2}.*");
+
   private final String goExecutable;
 
   public String getMainModuleVersion() {
@@ -560,32 +568,31 @@ public final class GoModulesProvider extends Provider {
   public boolean IgnoredLine(String line) {
     boolean result = false;
     if (IgnorePatternDetector.containsIgnorePattern(line)) {
-      // if exhortignore or trustify-da-ignore is alone in a comment or is in a comment together
-      // with indirect or as a
-      // comment inside a
-      // comment ( e.g // indirect  //exhort)
-      // then this line is to be checked if it's a comment after a package name.
-      if (Pattern.matches(".+//\\s*(exhortignore|trustify-da-ignore)", line)
-          || Pattern.matches(
-              ".+//\\s*indirect\\s*;\\s*(//)?\\s*(exhortignore|trustify-da-ignore)", line)) {
-        String trimmedRow = line.trim();
-        // filter out lines where exhortignore or trustify-da-ignore has no meaning
-        if (!trimmedRow.startsWith("module ")
-            && !trimmedRow.startsWith("go ")
-            && !trimmedRow.startsWith("require (")
-            && !trimmedRow.startsWith("require(")
-            && !trimmedRow.startsWith("exclude ")
-            && !trimmedRow.startsWith("replace ")
-            && !trimmedRow.startsWith("retract ")
-            && !trimmedRow.startsWith("use ")
-            && !trimmedRow.contains(
-                "=>")) { // only for lines that after trimming starts with "require " or starting
-          // with
-          // package name followd by one space, and then a semver version.
-          if (trimmedRow.startsWith("require ")
-              || Pattern.matches(
-                  "^[a-z.0-9/-]+\\s{1,2}[vV][0-9]\\.[0-9](\\.[0-9]){0,2}.*", trimmedRow)) {
-            result = true;
+      String trimmedRow = line.trim();
+      int firstComment = trimmedRow.indexOf("//");
+      if (firstComment >= 0) {
+        String comment = trimmedRow.substring(firstComment + 2).trim();
+        // Match standalone ignore pattern (e.g. "// exhortignore") or
+        // semicolon-separated with indirect (e.g. "// indirect; exhortignore",
+        // "// indirect; // exhortignore").
+        // Does NOT match "// indirect //exhortignore" (no semicolon) or
+        // "// indirect exhortignore" (space-separated) — these are incorrect formats.
+        if (STANDALONE_IGNORE_PATTERN.matcher(comment).matches()
+            || INDIRECT_IGNORE_PATTERN.matcher(comment).matches()) {
+          // filter out lines where exhortignore or trustify-da-ignore has no meaning
+          if (!trimmedRow.startsWith("module ")
+              && !trimmedRow.startsWith("go ")
+              && !trimmedRow.startsWith("require (")
+              && !trimmedRow.startsWith("require(")
+              && !trimmedRow.startsWith("exclude ")
+              && !trimmedRow.startsWith("replace ")
+              && !trimmedRow.startsWith("retract ")
+              && !trimmedRow.startsWith("use ")
+              && !trimmedRow.contains("=>")) {
+            if (trimmedRow.startsWith("require ")
+                || DEPENDENCY_LINE_PATTERN.matcher(trimmedRow).matches()) {
+              result = true;
+            }
           }
         }
       }
