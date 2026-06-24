@@ -281,10 +281,18 @@ public class ImageUtils {
     var exec = Operations.getCustomPathOrElse(engine);
     var cmd = new String[] {exec, "info"};
 
-    var output = Operations.runProcessGetFullOutput(null, cmd, null);
+    Operations.ProcessExecOutput output;
+    try {
+      output = Operations.runProcessGetFullOutput(null, cmd, null);
+    } catch (RuntimeException e) {
+      if (e.getCause() instanceof IOException) {
+        return "";
+      }
+      throw e;
+    }
     if (output.getOutput().isEmpty()
         && (!output.getError().isEmpty() || output.getExitCode() != 0)) {
-      throw new RuntimeException(output.getError());
+      return "";
     }
 
     return output

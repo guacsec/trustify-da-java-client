@@ -27,7 +27,6 @@ import static io.github.guacsec.trustifyda.image.ImageUtils.TRUSTIFY_DA_SYFT_IMA
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
@@ -549,9 +548,8 @@ class ImageUtilsTest extends ExhortTest {
                       isNull(), aryEq(new String[] {"docker", "info"}), isNull()))
           .thenReturn(output);
 
-      var exception =
-          assertThrows(RuntimeException.class, () -> ImageUtils.hostInfo("docker", "info"));
-      assertEquals("test-error", exception.getMessage());
+      var result = ImageUtils.hostInfo("docker", "info");
+      assertEquals("", result);
     }
   }
 
