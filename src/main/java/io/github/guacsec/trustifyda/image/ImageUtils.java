@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.packageurl.MalformedPackageURLException;
+import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.tools.Operations;
 import io.github.guacsec.trustifyda.utils.Environment;
 import java.io.File;
@@ -35,10 +36,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class ImageUtils {
+
+  private static final Logger LOG = LoggersFactory.getLogger(ImageUtils.class.getName());
 
   static final String TRUSTIFY_DA_SYFT_CONFIG_PATH = "TRUSTIFY_DA_SYFT_CONFIG_PATH";
   static final String TRUSTIFY_DA_SYFT_IMAGE_SOURCE = "TRUSTIFY_DA_SYFT_IMAGE_SOURCE";
@@ -281,10 +285,21 @@ public class ImageUtils {
     var exec = Operations.getCustomPathOrElse(engine);
     var cmd = new String[] {exec, "info"};
 
-    var output = Operations.runProcessGetFullOutput(null, cmd, null);
+    Operations.ProcessExecOutput output;
+    try {
+      output = Operations.runProcessGetFullOutput(null, cmd, null);
+    } catch (RuntimeException e) {
+      if (e.getCause() instanceof IOException) {
+        LOG.warning(
+            String.format(
+                "Container engine '%s' not available: %s", exec, e.getCause().getMessage()));
+        return "";
+      }
+      throw e;
+    }
     if (output.getOutput().isEmpty()
         && (!output.getError().isEmpty() || output.getExitCode() != 0)) {
-      throw new RuntimeException(output.getError());
+      return "";
     }
 
     return output

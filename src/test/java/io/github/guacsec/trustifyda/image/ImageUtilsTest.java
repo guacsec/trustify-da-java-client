@@ -27,6 +27,7 @@ import static io.github.guacsec.trustifyda.image.ImageUtils.TRUSTIFY_DA_SYFT_IMA
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -549,9 +550,29 @@ class ImageUtilsTest extends ExhortTest {
                       isNull(), aryEq(new String[] {"docker", "info"}), isNull()))
           .thenReturn(output);
 
-      var exception =
+      var result = ImageUtils.hostInfo("docker", "info");
+      assertEquals("", result);
+    }
+  }
+
+  @Test
+  void test_host_info_other_runtime_exceptions_propagate() {
+    try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class)) {
+      RuntimeException expected = new RuntimeException("non-io-error");
+
+      mock.when(() -> Operations.getCustomPathOrElse(eq("docker"))).thenReturn("docker");
+
+      mock.when(() -> Operations.getExecutable(eq("docker"), any())).thenReturn("docker");
+
+      mock.when(
+              () ->
+                  Operations.runProcessGetFullOutput(
+                      isNull(), aryEq(new String[] {"docker", "info"}), isNull()))
+          .thenThrow(expected);
+
+      RuntimeException thrown =
           assertThrows(RuntimeException.class, () -> ImageUtils.hostInfo("docker", "info"));
-      assertEquals("test-error", exception.getMessage());
+      assertSame(expected, thrown);
     }
   }
 
