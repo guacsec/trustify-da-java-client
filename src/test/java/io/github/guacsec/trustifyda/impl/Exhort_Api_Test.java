@@ -897,6 +897,100 @@ class Exhort_Api_Test extends ExhortTest {
   }
 
   @Test
+  @SetSystemProperty(key = "TRUSTIFY_DA_RECOMMEND", value = "false")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source")
+  void stackAnalysis_when_recommend_disabled_should_append_query_param()
+      throws IOException, ExecutionException, InterruptedException {
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
+    try (var is =
+        getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
+      Files.write(tmpFile, is.readAllBytes());
+    }
+
+    given(mockProvider.provideStack())
+        .willReturn(new Provider.Content("fake-body-content".getBytes(), "fake-content-type"));
+
+    ArgumentMatcher<HttpRequest> matchesRequest =
+        r ->
+            r.uri().toString().contains("?recommend=false")
+                && r.uri().toString().startsWith(exhortApiSut.getEndpoint() + "/api/v5/analysis")
+                && r.method().equals("POST");
+
+    var mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    AnalysisReport expectedAnalysis;
+    try (var is =
+        getResourceAsStreamDecision(
+            this.getClass(), "dummy_responses/maven/analysis-report.json")) {
+      expectedAnalysis = mapper.readValue(is, AnalysisReport.class);
+    }
+
+    var mockHttpResponse = mock(HttpResponse.class);
+    given(mockHttpResponse.body()).willReturn(mapper.writeValueAsString(expectedAnalysis));
+    given(mockHttpResponse.statusCode()).willReturn(200);
+
+    try (var ecosystemTool = mockStatic(Ecosystem.class)) {
+      ecosystemTool.when(() -> Ecosystem.getProvider(tmpFile)).thenReturn(mockProvider);
+
+      given(mockHttpClient.sendAsync(argThat(matchesRequest), any()))
+          .willReturn(CompletableFuture.completedFuture(mockHttpResponse));
+
+      var responseAnalysis = exhortApiSut.stackAnalysis(tmpFile.toString());
+      then(responseAnalysis.get()).isEqualTo(expectedAnalysis);
+    }
+    Files.deleteIfExists(tmpFile);
+  }
+
+  @Test
+  @ClearSystemProperty(key = "TRUSTIFY_DA_RECOMMEND")
+  @SetSystemProperty(key = "TRUST_DA_TOKEN", value = "trust-da-token")
+  @SetSystemProperty(key = "TRUST_DA_SOURCE", value = "trust-da-source")
+  void stackAnalysis_when_recommend_default_should_not_append_query_param()
+      throws IOException, ExecutionException, InterruptedException {
+    var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
+    try (var is =
+        getResourceAsStreamDecision(this.getClass(), "tst_manifests/maven/empty/pom.xml")) {
+      Files.write(tmpFile, is.readAllBytes());
+    }
+
+    given(mockProvider.provideStack())
+        .willReturn(new Provider.Content("fake-body-content".getBytes(), "fake-content-type"));
+
+    ArgumentMatcher<HttpRequest> matchesRequest =
+        r ->
+            !r.uri().toString().contains("recommend")
+                && r.uri()
+                    .equals(
+                        URI.create(
+                            String.format(
+                                ExhortApi.S_API_V_5_ANALYSIS, exhortApiSut.getEndpoint())))
+                && r.method().equals("POST");
+
+    var mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    AnalysisReport expectedAnalysis;
+    try (var is =
+        getResourceAsStreamDecision(
+            this.getClass(), "dummy_responses/maven/analysis-report.json")) {
+      expectedAnalysis = mapper.readValue(is, AnalysisReport.class);
+    }
+
+    var mockHttpResponse = mock(HttpResponse.class);
+    given(mockHttpResponse.body()).willReturn(mapper.writeValueAsString(expectedAnalysis));
+    given(mockHttpResponse.statusCode()).willReturn(200);
+
+    try (var ecosystemTool = mockStatic(Ecosystem.class)) {
+      ecosystemTool.when(() -> Ecosystem.getProvider(tmpFile)).thenReturn(mockProvider);
+
+      given(mockHttpClient.sendAsync(argThat(matchesRequest), any()))
+          .willReturn(CompletableFuture.completedFuture(mockHttpResponse));
+
+      var responseAnalysis = exhortApiSut.stackAnalysis(tmpFile.toString());
+      then(responseAnalysis.get()).isEqualTo(expectedAnalysis);
+    }
+    Files.deleteIfExists(tmpFile);
+  }
+
+  @Test
   void generateSbom_should_not_make_http_calls() throws IOException {
     var tmpFile = Files.createTempFile("TRUSTIFY_DA_test_pom_", ".xml");
     try (var is =

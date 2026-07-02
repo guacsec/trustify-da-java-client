@@ -101,6 +101,7 @@ public final class ExhortApi implements Api {
   public static final String S_API_V5_LICENSES = "%s/api/v5/licenses/%s";
   public static final String S_API_V5_LICENSES_IDENTIFY = "%s/api/v5/licenses/identify";
   private static final String TRUSTIFY_DA_LICENSE_CHECK = "TRUSTIFY_DA_LICENSE_CHECK";
+  private static final String TRUSTIFY_DA_RECOMMEND = "TRUSTIFY_DA_RECOMMEND";
 
   private String endpoint;
 
@@ -361,13 +362,21 @@ public final class ExhortApi implements Api {
     return Environment.getBoolean("TRUSTIFY_DA_DEBUG", false);
   }
 
+  private static URI buildAnalysisUri(String template, String endpoint) {
+    String base = String.format(template, endpoint);
+    if (!Environment.getBoolean(TRUSTIFY_DA_RECOMMEND, true)) {
+      return URI.create(base + "?recommend=false");
+    }
+    return URI.create(base);
+  }
+
   @Override
   public CompletableFuture<AnalysisReport> componentAnalysis(
       final String manifest, final byte[] manifestContent) throws IOException {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getEndpoint()));
+    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -411,7 +420,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getEndpoint()));
+    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
@@ -452,7 +461,7 @@ public final class ExhortApi implements Api {
       throws IOException {
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getEndpoint()));
+    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideStack();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
 
@@ -539,7 +548,7 @@ public final class ExhortApi implements Api {
       final String analysisName)
       throws IOException {
     String exClientTraceId = commonHookBeginning(false);
-    var uri = URI.create(String.format(S_API_V_5_BATCH_ANALYSIS, getEndpoint()));
+    var uri = buildAnalysisUri(S_API_V_5_BATCH_ANALYSIS, getEndpoint());
     var sboms = sbomsGenerator.get();
     var content =
         new Provider.Content(
@@ -601,7 +610,7 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = URI.create(String.format(S_API_V_5_ANALYSIS, getEndpoint()));
+    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     String sbomJson = new String(content.buffer);
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
