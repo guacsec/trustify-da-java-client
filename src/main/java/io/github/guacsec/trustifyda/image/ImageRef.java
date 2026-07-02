@@ -140,11 +140,26 @@ public class ImageRef {
     }
   }
 
+  private static final String DOCKER_HUB_LIBRARY_PREFIX = "docker.io/library/";
+
   // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
   public PackageURL getPackageURL() throws MalformedPackageURLException {
     TreeMap<String, String> qualifiers = new TreeMap<>();
     var repositoryUrl = this.image.getNameWithoutTag();
     var simpleName = this.image.getSimpleName();
+
+    // Normalize Docker Hub image references so all forms produce the same PURL:
+    //   node                    → docker.io/node
+    //   docker.io/library/node  → docker.io/node
+    if (repositoryUrl != null) {
+      var lower = repositoryUrl.toLowerCase();
+      if (lower.equals(simpleName.toLowerCase())) {
+        repositoryUrl = "docker.io/" + simpleName;
+      } else if (lower.startsWith(DOCKER_HUB_LIBRARY_PREFIX)) {
+        repositoryUrl = "docker.io/" + lower.substring(DOCKER_HUB_LIBRARY_PREFIX.length());
+      }
+    }
+
     if (repositoryUrl != null && !repositoryUrl.equalsIgnoreCase(simpleName)) {
       qualifiers.put(REPOSITORY_QUALIFIER, repositoryUrl.toLowerCase());
     }

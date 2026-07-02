@@ -63,6 +63,59 @@ class ImageRefTest extends ExhortTest {
     assertEquals(imageRef.hashCode(), imageRefPurl.hashCode());
   }
 
+  private static final String TEST_DIGEST =
+      "sha256:333224a233db31852ac1085c6cd702016ab8aaf54cecde5c4bed5451d636adcf";
+
+  @Test
+  void test_docker_hub_bare_name_normalized_in_purl() throws MalformedPackageURLException {
+    var imageRef = new ImageRef("node:18@" + TEST_DIGEST, null);
+
+    var purl = imageRef.getPackageURL();
+
+    assertEquals("docker.io/node", purl.getQualifiers().get("repository_url"));
+    assertEquals("node", purl.getName());
+  }
+
+  @Test
+  void test_docker_hub_library_prefix_normalized_in_purl() throws MalformedPackageURLException {
+    var imageRef = new ImageRef("docker.io/library/node:18@" + TEST_DIGEST, null);
+
+    var purl = imageRef.getPackageURL();
+
+    assertEquals("docker.io/node", purl.getQualifiers().get("repository_url"));
+    assertEquals("node", purl.getName());
+  }
+
+  @Test
+  void test_docker_hub_both_forms_produce_same_purl() throws MalformedPackageURLException {
+    var bareRef = new ImageRef("node:18@" + TEST_DIGEST, null);
+    var libraryRef = new ImageRef("docker.io/library/node:18@" + TEST_DIGEST, null);
+
+    assertEquals(
+        bareRef.getPackageURL().getQualifiers().get("repository_url"),
+        libraryRef.getPackageURL().getQualifiers().get("repository_url"));
+  }
+
+  @Test
+  void test_non_docker_hub_registry_unchanged_in_purl() throws MalformedPackageURLException {
+    var imageRef =
+        new ImageRef("registry.access.redhat.com/ubi9/ubi-minimal:9.4@" + TEST_DIGEST, null);
+
+    var purl = imageRef.getPackageURL();
+
+    assertEquals(
+        "registry.access.redhat.com/ubi9/ubi-minimal", purl.getQualifiers().get("repository_url"));
+  }
+
+  @Test
+  void test_docker_hub_user_image_unchanged_in_purl() throws MalformedPackageURLException {
+    var imageRef = new ImageRef("docker.io/myuser/myimage:latest@" + TEST_DIGEST, null);
+
+    var purl = imageRef.getPackageURL();
+
+    assertEquals("docker.io/myuser/myimage", purl.getQualifiers().get("repository_url"));
+  }
+
   @Test
   void test_check_image_digest() throws IOException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);

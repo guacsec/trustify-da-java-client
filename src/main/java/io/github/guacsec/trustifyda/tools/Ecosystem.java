@@ -18,6 +18,7 @@ package io.github.guacsec.trustifyda.tools;
 
 import io.github.guacsec.trustifyda.Provider;
 import io.github.guacsec.trustifyda.providers.CargoProvider;
+import io.github.guacsec.trustifyda.providers.DockerfileProvider;
 import io.github.guacsec.trustifyda.providers.GoModulesProvider;
 import io.github.guacsec.trustifyda.providers.GradleProvider;
 import io.github.guacsec.trustifyda.providers.JavaMavenProvider;
@@ -37,7 +38,8 @@ public final class Ecosystem {
     GOLANG("golang"),
     PYTHON("pypi"),
     GRADLE("gradle"),
-    CARGO("cargo");
+    CARGO("cargo"),
+    DOCKERFILE("oci");
 
     final String type;
 
@@ -55,6 +57,7 @@ public final class Ecosystem {
         case PYTHON -> "python";
         case GRADLE -> "gradle";
         case CARGO -> "cargo";
+        case DOCKERFILE -> "syft";
       };
     }
 
@@ -81,6 +84,9 @@ public final class Ecosystem {
 
   private static Provider resolveProvider(final Path manifestPath) {
     var manifestFile = manifestPath.getFileName().toString();
+    if (isDockerfile(manifestFile)) {
+      return new DockerfileProvider(manifestPath);
+    }
     return switch (manifestFile) {
       case "pom.xml" -> new JavaMavenProvider(manifestPath);
       case "package.json" -> JavaScriptProviderFactory.create(manifestPath);
@@ -92,5 +98,12 @@ public final class Ecosystem {
       default ->
           throw new IllegalStateException(String.format("Unknown manifest file %s", manifestFile));
     };
+  }
+
+  private static boolean isDockerfile(String filename) {
+    return filename.equals("Dockerfile")
+        || filename.equals("Containerfile")
+        || filename.startsWith("Dockerfile.")
+        || filename.startsWith("Containerfile.");
   }
 }
