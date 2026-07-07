@@ -297,10 +297,36 @@ public final class ExhortApi implements Api {
   public CompletableFuture<AnalysisReport> stackAnalysis(final String manifestFile)
       throws IOException {
     String exClientTraceId = commonHookBeginning(false);
+    var content = resolveStackContent(manifestFile);
+    var uri = resolveAnalysisUri(content);
+    var request = buildRequest(content, uri, MediaType.APPLICATION_JSON, "Stack Analysis");
+    if (content.batch) {
+      return this.client
+          .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+          .thenApply(
+              response -> {
+                RequestManager.getInstance().addClientTraceIdToRequest(exClientTraceId);
+                if (debugLoggingIsNeeded()) {
+                  logExhortRequestId(response);
+                }
+                Map<String, AnalysisReport> reports = getBatchStackAnalysisReports(response);
+                commonHookAfterExhortResponse();
+                return reports.isEmpty()
+                    ? new AnalysisReport()
+                    : reports.values().iterator().next();
+              })
+          .exceptionally(
+              exception -> {
+                LOG.severe(
+                    String.format(
+                        "failed to invoke stackAnalysis (batch) for getting the json report,"
+                            + " received message= %s ",
+                        exception.getMessage()));
+                return new AnalysisReport();
+              });
+    }
     return this.client
-        .sendAsync(
-            this.buildStackRequest(manifestFile, MediaType.APPLICATION_JSON),
-            HttpResponse.BodyHandlers.ofString())
+        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
         .thenApply(
             response ->
                 getAnalysisReportFromResponse(response, "StackAnalysis", "json", exClientTraceId))
@@ -376,9 +402,12 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
+    var uri = resolveAnalysisUri(content);
+    if (content.batch) {
+      return getBatchAnalysisReportForComponent(uri, content, exClientTraceId);
+    }
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
   }
 
@@ -420,9 +449,12 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
+    var uri = resolveAnalysisUri(content);
+    if (content.batch) {
+      return getBatchAnalysisReportForComponent(uri, content, exClientTraceId);
+    }
     return getAnalysisReportForComponent(uri, content, exClientTraceId);
   }
 
@@ -449,8 +481,48 @@ public final class ExhortApi implements Api {
             });
   }
 
+  /** Resolves the analysis URI based on whether the content is batch or single. */
+  private URI resolveAnalysisUri(Provider.Content content) {
+    if (content.batch) {
+      return buildAnalysisUri(S_API_V_5_BATCH_ANALYSIS, getEndpoint());
+    }
+    return buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
+  }
+
   /**
-   * Build an HTTP request wrapper for sending to the Backend API for Stack Analysis only.
+   * Sends batch content to the batch-analysis endpoint and returns the first analysis report from
+   * the batch response map.
+   */
+  private CompletableFuture<AnalysisReport> getBatchAnalysisReportForComponent(
+      URI uri, Provider.Content content, String exClientTraceId) {
+    return this.client
+        .sendAsync(
+            this.buildRequest(content, uri, MediaType.APPLICATION_JSON, "Batch Component Analysis"),
+            HttpResponse.BodyHandlers.ofString())
+        .thenApply(
+            response -> {
+              RequestManager.getInstance().addClientTraceIdToRequest(exClientTraceId);
+              if (debugLoggingIsNeeded()) {
+                logExhortRequestId(response);
+              }
+              Map<String, AnalysisReport> reports = getBatchStackAnalysisReports(response);
+              commonHookAfterExhortResponse();
+              return reports.isEmpty() ? new AnalysisReport() : reports.values().iterator().next();
+            })
+        .exceptionally(
+            exception -> {
+              LOG.severe(
+                  String.format(
+                      "failed to invoke Batch Component Analysis for getting the json report,"
+                          + " received message= %s ",
+                      exception.getMessage()));
+              return new AnalysisReport();
+            });
+  }
+
+  /**
+   * Build an HTTP request wrapper for sending to the Backend API for Stack Analysis only. Uses the
+   * batch-analysis endpoint when the provider returns batch content.
    *
    * @param manifestFile the path for the manifest file
    * @param acceptType the type of requested content
@@ -459,13 +531,21 @@ public final class ExhortApi implements Api {
    */
   private HttpRequest buildStackRequest(final String manifestFile, final MediaType acceptType)
       throws IOException {
+    var content = resolveStackContent(manifestFile);
+    var uri = resolveAnalysisUri(content);
+    return buildRequest(content, uri, acceptType, "Stack Analysis");
+  }
+
+  /**
+   * Resolves the provider for the given manifest file and produces the stack content. Also tracks
+   * timing via {@link #commonHookAfterProviderCreatedSbomAndBeforeExhort()}.
+   */
+  private Provider.Content resolveStackContent(String manifestFile) throws IOException {
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideStack();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
-
-    return buildRequest(content, uri, acceptType, "Stack Analysis");
+    return content;
   }
 
   @Override
@@ -610,27 +690,29 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     String sbomJson = new String(content.buffer);
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
-    return getAnalysisReportForComponent(uri, content, exClientTraceId)
-        .thenCompose(
-            report -> {
-              if (!isLicenseCheckEnabled()) {
-                return CompletableFuture.completedFuture(new ComponentAnalysisResult(report, null));
-              }
-              return LicenseCheck.runLicenseCheck(this, provider, manifestPath, sbomJson, report)
-                  .thenApply(summary -> new ComponentAnalysisResult(report, summary))
-                  .exceptionally(
-                      ex -> {
-                        LOG.warning(
-                            String.format(
-                                "License check failed, continuing without it: %s",
-                                ex.getMessage()));
-                        return new ComponentAnalysisResult(report, null);
-                      });
-            });
+    var uri = resolveAnalysisUri(content);
+    CompletableFuture<AnalysisReport> reportFuture =
+        content.batch
+            ? getBatchAnalysisReportForComponent(uri, content, exClientTraceId)
+            : getAnalysisReportForComponent(uri, content, exClientTraceId);
+    return reportFuture.thenCompose(
+        report -> {
+          if (!isLicenseCheckEnabled() || content.batch) {
+            return CompletableFuture.completedFuture(new ComponentAnalysisResult(report, null));
+          }
+          return LicenseCheck.runLicenseCheck(this, provider, manifestPath, sbomJson, report)
+              .thenApply(summary -> new ComponentAnalysisResult(report, summary))
+              .exceptionally(
+                  ex -> {
+                    LOG.warning(
+                        String.format(
+                            "License check failed, continuing without it: %s", ex.getMessage()));
+                    return new ComponentAnalysisResult(report, null);
+                  });
+        });
   }
 
   /**
