@@ -137,7 +137,7 @@ public final class DockerfileProvider extends Provider {
               continue;
             }
           }
-          if ("scratch".equals(image)) {
+          if ("scratch".equalsIgnoreCase(image)) {
             LOG.info(String.format("Skipping FROM scratch in %s", dockerfile));
             continue;
           }

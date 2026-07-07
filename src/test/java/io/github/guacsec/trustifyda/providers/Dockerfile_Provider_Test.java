@@ -217,6 +217,17 @@ class Dockerfile_Provider_Test {
       assertThat(images).doesNotContain("scratch");
     }
 
+    /** Verifies that FROM SCRATCH (uppercase) is skipped case-insensitively. */
+    @Test
+    void skips_scratch_case_insensitively() throws IOException {
+      var dockerfile = TEST_MANIFESTS.resolve("scratch_uppercase/Dockerfile");
+
+      List<String> images = DockerfileProvider.parseAllFromImages(dockerfile);
+
+      assertThat(images).hasSize(1).containsExactly("node:18");
+      assertThat(images).doesNotContain("SCRATCH");
+    }
+
     /** Verifies that a Dockerfile with no analyzable FROM instructions throws IOException. */
     @Test
     void throws_when_no_analyzable_from_instruction() {
