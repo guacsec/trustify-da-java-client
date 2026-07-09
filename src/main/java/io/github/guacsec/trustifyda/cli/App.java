@@ -33,6 +33,7 @@ import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.impl.ExhortApi;
 import io.github.guacsec.trustifyda.license.ProjectLicense;
 import io.github.guacsec.trustifyda.license.ProjectLicense.ProjectLicenseInfo;
+import io.github.guacsec.trustifyda.providers.DockerfileProvider;
 import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -219,6 +220,16 @@ public class App {
   }
 
   private static CompletableFuture<String> executeCommand(CliArgs args) throws IOException {
+    if (isDockerfilePath(args.filePath)) {
+      if (args.command == Command.SBOM || args.command == Command.LICENSE) {
+        throw new IllegalArgumentException(
+            args.command
+                + " command is not supported for Dockerfiles/Containerfiles."
+                + " Use 'stack' or 'component' to analyze container images.");
+      }
+      Set<ImageRef> imageRefs = DockerfileProvider.parseImageRefs(args.filePath);
+      return executeImageAnalysis(imageRefs, args.outputFormat);
+    }
     return switch (args.command) {
       case STACK ->
           executeStackAnalysis(args.filePath.toAbsolutePath().toString(), args.outputFormat);
@@ -228,6 +239,10 @@ public class App {
       case LICENSE -> executeLicenseCheck(args.filePath.toAbsolutePath());
       case SBOM -> executeSbomGeneration(args);
     };
+  }
+
+  private static boolean isDockerfilePath(Path filePath) {
+    return filePath != null && Ecosystem.isDockerfile(filePath.getFileName().toString());
   }
 
   private static CompletableFuture<String> executeStackAnalysis(
@@ -338,7 +353,11 @@ public class App {
 
   private static String formatImageAnalysisResult(Map<ImageRef, AnalysisReport> analysisResults) {
     try {
-      return MAPPER.writeValueAsString(analysisResults);
+      Map<String, AnalysisReport> keyed = new LinkedHashMap<>();
+      for (Map.Entry<ImageRef, AnalysisReport> entry : analysisResults.entrySet()) {
+        keyed.put(entry.getKey().getImage().getFullName(), entry.getValue());
+      }
+      return MAPPER.writeValueAsString(keyed);
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to serialize image analysis results", e);
     }
@@ -349,7 +368,7 @@ public class App {
     Map<String, Map<String, SourceSummary>> imageSummaries = new HashMap<>();
 
     for (Map.Entry<ImageRef, AnalysisReport> entry : analysisResults.entrySet()) {
-      String imageKey = entry.getKey().toString();
+      String imageKey = entry.getKey().getImage().getFullName();
       Map<String, SourceSummary> imageSummary = extractSummary(entry.getValue());
       imageSummaries.put(imageKey, imageSummary);
     }

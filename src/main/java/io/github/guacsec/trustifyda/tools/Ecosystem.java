@@ -100,7 +100,7 @@ public final class Ecosystem {
     };
   }
 
-  private static boolean isDockerfile(String filename) {
+  public static boolean isDockerfile(String filename) {
     return filename.equals("Dockerfile")
         || filename.equals("Containerfile")
         || filename.startsWith("Dockerfile.")

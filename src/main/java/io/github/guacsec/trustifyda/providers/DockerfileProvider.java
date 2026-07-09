@@ -30,8 +30,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,6 +98,33 @@ public final class DockerfileProvider extends Provider {
     byte[] batchBytes =
         objectMapper.writeValueAsString(purlToSbom).getBytes(StandardCharsets.UTF_8);
     return new Content(batchBytes, Api.CYCLONEDX_MEDIA_TYPE, true);
+  }
+
+  /**
+   * Parses a Dockerfile/Containerfile and returns {@link ImageRef} objects for all FROM images.
+   * Reuses {@link #parseAllFromImages(Path)} for FROM extraction and ARG resolution, then converts
+   * each image string to an {@link ImageRef} via {@link ImageUtils#parseImageRef(String)}.
+   *
+   * @param dockerfile path to the Dockerfile or Containerfile
+   * @return set of image references preserving FROM order
+   * @throws IOException if the file cannot be read or no images are analyzable
+   */
+  public static Set<ImageRef> parseImageRefs(Path dockerfile) throws IOException {
+    List<String> imageReferences = parseAllFromImages(dockerfile);
+    Set<ImageRef> imageRefs = new LinkedHashSet<>();
+    for (String imageReference : imageReferences) {
+      try {
+        ImageRef imageRef = ImageUtils.parseImageRef(imageReference);
+        imageRefs.add(imageRef);
+      } catch (Exception e) {
+        LOG.warning(
+            String.format("Skipping image %s due to error: %s", imageReference, e.getMessage()));
+      }
+    }
+    if (imageRefs.isEmpty()) {
+      throw new IOException("No analyzable FROM images found in " + dockerfile);
+    }
+    return imageRefs;
   }
 
   /**

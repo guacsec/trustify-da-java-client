@@ -30,6 +30,7 @@ import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -256,6 +257,78 @@ class Dockerfile_Provider_Test {
       List<String> images = DockerfileProvider.parseAllFromImages(containerfile);
 
       assertThat(images).hasSize(1).containsExactly("registry.access.redhat.com/ubi9/ubi:9.4");
+    }
+  }
+
+  @Nested
+  class ParseImageRefs {
+
+    /** Verifies that a single-stage Dockerfile returns one ImageRef. */
+    @Test
+    void returns_single_image_ref_for_single_from_dockerfile() throws Exception {
+      var dockerfile = TEST_MANIFESTS.resolve("single_stage/Dockerfile");
+      ImageRef imageRef = Mockito.mock(ImageRef.class);
+
+      try (MockedStatic<ImageUtils> imageUtilsMock = Mockito.mockStatic(ImageUtils.class)) {
+        imageUtilsMock
+            .when(() -> ImageUtils.parseImageRef("registry.access.redhat.com/ubi9/ubi-minimal:9.4"))
+            .thenReturn(imageRef);
+
+        Set<ImageRef> result = DockerfileProvider.parseImageRefs(dockerfile);
+
+        assertThat(result).hasSize(1).containsExactly(imageRef);
+      }
+    }
+
+    /** Verifies that a multi-stage Dockerfile returns all ImageRefs in FROM order. */
+    @Test
+    void returns_all_image_refs_for_multi_stage_dockerfile() throws Exception {
+      var dockerfile = TEST_MANIFESTS.resolve("multi_stage/Dockerfile");
+      ImageRef nodeRef = Mockito.mock(ImageRef.class);
+      ImageRef nginxRef = Mockito.mock(ImageRef.class);
+
+      try (MockedStatic<ImageUtils> imageUtilsMock = Mockito.mockStatic(ImageUtils.class)) {
+        imageUtilsMock.when(() -> ImageUtils.parseImageRef("node:18")).thenReturn(nodeRef);
+        imageUtilsMock.when(() -> ImageUtils.parseImageRef("nginx:alpine")).thenReturn(nginxRef);
+
+        Set<ImageRef> result = DockerfileProvider.parseImageRefs(dockerfile);
+
+        assertThat(result).hasSize(2).containsExactly(nodeRef, nginxRef);
+      }
+    }
+
+    /** Verifies that failing images are skipped and remaining ImageRefs are returned. */
+    @Test
+    void skips_failing_images_and_returns_remaining() throws Exception {
+      var dockerfile = TEST_MANIFESTS.resolve("multi_stage/Dockerfile");
+      ImageRef nginxRef = Mockito.mock(ImageRef.class);
+
+      try (MockedStatic<ImageUtils> imageUtilsMock = Mockito.mockStatic(ImageUtils.class)) {
+        imageUtilsMock
+            .when(() -> ImageUtils.parseImageRef("node:18"))
+            .thenThrow(new RuntimeException("skopeo not available"));
+        imageUtilsMock.when(() -> ImageUtils.parseImageRef("nginx:alpine")).thenReturn(nginxRef);
+
+        Set<ImageRef> result = DockerfileProvider.parseImageRefs(dockerfile);
+
+        assertThat(result).hasSize(1).containsExactly(nginxRef);
+      }
+    }
+
+    /** Verifies that IOException is thrown when all images fail to parse. */
+    @Test
+    void throws_when_all_images_fail() {
+      var dockerfile = TEST_MANIFESTS.resolve("multi_stage/Dockerfile");
+
+      try (MockedStatic<ImageUtils> imageUtilsMock = Mockito.mockStatic(ImageUtils.class)) {
+        imageUtilsMock
+            .when(() -> ImageUtils.parseImageRef(Mockito.anyString()))
+            .thenThrow(new RuntimeException("skopeo not available"));
+
+        assertThatExceptionOfType(IOException.class)
+            .isThrownBy(() -> DockerfileProvider.parseImageRefs(dockerfile))
+            .withMessageContaining("No analyzable FROM images found");
+      }
     }
   }
 
