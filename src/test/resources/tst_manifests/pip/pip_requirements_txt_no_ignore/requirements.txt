@@ -18,7 +18,7 @@ pydantic==1.9.2
 requests==2.25.1
 six==1.16.0
 sniffio==1.2.0
-soupsieve==2.3.2.post1
+soupsieve==2.8.4
 starlette==0.17.1
 typing_extensions==4.1.1
 urllib3==1.26.16
