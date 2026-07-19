@@ -701,6 +701,10 @@ public final class ExhortApi implements Api {
     return reportFuture.thenCompose(
         report -> {
           if (!isLicenseCheckEnabled() || content.batch) {
+            LOG.fine(
+                String.format(
+                    "Skipping license check: enabled=%b, batch=%b",
+                    isLicenseCheckEnabled(), content.batch));
             return CompletableFuture.completedFuture(new ComponentAnalysisResult(report, null));
           }
           return LicenseCheck.runLicenseCheck(this, provider, manifestPath, sbomJson, report)
