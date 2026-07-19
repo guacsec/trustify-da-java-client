@@ -156,7 +156,7 @@ public class ImageRef {
       if (lower.equals(simpleName.toLowerCase())) {
         repositoryUrl = "docker.io/" + simpleName;
       } else if (lower.startsWith(DOCKER_HUB_LIBRARY_PREFIX)) {
-        repositoryUrl = "docker.io/" + lower.substring(DOCKER_HUB_LIBRARY_PREFIX.length());
+        repositoryUrl = "docker.io/" + repositoryUrl.substring(DOCKER_HUB_LIBRARY_PREFIX.length());
       }
     }
 
