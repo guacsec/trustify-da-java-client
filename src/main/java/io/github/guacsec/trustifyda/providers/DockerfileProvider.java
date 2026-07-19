@@ -50,7 +50,7 @@ public final class DockerfileProvider extends Provider {
       Pattern.compile("^FROM\\s+", Pattern.CASE_INSENSITIVE);
 
   private static final Pattern ARG_LINE_PATTERN =
-      Pattern.compile("^ARG\\s+([A-Za-z_][A-Za-z0-9_]*)=(\\S+)", Pattern.CASE_INSENSITIVE);
+      Pattern.compile("^ARG\\s+([A-Za-z_][A-Za-z0-9_]*)=(.+)", Pattern.CASE_INSENSITIVE);
 
   private static final Pattern VAR_REF_PATTERN =
       Pattern.compile("\\$\\{([^}]+)}|\\$([A-Za-z_][A-Za-z0-9_]*)");
@@ -144,7 +144,12 @@ public final class DockerfileProvider extends Provider {
       String trimmed = line.trim();
       var argMatcher = ARG_LINE_PATTERN.matcher(trimmed);
       if (argMatcher.find()) {
-        argDefaults.put(argMatcher.group(1), argMatcher.group(2));
+        String val = argMatcher.group(2).trim();
+        if ((val.startsWith("\"") && val.endsWith("\""))
+            || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.substring(1, val.length() - 1);
+        }
+        argDefaults.put(argMatcher.group(1), val);
         continue;
       }
       var fromMatcher = FROM_LINE_PATTERN.matcher(trimmed);

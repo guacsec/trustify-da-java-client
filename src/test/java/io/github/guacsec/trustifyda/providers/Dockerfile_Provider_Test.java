@@ -188,6 +188,36 @@ class Dockerfile_Provider_Test {
       assertThat(images).hasSize(1).containsExactly("ubuntu:22.04");
     }
 
+    /** Verifies that double-quoted ARG default values are unquoted before resolution. */
+    @Test
+    void resolves_arg_with_double_quoted_value() throws IOException {
+      var dockerfile = TEST_MANIFESTS.resolve("arg_double_quoted/Dockerfile");
+
+      List<String> images = DockerfileProvider.parseAllFromImages(dockerfile);
+
+      assertThat(images).hasSize(1).containsExactly("ubuntu:22.04");
+    }
+
+    /** Verifies that single-quoted ARG default values are unquoted before resolution. */
+    @Test
+    void resolves_arg_with_single_quoted_value() throws IOException {
+      var dockerfile = TEST_MANIFESTS.resolve("arg_single_quoted/Dockerfile");
+
+      List<String> images = DockerfileProvider.parseAllFromImages(dockerfile);
+
+      assertThat(images).hasSize(1).containsExactly("ubuntu:22.04");
+    }
+
+    /** Verifies that ARG values with spaces are captured fully when quoted. */
+    @Test
+    void resolves_arg_with_spaces_in_quoted_value() throws IOException {
+      var dockerfile = TEST_MANIFESTS.resolve("arg_value_with_spaces/Dockerfile");
+
+      List<String> images = DockerfileProvider.parseAllFromImages(dockerfile);
+
+      assertThat(images).hasSize(1).containsExactly("ubuntu:22.04");
+    }
+
     /** Verifies that ARG without default value causes the FROM line to be skipped. */
     @Test
     void skips_arg_substitution_without_default_value() {
