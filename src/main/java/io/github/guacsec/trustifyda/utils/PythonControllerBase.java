@@ -78,6 +78,15 @@ public abstract class PythonControllerBase {
     if (isVirtualEnv() || isRealEnv()) {
       prepareEnvironment(pathToPythonBin);
     }
+    if (Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false)
+        && !automaticallyInstallPackageOnEnvironment()) {
+      throw new RuntimeException(
+          "Conflicting settings, "
+              + PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
+              + "=true requires "
+              + PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV
+              + "=true");
+    }
     if (automaticallyInstallPackageOnEnvironment()) {
       boolean installBestEfforts =
           Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false);
