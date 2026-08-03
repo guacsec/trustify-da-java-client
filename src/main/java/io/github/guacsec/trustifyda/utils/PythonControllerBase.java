@@ -80,7 +80,7 @@ public abstract class PythonControllerBase {
     }
     if (Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false)
         && !automaticallyInstallPackageOnEnvironment()) {
-      throw new RuntimeException(
+      throw new IllegalStateException(
           "Conflicting settings, "
               + PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
               + "=true requires "
@@ -99,7 +99,7 @@ public abstract class PythonControllerBase {
       if (installBestEfforts) {
         boolean matchManifestVersions = Environment.getBoolean(PROP_MATCH_MANIFEST_VERSIONS, true);
         if (matchManifestVersions) {
-          throw new RuntimeException(
+          throw new IllegalStateException(
               "Conflicting settings, "
                   + PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
                   + "=true can only work with "

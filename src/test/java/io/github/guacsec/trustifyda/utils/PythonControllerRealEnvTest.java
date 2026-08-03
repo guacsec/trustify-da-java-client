@@ -342,13 +342,12 @@ class PythonControllerRealEnvTest extends ExhortTest {
   @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, value = "true")
   void best_Efforts_Without_Virtual_Env_Should_Throw_Runtime_Exception() {
     String requirementsTxt = getFileFromString("requirements.txt", "flask==9.9.9\n");
-    RuntimeException runtimeException =
+    IllegalStateException exception =
         assertThrows(
-            RuntimeException.class,
+            IllegalStateException.class,
             () -> pythonControllerRealEnv.getDependencies(requirementsTxt, true));
-    assertTrue(
-        runtimeException.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS));
-    assertTrue(runtimeException.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV));
+    assertTrue(exception.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS));
+    assertTrue(exception.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV));
   }
 
   @Test
