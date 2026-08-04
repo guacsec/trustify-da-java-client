@@ -340,6 +340,7 @@ class PythonControllerRealEnvTest extends ExhortTest {
   @Test
   @RestoreSystemProperties
   @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, value = "true")
+  @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, value = "false")
   void best_Efforts_Without_Virtual_Env_Should_Throw_Runtime_Exception() {
     String requirementsTxt = getFileFromString("requirements.txt", "flask==9.9.9\n");
     IllegalStateException exception =
