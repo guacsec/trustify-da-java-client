@@ -16,25 +16,44 @@
  */
 package io.github.guacsec.trustifyda.providers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.guacsec.trustifyda.Api;
 import io.github.guacsec.trustifyda.Provider;
 import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
+import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Provider for Dockerfile and Containerfile manifests. Parses the FROM instruction to extract the
- * base image reference, then uses syft to generate a CycloneDX SBOM for analysis.
+ * Provider for Dockerfile and Containerfile manifests. Parses all FROM instructions to extract base
+ * image references, then uses syft to generate CycloneDX SBOMs for batch analysis.
  */
 public final class DockerfileProvider extends Provider {
 
+  private static final Logger LOG = LoggersFactory.getLogger(DockerfileProvider.class.getName());
+
   private static final Pattern FROM_LINE_PATTERN =
       Pattern.compile("^FROM\\s+", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern ARG_LINE_PATTERN =
+      Pattern.compile("^ARG\\s+([A-Za-z_][A-Za-z0-9_]*)=(.+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern VAR_REF_PATTERN =
+      Pattern.compile("\\$\\{([^}]+)}|\\$([A-Za-z_][A-Za-z0-9_]*)");
 
   public DockerfileProvider(Path manifest) {
     super(Type.DOCKERFILE, manifest);
@@ -42,12 +61,12 @@ public final class DockerfileProvider extends Provider {
 
   @Override
   public Content provideStack() throws IOException {
-    return generateSbomContent();
+    return generateBatchSbomContent();
   }
 
   @Override
   public Content provideComponent() throws IOException {
-    return generateSbomContent();
+    return generateBatchSbomContent();
   }
 
   @Override
@@ -56,61 +75,134 @@ public final class DockerfileProvider extends Provider {
   }
 
   /**
-   * Parses the manifest file to find the last FROM instruction and generates a CycloneDX SBOM for
-   * the referenced image.
+   * Parses the manifest file to find all FROM instructions and generates a CycloneDX SBOM for each
+   * image. Returns batch content as a JSON object mapping purls to SBOM objects.
    */
-  private Content generateSbomContent() throws IOException {
-    String imageReference = parseLastFromImage(manifestPath);
-    ImageRef imageRef = ImageUtils.parseImageRef(imageReference);
-    try {
-      var sbomNode = ImageUtils.generateImageSBOM(imageRef);
-      byte[] sbomBytes = objectMapper.writeValueAsBytes(sbomNode);
-      return new Content(sbomBytes, Api.CYCLONEDX_MEDIA_TYPE);
-    } catch (Exception e) {
-      throw new IOException("Failed to generate SBOM for image: " + imageReference, e);
+  private Content generateBatchSbomContent() throws IOException {
+    List<String> imageReferences = parseAllFromImages(manifestPath);
+    Map<String, JsonNode> purlToSbom = new LinkedHashMap<>();
+    for (String imageReference : imageReferences) {
+      try {
+        ImageRef imageRef = ImageUtils.parseImageRef(imageReference);
+        JsonNode sbomNode = ImageUtils.generateImageSBOM(imageRef);
+        String purl = imageRef.getPackageURL().toString();
+        purlToSbom.put(purl, sbomNode);
+      } catch (Exception e) {
+        LOG.warning(
+            String.format("Skipping image %s due to error: %s", imageReference, e.getMessage()));
+      }
     }
+    if (purlToSbom.isEmpty()) {
+      throw new IOException("No analyzable FROM images found in " + manifestPath);
+    }
+    byte[] batchBytes =
+        objectMapper.writeValueAsString(purlToSbom).getBytes(StandardCharsets.UTF_8);
+    return new Content(batchBytes, Api.CYCLONEDX_MEDIA_TYPE, true);
   }
 
   /**
-   * Parses a Dockerfile/Containerfile and extracts the image reference from the last FROM
-   * instruction. In multi-stage builds, the last FROM defines the final image.
+   * Parses a Dockerfile/Containerfile and returns {@link ImageRef} objects for all FROM images.
+   * Reuses {@link #parseAllFromImages(Path)} for FROM extraction and ARG resolution, then converts
+   * each image string to an {@link ImageRef} via {@link ImageUtils#parseImageRef(String)}.
    *
    * @param dockerfile path to the Dockerfile or Containerfile
-   * @return the image reference string from the last FROM instruction
-   * @throws IOException if the file cannot be read or contains no FROM instruction
+   * @return set of image references preserving FROM order
+   * @throws IOException if the file cannot be read or no images are analyzable
    */
-  static String parseLastFromImage(Path dockerfile) throws IOException {
+  public static Set<ImageRef> parseImageRefs(Path dockerfile) throws IOException {
+    List<String> imageReferences = parseAllFromImages(dockerfile);
+    Set<ImageRef> imageRefs = new LinkedHashSet<>();
+    for (String imageReference : imageReferences) {
+      try {
+        ImageRef imageRef = ImageUtils.parseImageRef(imageReference);
+        imageRefs.add(imageRef);
+      } catch (Exception e) {
+        LOG.warning(
+            String.format("Skipping image %s due to error: %s", imageReference, e.getMessage()));
+      }
+    }
+    if (imageRefs.isEmpty()) {
+      throw new IOException("No analyzable FROM images found in " + dockerfile);
+    }
+    return imageRefs;
+  }
+
+  /**
+   * Parses a Dockerfile/Containerfile and extracts image references from all FROM instructions.
+   * Resolves ARG substitutions using default values when available. Skips FROM lines with
+   * unresolvable ARG references (no default value) or that reference {@code scratch}.
+   *
+   * @param dockerfile path to the Dockerfile or Containerfile
+   * @return list of image reference strings from all valid FROM instructions
+   * @throws IOException if the file cannot be read or contains no analyzable FROM instruction
+   */
+  static List<String> parseAllFromImages(Path dockerfile) throws IOException {
     List<String> lines = Files.readAllLines(dockerfile);
-    String lastImage = null;
+    Map<String, String> argDefaults = new HashMap<>();
+    List<String> images = new ArrayList<>();
     for (String line : lines) {
       String trimmed = line.trim();
-      var matcher = FROM_LINE_PATTERN.matcher(trimmed);
-      if (matcher.find()) {
-        // Strip the FROM keyword, then tokenize the remainder
-        String remainder = trimmed.substring(matcher.end());
+      var argMatcher = ARG_LINE_PATTERN.matcher(trimmed);
+      if (argMatcher.find()) {
+        String val = argMatcher.group(2).trim();
+        if ((val.startsWith("\"") && val.endsWith("\""))
+            || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.substring(1, val.length() - 1);
+        }
+        argDefaults.put(argMatcher.group(1), val);
+        continue;
+      }
+      var fromMatcher = FROM_LINE_PATTERN.matcher(trimmed);
+      if (fromMatcher.find()) {
+        String remainder = trimmed.substring(fromMatcher.end());
         String[] tokens = remainder.split("\\s+");
-        // Skip all leading --flag tokens (e.g. --platform=linux/amd64 --some-flag=value)
         int i = 0;
         while (i < tokens.length && tokens[i].startsWith("--")) {
           i++;
         }
         if (i < tokens.length) {
-          lastImage = tokens[i];
+          String image = tokens[i];
+          if (image.contains("$")) {
+            image = resolveArgSubstitutions(image, argDefaults);
+            if (image == null) {
+              LOG.info(
+                  String.format(
+                      "Skipping FROM line with unresolvable ARG in %s: %s", dockerfile, tokens[i]));
+              continue;
+            }
+          }
+          if ("scratch".equalsIgnoreCase(image)) {
+            LOG.info(String.format("Skipping FROM scratch in %s", dockerfile));
+            continue;
+          }
+          images.add(image);
         }
       }
     }
-    if (lastImage == null) {
-      throw new IOException("No FROM instruction found in " + dockerfile);
+    if (images.isEmpty()) {
+      throw new IOException("No analyzable FROM instruction found in " + dockerfile);
     }
-    if (lastImage.contains("${")) {
-      throw new IOException(
-          "Dockerfile uses ARG substitution in FROM line — cannot resolve variable references: "
-              + dockerfile);
+    return images;
+  }
+
+  /**
+   * Resolves {@code ${VAR}} and {@code $VAR} references in an image string using collected ARG
+   * defaults.
+   *
+   * @return the resolved image string, or {@code null} if any variable has no default value
+   */
+  private static String resolveArgSubstitutions(String image, Map<String, String> argDefaults) {
+    Matcher varMatcher = VAR_REF_PATTERN.matcher(image);
+    StringBuilder sb = new StringBuilder();
+    while (varMatcher.find()) {
+      String varName = varMatcher.group(1) != null ? varMatcher.group(1) : varMatcher.group(2);
+      String defaultValue = argDefaults.get(varName);
+      if (defaultValue == null) {
+        return null;
+      }
+      varMatcher.appendReplacement(sb, Matcher.quoteReplacement(defaultValue));
     }
-    if ("scratch".equals(lastImage)) {
-      throw new IOException(
-          "Dockerfile uses FROM scratch — no base image to analyze: " + dockerfile);
-    }
-    return lastImage;
+    varMatcher.appendTail(sb);
+    return sb.toString();
   }
 }

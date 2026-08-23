@@ -75,12 +75,20 @@ public abstract class PythonControllerBase {
 
   public final List<Map<String, Object>> getDependencies(
       String pathToRequirements, boolean includeTransitive) {
+    boolean installBestEfforts =
+        Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false);
+    if (installBestEfforts && !automaticallyInstallPackageOnEnvironment()) {
+      throw new IllegalStateException(
+          "Conflicting settings, "
+              + PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
+              + "=true requires "
+              + PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV
+              + "=true");
+    }
     if (isVirtualEnv() || isRealEnv()) {
       prepareEnvironment(pathToPythonBin);
     }
     if (automaticallyInstallPackageOnEnvironment()) {
-      boolean installBestEfforts =
-          Environment.getBoolean(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, false);
       /*
        make best efforts to install the requirements.txt on the virtual environment created from
        the python3 passed in. that means that it will install the packages without referring to
@@ -90,7 +98,7 @@ public abstract class PythonControllerBase {
       if (installBestEfforts) {
         boolean matchManifestVersions = Environment.getBoolean(PROP_MATCH_MANIFEST_VERSIONS, true);
         if (matchManifestVersions) {
-          throw new RuntimeException(
+          throw new IllegalStateException(
               "Conflicting settings, "
                   + PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS
                   + "=true can only work with "

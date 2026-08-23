@@ -17,6 +17,8 @@
 package io.github.guacsec.trustifyda.utils;
 
 import static io.github.guacsec.trustifyda.Provider.PROP_MATCH_MANIFEST_VERSIONS;
+import static io.github.guacsec.trustifyda.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS;
+import static io.github.guacsec.trustifyda.utils.PythonControllerBase.PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV;
 import static io.github.guacsec.trustifyda.utils.PythonControllerBaseTest.matchCommandPipFreeze;
 import static io.github.guacsec.trustifyda.utils.PythonControllerBaseTest.matchCommandPipShow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -332,6 +334,21 @@ class PythonControllerRealEnvTest extends ExhortTest {
     assertEquals(
         "package",
         PythonControllerRealEnv.getDependencyName("package[extra]~=1.0 ; python_version >= \"3\""));
+  }
+
+  /** Verifies that BEST_EFFORTS=true without VIRTUAL_ENV=true throws a descriptive error. */
+  @Test
+  @RestoreSystemProperties
+  @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS, value = "true")
+  @SetSystemProperty(key = PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV, value = "false")
+  void best_Efforts_Without_Virtual_Env_Should_Throw_Runtime_Exception() {
+    String requirementsTxt = getFileFromString("requirements.txt", "flask==9.9.9\n");
+    IllegalStateException exception =
+        assertThrows(
+            IllegalStateException.class,
+            () -> pythonControllerRealEnv.getDependencies(requirementsTxt, true));
+    assertTrue(exception.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS));
+    assertTrue(exception.getMessage().contains(PROP_TRUSTIFY_DA_PYTHON_VIRTUAL_ENV));
   }
 
   @Test

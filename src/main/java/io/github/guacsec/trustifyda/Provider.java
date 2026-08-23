@@ -37,10 +37,16 @@ public abstract class Provider {
   public static class Content {
     public final byte[] buffer;
     public final String type;
+    public final boolean batch;
 
     public Content(byte[] buffer, String type) {
+      this(buffer, type, false);
+    }
+
+    public Content(byte[] buffer, String type, boolean batch) {
       this.buffer = buffer;
       this.type = type;
+      this.batch = batch;
     }
   }
 

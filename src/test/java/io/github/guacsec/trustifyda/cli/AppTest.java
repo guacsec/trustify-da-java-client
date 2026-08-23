@@ -36,14 +36,18 @@ import io.github.guacsec.trustifyda.api.v5.ProviderStatus;
 import io.github.guacsec.trustifyda.api.v5.Scanned;
 import io.github.guacsec.trustifyda.api.v5.Source;
 import io.github.guacsec.trustifyda.api.v5.SourceSummary;
+import io.github.guacsec.trustifyda.image.Image;
+import io.github.guacsec.trustifyda.image.ImageRef;
 import io.github.guacsec.trustifyda.image.ImageUtils;
 import io.github.guacsec.trustifyda.impl.ExhortApi;
+import io.github.guacsec.trustifyda.providers.DockerfileProvider;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -836,6 +840,9 @@ class AppTest extends ExhortTest {
     Set<io.github.guacsec.trustifyda.image.ImageRef> imageRefs = new HashSet<>();
     io.github.guacsec.trustifyda.image.ImageRef mockImageRef =
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("nginx:latest");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
     imageRefs.add(mockImageRef);
 
     Map<io.github.guacsec.trustifyda.image.ImageRef, AnalysisReport> mockResults = new HashMap<>();
@@ -897,6 +904,9 @@ class AppTest extends ExhortTest {
     Set<io.github.guacsec.trustifyda.image.ImageRef> imageRefs = new HashSet<>();
     io.github.guacsec.trustifyda.image.ImageRef mockImageRef =
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("nginx:latest");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
     imageRefs.add(mockImageRef);
 
     Map<io.github.guacsec.trustifyda.image.ImageRef, AnalysisReport> mockResults = new HashMap<>();
@@ -927,7 +937,9 @@ class AppTest extends ExhortTest {
   void formatImageAnalysisResult_should_serialize_to_json() throws Exception {
     io.github.guacsec.trustifyda.image.ImageRef mockImageRef =
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
-    when(mockImageRef.toString()).thenReturn("nginx:latest");
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("nginx:latest");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
 
     Map<io.github.guacsec.trustifyda.image.ImageRef, AnalysisReport> analysisResults =
         new HashMap<>();
@@ -949,8 +961,12 @@ class AppTest extends ExhortTest {
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
     io.github.guacsec.trustifyda.image.ImageRef mockImageRef2 =
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
-    when(mockImageRef1.toString()).thenReturn("nginx:latest");
-    when(mockImageRef2.toString()).thenReturn("redis:alpine");
+    Image mockImage1 = mock(Image.class);
+    when(mockImage1.getFullName()).thenReturn("nginx:latest");
+    when(mockImageRef1.getImage()).thenReturn(mockImage1);
+    Image mockImage2 = mock(Image.class);
+    when(mockImage2.getFullName()).thenReturn("redis:alpine");
+    when(mockImageRef2.getImage()).thenReturn(mockImage2);
 
     Map<io.github.guacsec.trustifyda.image.ImageRef, AnalysisReport> analysisResults =
         new HashMap<>();
@@ -975,6 +991,9 @@ class AppTest extends ExhortTest {
     Set<io.github.guacsec.trustifyda.image.ImageRef> imageRefs = new HashSet<>();
     io.github.guacsec.trustifyda.image.ImageRef mockImageRef =
         mock(io.github.guacsec.trustifyda.image.ImageRef.class);
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("nginx:latest");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
     imageRefs.add(mockImageRef);
 
     CliArgs imageArgs = new CliArgs(Command.IMAGE, imageRefs, OutputFormat.JSON);
@@ -1103,5 +1122,110 @@ class AppTest extends ExhortTest {
 
     Command result = (Command) parseCommandMethod.invoke(null, "sbom");
     assertThat(result).isEqualTo(Command.SBOM);
+  }
+
+  @Test
+  void executeCommand_with_stack_dockerfile_routes_to_image_analysis() throws Exception {
+    CliArgs args =
+        new CliArgs(Command.STACK, Paths.get("/test/path/Dockerfile"), OutputFormat.JSON);
+
+    ImageRef mockImageRef = mock(ImageRef.class);
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("node:22");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
+    Set<ImageRef> imageRefs = new LinkedHashSet<>();
+    imageRefs.add(mockImageRef);
+
+    Map<ImageRef, AnalysisReport> mockResults = new HashMap<>();
+    mockResults.put(mockImageRef, defaultAnalysisReport());
+
+    try (MockedStatic<DockerfileProvider> dockerMock = mockStatic(DockerfileProvider.class);
+        MockedConstruction<ExhortApi> mockedExhortApi =
+            mockConstruction(
+                ExhortApi.class,
+                (mock, context) -> {
+                  when(mock.imageAnalysis(any(Set.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResults));
+                })) {
+
+      dockerMock
+          .when(() -> DockerfileProvider.parseImageRefs(any(Path.class)))
+          .thenReturn(imageRefs);
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      CompletableFuture<String> result =
+          (CompletableFuture<String>) executeCommandMethod.invoke(null, args);
+
+      assertThat(result).isNotNull();
+      assertThat(result.get()).isNotNull();
+      dockerMock.verify(() -> DockerfileProvider.parseImageRefs(any(Path.class)));
+    }
+  }
+
+  @Test
+  void executeCommand_with_component_dockerfile_routes_to_image_analysis() throws Exception {
+    CliArgs args =
+        new CliArgs(Command.COMPONENT, Paths.get("/test/path/Dockerfile"), OutputFormat.JSON);
+
+    ImageRef mockImageRef = mock(ImageRef.class);
+    Image mockImage = mock(Image.class);
+    when(mockImage.getFullName()).thenReturn("node:22");
+    when(mockImageRef.getImage()).thenReturn(mockImage);
+    Set<ImageRef> imageRefs = new LinkedHashSet<>();
+    imageRefs.add(mockImageRef);
+
+    Map<ImageRef, AnalysisReport> mockResults = new HashMap<>();
+    mockResults.put(mockImageRef, defaultAnalysisReport());
+
+    try (MockedStatic<DockerfileProvider> dockerMock = mockStatic(DockerfileProvider.class);
+        MockedConstruction<ExhortApi> mockedExhortApi =
+            mockConstruction(
+                ExhortApi.class,
+                (mock, context) -> {
+                  when(mock.imageAnalysis(any(Set.class)))
+                      .thenReturn(CompletableFuture.completedFuture(mockResults));
+                })) {
+
+      dockerMock
+          .when(() -> DockerfileProvider.parseImageRefs(any(Path.class)))
+          .thenReturn(imageRefs);
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      CompletableFuture<String> result =
+          (CompletableFuture<String>) executeCommandMethod.invoke(null, args);
+
+      assertThat(result).isNotNull();
+      assertThat(result.get()).isNotNull();
+      dockerMock.verify(() -> DockerfileProvider.parseImageRefs(any(Path.class)));
+    }
+  }
+
+  @Test
+  void executeCommand_with_stack_non_dockerfile_uses_stack_analysis() throws Exception {
+    CliArgs args = new CliArgs(Command.STACK, TEST_FILE, OutputFormat.JSON);
+
+    AnalysisReport mockReport = mock(AnalysisReport.class);
+
+    try (MockedConstruction<ExhortApi> mockedExhortApi =
+        mockConstruction(
+            ExhortApi.class,
+            (mock, context) -> {
+              when(mock.stackAnalysis(any(String.class)))
+                  .thenReturn(CompletableFuture.completedFuture(mockReport));
+            })) {
+
+      Method executeCommandMethod = App.class.getDeclaredMethod("executeCommand", CliArgs.class);
+      executeCommandMethod.setAccessible(true);
+
+      CompletableFuture<String> result =
+          (CompletableFuture<String>) executeCommandMethod.invoke(null, args);
+
+      assertThat(result).isNotNull();
+      assertThat(result.get()).isNotNull();
+    }
   }
 }

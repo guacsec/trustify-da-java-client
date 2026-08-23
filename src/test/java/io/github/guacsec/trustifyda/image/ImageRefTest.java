@@ -116,6 +116,35 @@ class ImageRefTest extends ExhortTest {
     assertEquals("docker.io/myuser/myimage", purl.getQualifiers().get("repository_url"));
   }
 
+  /**
+   * Verifies that bare name and library-prefix forms produce identical PURLs for the same image,
+   * ensuring both Docker Hub normalization branches yield the same result.
+   */
+  @Test
+  void test_docker_hub_library_prefix_and_bare_name_produce_identical_purls()
+      throws MalformedPackageURLException {
+    var bareRef = new ImageRef("node:18@" + TEST_DIGEST, null);
+    var libraryRef = new ImageRef("docker.io/library/node:18@" + TEST_DIGEST, null);
+
+    assertEquals(bareRef.getPackageURL(), libraryRef.getPackageURL());
+  }
+
+  /**
+   * Verifies that library-prefix normalization uses repositoryUrl (not the lowercased variable) to
+   * extract the image name, consistent with the bare-name branch which uses simpleName directly.
+   */
+  @Test
+  void test_docker_hub_library_prefix_uses_repository_url_not_lowered()
+      throws MalformedPackageURLException {
+    var imageRef = new ImageRef("docker.io/library/myapp:latest@" + TEST_DIGEST, null);
+
+    var purl = imageRef.getPackageURL();
+
+    // Both normalization branches should produce the same repository_url format
+    assertEquals("docker.io/myapp", purl.getQualifiers().get("repository_url"));
+    assertEquals("myapp", purl.getName());
+  }
+
   @Test
   void test_check_image_digest() throws IOException {
     try (MockedStatic<Operations> mock = Mockito.mockStatic(Operations.class);
