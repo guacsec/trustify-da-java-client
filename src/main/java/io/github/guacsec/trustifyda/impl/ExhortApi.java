@@ -402,7 +402,6 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifest);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     var uri = resolveAnalysisUri(content);
@@ -450,7 +449,6 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
     var uri = resolveAnalysisUri(content);
@@ -693,7 +691,6 @@ public final class ExhortApi implements Api {
     String exClientTraceId = commonHookBeginning(false);
     var manifestPath = Path.of(manifestFile);
     var provider = Ecosystem.getProvider(manifestPath);
-    var uri = buildAnalysisUri(S_API_V_5_ANALYSIS, getEndpoint());
     var content = provider.provideComponent();
     String sbomJson = new String(content.buffer);
     commonHookAfterProviderCreatedSbomAndBeforeExhort();
