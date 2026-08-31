@@ -823,7 +823,7 @@ Installation of the tools/cli for analyzing image vulnerability.
 | Docker | [docker](https://docs.docker.com/get-docker/)                           | False    |
 | Podman | [podman](https://podman.io/docs/installation)                           | False    |
 
-> **Note:** Image analysis is not supported on Windows, because `skopeo` provides no native Windows binary.
+> **Note:** Dockerfile analysis is not supported on Windows, because `skopeo` provides no native Windows binary.
 
 #### Customization
 Customize image analysis optionally by using *Environment Variables* or *Java Properties*.
