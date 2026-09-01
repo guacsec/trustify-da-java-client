@@ -170,11 +170,12 @@ class Python_Provider_Test extends ExhortTest {
             String.format("tst_manifests/pip/%s/expected_stack_sbom.json", testFolder))) {
       expectedSbom = new String(is.readAllBytes());
     }
-    // when providing stack content for our pom
-    var content = new PythonPipProvider(tmpPythonFile).provideStack();
+    // set up pipdeptree mock before invoking provideStack so the real binary is never called
     String pipdeptreeContent = this.getStringFromFile("tst_manifests/pip/pipdeptree.json");
     String base64Pipdeptree = new String(Base64.getEncoder().encode(pipdeptreeContent.getBytes()));
     System.setProperty(PROP_TRUSTIFY_DA_PIP_PIPDEPTREE, base64Pipdeptree);
+    // when providing stack content for our pom
+    var content = new PythonPipProvider(tmpPythonFile).provideStack();
     // cleanup
     Files.deleteIfExists(tmpPythonFile);
     Files.deleteIfExists(tmpPythonModuleDir);
