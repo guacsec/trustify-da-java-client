@@ -20,7 +20,7 @@ six==1.16.0
 sniffio==1.2.0
 soupsieve==2.3.2.post1
 starlette==0.17.1
-typing_extensions==4.1.1
+typing_extensions==4.16.0
 urllib3==1.26.16
 uvicorn==0.17.0
 Werkzeug==2.0.3

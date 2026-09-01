@@ -428,7 +428,7 @@ Requires: requests, requests-oauthlib, six
 Required-by: 
 ---
 Name: typing_extensions
-Version: 4.1.1
+Version: 4.16.0
 Summary: Backported and Experimental Type Hints for Python 3.6+
 Home-page: 
 Author: 

@@ -277,7 +277,7 @@
       {
         "key": "typing-extensions",
         "package_name": "typing_extensions",
-        "installed_version": "4.1.1",
+        "installed_version": "4.16.0",
         "required_version": ">=3.7.4.3"
       }
     ]
@@ -366,7 +366,7 @@
     "package": {
       "key": "typing-extensions",
       "package_name": "typing_extensions",
-      "installed_version": "4.1.1"
+      "installed_version": "4.16.0"
     },
     "dependencies": []
   },
