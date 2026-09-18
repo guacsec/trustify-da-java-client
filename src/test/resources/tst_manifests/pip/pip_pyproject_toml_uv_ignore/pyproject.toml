@@ -2,7 +2,7 @@
 name = "test-project"
 version = "0.1.0"
 dependencies = [
-    "anyio==3.6.2",
+    "anyio==4.14.2",
     "flask==2.0.3",  # exhortignore
     "requests==2.25.1",
 ]
