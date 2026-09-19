@@ -71,7 +71,7 @@ sentry-sdk==1.29.2
 service-identity==18.1.0
 Shapely==1.8.5.post1
 simpleline==1.9.0
-soupsieve==2.4.1
+soupsieve==2.9
 SpeechRecognition==3.8.1
 Sphinx==7.2.6
 sphinx-basic-ng==1.0.0b2
