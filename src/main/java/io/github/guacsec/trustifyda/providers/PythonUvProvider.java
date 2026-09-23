@@ -163,6 +163,7 @@ public final class PythonUvProvider extends PythonProvider {
    */
   UvDependencyData parseUvExport(String exportOutput) throws IOException {
     String projectName = PyprojectTomlUtils.canonicalize(getRootComponentName());
+    Path workspaceRoot = getWorkspaceRoot();
     Map<String, UvPackage> packages = new HashMap<>();
     List<String> directDeps = new ArrayList<>();
     List<String[]> parentChildPairs = new ArrayList<>();
@@ -186,7 +187,7 @@ public final class PythonUvProvider extends PythonProvider {
       // Editable installs are workspace members — resolve name/version from their pyproject.toml
       if (line.startsWith("-e ")) {
         inViaBlock = false;
-        currentKey = parseEditableInstall(line, packages, projectName);
+        currentKey = parseEditableInstall(line, packages, projectName, workspaceRoot);
         continue;
       }
 
@@ -251,17 +252,45 @@ public final class PythonUvProvider extends PythonProvider {
   }
 
   /**
-   * Parses an editable install line ({@code -e file:///path/to/member}) by reading the member's
-   * {@code pyproject.toml} to extract name and version. Skips the root project itself and packages
-   * missing either name or version, matching the JS client behavior.
+   * Resolves the workspace root used as the base for relative editable-install paths. uv emits
+   * workspace members relative to the workspace root (the directory containing {@code uv.lock}),
+   * not the directory the export ran from. Falls back to the manifest directory when no lock file
+   * is found in a parent.
+   */
+  private Path getWorkspaceRoot() {
+    Path manifestDir = manifestPath.toAbsolutePath().getParent();
+    if (Files.isRegularFile(manifestDir.resolve(LOCK_FILE))) {
+      return manifestDir;
+    }
+    Path lockDir = PythonProviderFactory.findLockFileDirInParents(manifestDir);
+    return lockDir != null ? lockDir : manifestDir;
+  }
+
+  /**
+   * Resolves an editable-install path token into a filesystem directory. uv workspaces emit
+   * relative paths like {@code ./package-a}; older/synthetic output may use an absolute {@code
+   * file://} URI. Relative and bare-absolute paths are resolved against the workspace root,
+   * mirroring the JS client's {@code path.resolve(workspaceDir, token)}.
+   */
+  private static Path resolveEditablePath(String token, Path workspaceRoot) {
+    if (token.startsWith("file:")) {
+      return Path.of(URI.create(token));
+    }
+    return workspaceRoot.resolve(token).normalize();
+  }
+
+  /**
+   * Parses an editable install line ({@code -e ./member} or {@code -e file:///path/to/member}) by
+   * reading the member's {@code pyproject.toml} to extract name and version. Skips the root project
+   * itself and packages missing either name or version, matching the JS client behavior.
    *
    * @return the canonicalized package key, or {@code null} if the member could not be resolved
    */
   private static String parseEditableInstall(
-      String line, Map<String, UvPackage> packages, String projectName) {
+      String line, Map<String, UvPackage> packages, String projectName, Path workspaceRoot) {
     String uri = line.substring("-e ".length()).trim();
     try {
-      Path memberDir = Path.of(URI.create(uri));
+      Path memberDir = resolveEditablePath(uri, workspaceRoot);
       Path memberToml = memberDir.resolve("pyproject.toml");
       if (!Files.isRegularFile(memberToml)) {
         log.fine("Editable install pyproject.toml not found: " + memberToml);
