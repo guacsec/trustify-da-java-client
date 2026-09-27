@@ -91,7 +91,9 @@ public final class YarnBerryProcessor extends YarnProcessor {
   }
 
   private boolean isRoot(String name) {
-    return name.endsWith("@workspace:.");
+    // Standalone projects report the root as "@workspace:.", but workspace members report their own
+    // node as "<name>@workspace:packages/<name>". Match the member's package name to find its root.
+    return name.endsWith("@workspace:.") || name.startsWith(manifest.name + "@workspace:");
   }
 
   @Override
