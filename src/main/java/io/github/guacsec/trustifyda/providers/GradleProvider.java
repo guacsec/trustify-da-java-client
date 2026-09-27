@@ -28,6 +28,7 @@ import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
+import io.github.guacsec.trustifyda.utils.Environment;
 import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,7 +61,10 @@ public final class GradleProvider extends BaseJavaProvider {
   private static final Logger log = LoggersFactory.getLogger(GradleProvider.class.getName());
 
   private static final long TIMEOUT =
-      Long.parseLong(System.getProperty("trustify.gradle.timeout.seconds", "120"));
+      Long.parseLong(
+          Environment.get(
+              "TRUSTIFY_DA_GRADLE_TIMEOUT",
+              System.getProperty("trustify.gradle.timeout.seconds", "120")));
 
   private final String gradleExecutable = Operations.getExecutable("gradle", "--version");
 
