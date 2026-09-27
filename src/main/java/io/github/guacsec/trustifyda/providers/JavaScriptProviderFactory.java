@@ -69,7 +69,7 @@ public final class JavaScriptProviderFactory {
             manifestPath, validLockFiles));
   }
 
-  private static Path findLockFileDirInParents(Path startDir) {
+  static Path findLockFileDirInParents(Path startDir) {
     // Environment override takes precedence
     String workspaceDirOverride = Environment.get("TRUSTIFY_DA_WORKSPACE_DIR");
     if (workspaceDirOverride != null && !workspaceDirOverride.isBlank()) {

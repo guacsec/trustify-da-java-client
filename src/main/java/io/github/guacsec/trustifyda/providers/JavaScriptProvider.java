@@ -287,7 +287,14 @@ public abstract class JavaScriptProvider extends Provider {
 
   @Override
   public void validateLockFile(Path lockFileDir) {
-    if (!Files.isRegularFile(lockFileDir.resolve(lockFileName()))) {
+    // Fast path: standalone project with its own lock file.
+    if (Files.isRegularFile(lockFileDir.resolve(lockFileName()))) {
+      return;
+    }
+    // Workspace members keep no lock of their own — the single lock lives at the workspace root.
+    // Walk up (stopping at the workspace boundary) to find it.
+    Path lockDir = JavaScriptProviderFactory.findLockFileDirInParents(lockFileDir);
+    if (lockDir == null || !Files.isRegularFile(lockDir.resolve(lockFileName()))) {
       throw new IllegalStateException(
           String.format(
               "Lock file does not exist or is not supported. Execute '%s install' to generate it.",

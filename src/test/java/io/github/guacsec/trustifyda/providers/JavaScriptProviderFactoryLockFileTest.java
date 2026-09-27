@@ -17,8 +17,10 @@
 package io.github.guacsec.trustifyda.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.guacsec.trustifyda.tools.Ecosystem;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -131,5 +133,28 @@ class JavaScriptProviderFactoryLockFileTest {
     assertThatThrownBy(() -> JavaScriptProviderFactory.create(memberDir.resolve("package.json")))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("No known lock file found");
+  }
+
+  /**
+   * Regression (TC-6520): Ecosystem.getProvider validates a workspace member whose lock file lives
+   * only at the workspace root. validateLockFile must walk up to the root rather than checking the
+   * member directory alone, so this must not throw.
+   */
+  @Test
+  void testGetProviderValidatesMemberAgainstWorkspaceRootLock(@TempDir Path tempDir)
+      throws IOException {
+    // Workspace root: workspaces config + the single lock file (member carries no lock of its own).
+    Files.writeString(
+        tempDir.resolve("package.json"),
+        "{\"name\": \"monorepo\", \"version\": \"1.0.0\", \"private\": true,"
+            + " \"workspaces\": [\"packages/*\"]}");
+    Files.writeString(tempDir.resolve("package-lock.json"), "{}");
+
+    Path memberDir = tempDir.resolve("packages/pkg-a");
+    Files.createDirectories(memberDir);
+    Path memberManifest = memberDir.resolve("package.json");
+    Files.writeString(memberManifest, "{\"name\": \"pkg-a\", \"version\": \"1.0.0\"}");
+
+    assertThatCode(() -> Ecosystem.getProvider(memberManifest)).doesNotThrowAnyException();
   }
 }
