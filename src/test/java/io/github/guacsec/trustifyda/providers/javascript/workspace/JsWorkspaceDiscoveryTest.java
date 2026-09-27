@@ -54,11 +54,11 @@ class JsWorkspaceDiscoveryTest {
     // When discovering workspace manifests
     List<Path> manifests = JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, Set.of());
 
-    // Then both libraries are discovered
-    assertThat(manifests).hasSize(2);
+    // Then both libraries plus the workspace root itself are discovered.
+    assertThat(manifests).hasSize(3);
     assertThat(manifests)
         .extracting(p -> p.getParent().getFileName().toString())
-        .containsExactlyInAnyOrder("lib-a", "lib-b");
+        .containsExactlyInAnyOrder("package_json_array", "lib-a", "lib-b");
   }
 
   /** Verifies that package.json workspaces object format with packages key is parsed. */
@@ -70,11 +70,11 @@ class JsWorkspaceDiscoveryTest {
     // When discovering workspace manifests
     List<Path> manifests = JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, Set.of());
 
-    // Then the module is discovered
-    assertThat(manifests).hasSize(1);
+    // Then the module plus the workspace root itself are discovered.
+    assertThat(manifests).hasSize(2);
     assertThat(manifests)
         .extracting(p -> p.getParent().getFileName().toString())
-        .containsExactly("mod-a");
+        .containsExactlyInAnyOrder("package_json_object", "mod-a");
   }
 
   /** Verifies that manifests missing name or version are skipped during validation. */
@@ -86,11 +86,12 @@ class JsWorkspaceDiscoveryTest {
     // When discovering workspace manifests
     List<Path> manifests = JsWorkspaceDiscovery.discoverWorkspaceManifests(workspaceDir, Set.of());
 
-    // Then only the valid package is included
-    assertThat(manifests).hasSize(1);
+    // Then only the valid package (and the valid workspace root) are included; the members missing
+    // name or version are skipped.
+    assertThat(manifests).hasSize(2);
     assertThat(manifests)
         .extracting(p -> p.getParent().getFileName().toString())
-        .containsExactly("valid");
+        .containsExactlyInAnyOrder("with_invalid", "valid");
   }
 
   /** Verifies that an empty packages array in pnpm-workspace.yaml returns no manifests. */

@@ -69,6 +69,16 @@ public final class JsWorkspaceDiscovery {
     }
 
     List<Path> manifests = findManifestsByGlobs(workspaceDir, workspaceGlobs);
+
+    // A package.json-workspaces root is itself an analyzable member (its own direct deps); pnpm
+    // roots are not.
+    if (!Files.isRegularFile(workspaceDir.resolve(PNPM_WORKSPACE_YAML))) {
+      Path rootManifest = workspaceDir.resolve(PACKAGE_JSON);
+      if (Files.isRegularFile(rootManifest) && !manifests.contains(rootManifest)) {
+        manifests.add(0, rootManifest);
+      }
+    }
+
     manifests = WorkspaceUtils.filterByIgnorePatterns(workspaceDir, manifests, ignorePatterns);
     manifests = validateManifests(manifests);
     return Collections.unmodifiableList(manifests);
