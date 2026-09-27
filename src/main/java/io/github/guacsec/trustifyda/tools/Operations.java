@@ -33,7 +33,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /** Utility class used for executing process on the operating system. * */
 public final class Operations {
@@ -102,6 +101,9 @@ public final class Operations {
     if (envMap != null) {
       processBuilder.environment().putAll(envMap);
     }
+    // Merge stderr into stdout so a single drainer keeps the pipe empty (a full pipe buffer would
+    // block the child and deadlock waitFor).
+    processBuilder.redirectErrorStream(true);
     // create a process builder or throw a runtime exception
     Process process;
     try {
@@ -112,12 +114,31 @@ public final class Operations {
               "failed to build process for '%s' got %s", join(" ", cmdList), e.getMessage()));
     }
 
+    // Close the child's stdin: package managers (e.g. pnpm) prompt "reinstall from scratch?
+    // (Y/n)" and would block forever waiting on input. EOF makes them run non-interactively.
+    try {
+      process.getOutputStream().close();
+    } catch (IOException ignored) {
+      // Nothing to feed the child anyway; a failure here does not affect execution.
+    }
+
+    // Drain output concurrently so the child never blocks writing while we wait.
+    CompletableFuture<String> outputFuture =
+        CompletableFuture.supplyAsync(() -> drainStream(process.getInputStream()));
+
     // execute the command or throw runtime exception if failed
     int exitCode;
     try {
-      exitCode = process.waitFor();
-
+      if (!process.waitFor(DEFAULT_PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+        process.destroyForcibly();
+        throw new RuntimeException(
+            String.format(
+                "Command '%s' timed out after %d seconds",
+                join(" ", cmdList), DEFAULT_PROCESS_TIMEOUT_SECONDS));
+      }
+      exitCode = process.exitValue();
     } catch (final InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new RuntimeException(
           String.format(
               "built process for '%s' interrupted, got %s", join(" ", cmdList), e.getMessage()));
@@ -125,23 +146,10 @@ public final class Operations {
     // verify the command was executed successfully or throw a runtime exception
     if (exitCode != 0) {
       String errMsg;
-      try (var reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-        errMsg = reader.lines().collect(Collectors.joining(System.lineSeparator()));
-      } catch (IOException e) {
-        throw new RuntimeException(
-            String.format(
-                "unable to process error output for '%s', got %s",
-                join(" ", cmdList), e.getMessage()));
-      }
-
-      if (errMsg.isEmpty()) {
-        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-          errMsg = reader.lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (IOException e) {
-          throw new RuntimeException(
-              String.format(
-                  "unable to process output for '%s', got %s", join(" ", cmdList), e.getMessage()));
-        }
+      try {
+        errMsg = outputFuture.get().trim();
+      } catch (InterruptedException | ExecutionException e) {
+        errMsg = "";
       }
       if (errMsg.isEmpty()) {
         throw new RuntimeException(
