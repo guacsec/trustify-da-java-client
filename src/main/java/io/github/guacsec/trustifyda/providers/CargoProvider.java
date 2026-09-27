@@ -55,6 +55,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
 
@@ -308,8 +309,7 @@ public final class CargoProvider extends Provider {
 
   @Override
   public void validateLockFile(Path lockFileDir) {
-    Path actualLockFileDir = findOutermostCargoTomlDirectory(lockFileDir);
-    if (!Files.isRegularFile(actualLockFileDir.resolve("Cargo.lock"))) {
+    if (findCargoLockDir(lockFileDir) == null) {
       throw new IllegalStateException(
           "Cargo.lock does not exist or is not supported. Execute 'cargo build' to generate it.");
     }
@@ -377,16 +377,53 @@ public final class CargoProvider extends Provider {
     }
   }
 
-  private Path findOutermostCargoTomlDirectory(Path startDir) {
-    Path current = startDir.getParent();
-    Path outermost = startDir;
-    while (current != null) {
-      if (Files.exists(current.resolve("Cargo.toml"))) {
-        outermost = current;
-      }
-      current = current.getParent();
+  /** Matches a {@code [workspace]} table header in a Cargo.toml (line-anchored). */
+  private static final Pattern WORKSPACE_SECTION = Pattern.compile("(?m)^\\s*\\[workspace\\]");
+
+  /**
+   * Locates the directory containing the Cargo.lock that governs the manifest in {@code startDir}.
+   *
+   * <p>In Cargo workspaces the lock file always lives at the workspace root, so for a member crate
+   * we walk up from its directory returning the nearest ancestor that contains a Cargo.lock. The
+   * walk stops at the workspace boundary — a Cargo.toml containing a {@code [workspace]} section —
+   * so it never escapes the workspace root and picks up an unrelated Cargo.toml higher on the
+   * filesystem. Honors the {@code TRUSTIFY_DA_WORKSPACE_DIR} override, which pins the lock location
+   * and disables the walk-up.
+   *
+   * @param startDir the directory of the manifest being analyzed
+   * @return the directory containing the applicable Cargo.lock, or {@code null} if none is found
+   */
+  private Path findCargoLockDir(Path startDir) {
+    String workspaceDirOverride = Environment.get("TRUSTIFY_DA_WORKSPACE_DIR");
+    if (workspaceDirOverride != null && !workspaceDirOverride.isBlank()) {
+      Path overrideDir = Path.of(workspaceDirOverride);
+      return Files.isRegularFile(overrideDir.resolve("Cargo.lock")) ? overrideDir : null;
     }
-    return outermost;
+
+    Path dir = startDir.toAbsolutePath().normalize();
+    while (dir != null) {
+      if (Files.isRegularFile(dir.resolve("Cargo.lock"))) {
+        return dir;
+      }
+      // A Cargo.toml with [workspace] marks the workspace root; the lock file would live here if it
+      // existed, so stop rather than escaping the workspace into an unrelated parent Cargo.toml.
+      if (hasWorkspaceSection(dir.resolve("Cargo.toml"))) {
+        return null;
+      }
+      dir = dir.getParent();
+    }
+    return null;
+  }
+
+  private boolean hasWorkspaceSection(Path cargoToml) {
+    if (!Files.isRegularFile(cargoToml)) {
+      return false;
+    }
+    try {
+      return WORKSPACE_SECTION.matcher(Files.readString(cargoToml, StandardCharsets.UTF_8)).find();
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   private CargoMetadata executeCargoMetadata() throws IOException, InterruptedException {
