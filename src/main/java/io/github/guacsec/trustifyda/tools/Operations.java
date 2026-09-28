@@ -21,6 +21,7 @@ import static java.lang.String.join;
 import io.github.guacsec.trustifyda.logging.LoggersFactory;
 import io.github.guacsec.trustifyda.utils.Environment;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -93,6 +95,14 @@ public final class Operations {
 
   public static void runProcess(
       final Path workingDirectory, final String[] cmdList, final Map<String, String> envMap) {
+    runProcess(workingDirectory, cmdList, envMap, DEFAULT_PROCESS_TIMEOUT_SECONDS);
+  }
+
+  static void runProcess(
+      final Path workingDirectory,
+      final String[] cmdList,
+      final Map<String, String> envMap,
+      final long timeoutSeconds) {
     var processBuilder = new ProcessBuilder();
     processBuilder.command(cmdList);
     if (workingDirectory != null) {
@@ -123,46 +133,90 @@ public final class Operations {
     }
 
     // Drain output concurrently so the child never blocks writing while we wait.
-    CompletableFuture<String> outputFuture =
-        CompletableFuture.supplyAsync(() -> drainStream(process.getInputStream()));
+    FutureTask<String> outputFuture = new FutureTask<>(() -> drainStream(process.getInputStream()));
+    Thread outputThread = Thread.ofVirtual().start(outputFuture);
 
     // execute the command or throw runtime exception if failed
-    int exitCode;
+    boolean terminate = false;
     try {
-      if (!process.waitFor(DEFAULT_PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-        process.destroyForcibly();
+      if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+        terminate = true;
         throw new RuntimeException(
             String.format(
-                "Command '%s' timed out after %d seconds",
-                join(" ", cmdList), DEFAULT_PROCESS_TIMEOUT_SECONDS));
+                "Command '%s' timed out after %d seconds", join(" ", cmdList), timeoutSeconds));
       }
-      exitCode = process.exitValue();
+      int exitCode = process.exitValue();
+      // verify the command was executed successfully or throw a runtime exception
+      if (exitCode != 0) {
+        String errMsg;
+        try {
+          errMsg = outputFuture.get().trim();
+        } catch (ExecutionException e) {
+          errMsg = "";
+        }
+        if (errMsg.isEmpty()) {
+          throw new RuntimeException(
+              String.format("failed to execute '%s', exit-code %d", join(" ", cmdList), exitCode));
+        } else {
+          throw new RuntimeException(
+              String.format(
+                  "failed to execute '%s', exit-code %d, message:%s%s%s",
+                  join(" ", cmdList),
+                  exitCode,
+                  System.lineSeparator(),
+                  errMsg,
+                  System.lineSeparator()));
+        }
+      }
     } catch (final InterruptedException e) {
+      terminate = true;
       Thread.currentThread().interrupt();
       throw new RuntimeException(
-          String.format(
-              "built process for '%s' interrupted, got %s", join(" ", cmdList), e.getMessage()));
+          String.format("Command '%s' was interrupted", join(" ", cmdList)), e);
+    } finally {
+      cleanupProcess(process, outputFuture, outputThread, terminate);
     }
-    // verify the command was executed successfully or throw a runtime exception
-    if (exitCode != 0) {
-      String errMsg;
-      try {
-        errMsg = outputFuture.get().trim();
-      } catch (InterruptedException | ExecutionException e) {
-        errMsg = "";
+  }
+
+  private static void cleanupProcess(
+      Process process, FutureTask<String> outputFuture, Thread outputThread, boolean terminate) {
+    boolean interrupted = Thread.interrupted();
+    try {
+      if (terminate) {
+        List<ProcessHandle> descendants = process.toHandle().descendants().toList();
+        process.destroyForcibly();
+        descendants.reversed().forEach(ProcessHandle::destroyForcibly);
+        try {
+          CompletableFuture.allOf(
+                  java.util.stream.Stream.concat(
+                          descendants.stream(), java.util.stream.Stream.of(process.toHandle()))
+                      .map(ProcessHandle::onExit)
+                      .toArray(CompletableFuture[]::new))
+              .get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          interrupted = true;
+        } catch (ExecutionException | java.util.concurrent.TimeoutException ignored) {
+          // Do not wait forever for a process the OS cannot terminate.
+        }
       }
-      if (errMsg.isEmpty()) {
-        throw new RuntimeException(
-            String.format("failed to execute '%s', exit-code %d", join(" ", cmdList), exitCode));
-      } else {
-        throw new RuntimeException(
-            String.format(
-                "failed to execute '%s', exit-code %d, message:%s%s%s",
-                join(" ", cmdList),
-                exitCode,
-                System.lineSeparator(),
-                errMsg,
-                System.lineSeparator()));
+      outputFuture.cancel(true);
+      for (Closeable stream :
+          List.<Closeable>of(
+              process.getInputStream(), process.getErrorStream(), process.getOutputStream())) {
+        try {
+          stream.close();
+        } catch (IOException ignored) {
+          // The process may already have closed its pipe.
+        }
+      }
+      try {
+        outputThread.join(5000);
+      } catch (InterruptedException e) {
+        interrupted = true;
+      }
+    } finally {
+      if (interrupted) {
+        Thread.currentThread().interrupt();
       }
     }
   }
