@@ -60,21 +60,12 @@ public final class GradleProvider extends BaseJavaProvider {
 
   private static final Logger log = LoggersFactory.getLogger(GradleProvider.class.getName());
 
-  private static final long DEFAULT_TIMEOUT = 120;
   private static final long TIMEOUT =
-      parseTimeout(
+      Environment.parseTimeout(
           Environment.get(
               "TRUSTIFY_DA_GRADLE_TIMEOUT",
-              System.getProperty("trustify.gradle.timeout.seconds", "120")));
-
-  static long parseTimeout(String value) {
-    try {
-      long timeout = Long.parseLong(value.trim());
-      return timeout > 0 ? timeout : DEFAULT_TIMEOUT;
-    } catch (NumberFormatException e) {
-      return DEFAULT_TIMEOUT;
-    }
-  }
+              System.getProperty("trustify.gradle.timeout.seconds", "120")),
+          120);
 
   private final String gradleExecutable = Operations.getExecutable("gradle", "--version");
 

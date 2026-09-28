@@ -36,6 +36,7 @@ import io.github.guacsec.trustifyda.sbom.Sbom;
 import io.github.guacsec.trustifyda.sbom.SbomFactory;
 import io.github.guacsec.trustifyda.tools.Ecosystem.Type;
 import io.github.guacsec.trustifyda.tools.Operations;
+import io.github.guacsec.trustifyda.utils.Environment;
 import io.github.guacsec.trustifyda.utils.IgnorePatternDetector;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +76,7 @@ public final class CargoProvider extends Provider {
   private static final String PACKAGE_LICENSE_WORKSPACE = "package.license.workspace";
   private static final String WORKSPACE_PACKAGE_LICENSE = "workspace.package.license";
   private static final long TIMEOUT =
-      Long.parseLong(System.getProperty("trustify.cargo.timeout.seconds", "5"));
+      Environment.parseTimeout(System.getProperty("trustify.cargo.timeout.seconds", "5"), 5);
   private final String cargoExecutable;
 
   private CargoProjectLayout getProjectLayout(CargoMetadata metadata) {

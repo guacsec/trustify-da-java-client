@@ -39,4 +39,13 @@ public final class Environment {
     }
     return defaultValue;
   }
+
+  public static long parseTimeout(String value, long defaultTimeout) {
+    try {
+      long timeout = Long.parseLong(value.trim());
+      return timeout > 0 ? timeout : defaultTimeout;
+    } catch (NumberFormatException e) {
+      return defaultTimeout;
+    }
+  }
 }
