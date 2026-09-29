@@ -70,7 +70,7 @@ class OperationsTest {
             .start(
                 () -> {
                   try {
-                    Operations.runProcess("sh", "-c", "sleep 2 & exit 7");
+                    Operations.runProcess("sh", "-c", "sleep 30");
                   } catch (Throwable e) {
                     failure.set(e);
                     interrupted.set(Thread.currentThread().isInterrupted());
