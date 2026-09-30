@@ -9,7 +9,7 @@ mypy-extensions==1.0.0
 myst-parser==2.0.0
 networkx==2.7.1
 numpy==1.23.3
-oauthlib==3.2.2
+oauthlib==4.0.0
 packaging==23.0
 parsel==1.6.0
 Paste==3.5.2
