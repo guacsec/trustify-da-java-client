@@ -7,6 +7,14 @@ on:
       - main
 
 jobs:
+  dependabot-config:
+    name: Verify dependabot config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check dependabot.yml covers all test fixture manifests
+        run: bash scripts/sync-dependabot-config.sh --check
+
   build:
     runs-on: ubuntu-latest
     name: Build and test Java ${{ matrix.java }}
